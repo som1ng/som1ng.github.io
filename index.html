@@ -178,6 +178,253 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/aes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/09/aes/" class="post-title-link" itemprop="url">逆向中的AES(一)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-10-10 23:38:57" itemprop="dateModified" datetime="2025-10-10T23:38:57+08:00">2025-10-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">对称加密题单</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>aes在逆向有很多应用，尤其是现在越来越多软件加密逻辑都选择aes，所以总结一下aes的算法和在ctf逆向中的考点</p>
+<h1 id="aes算法基础"><a href="#aes算法基础" class="headerlink" title="aes算法基础"></a>aes算法基础</h1><p><img data-src="D:\ctf\s0m1ng\source\images\aes\aes结构.png" alt="aes结构"></p>
+<p>aes最重要的一个特征就是输入是128位分组，输出也是128位分组，但其中key分128位，192位，256位三种版本</p>
+<table>
+<thead>
+<tr>
+<th>AES 类型</th>
+<th>密钥长度</th>
+<th>轮数 (Nr)</th>
+<th>密钥字数 (Nk)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AES-128</td>
+<td>128 位</td>
+<td>10</td>
+<td>4</td>
+</tr>
+<tr>
+<td>AES-192</td>
+<td>192 位</td>
+<td>12</td>
+<td>6</td>
+</tr>
+<tr>
+<td>AES-256</td>
+<td>256 位</td>
+<td>14</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<p>aes分组后16个字节是按矩阵方式排列</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\aes\aes字节约定.png" alt="aes字节约定"></p>
+<h1 id="加密总流程："><a href="#加密总流程：" class="headerlink" title="加密总流程："></a>加密总流程：</h1><p><img data-src="D:\ctf\s0m1ng\source\images\aes\总结构.png" alt="总结构"></p>
+<p>最终轮和前面9轮的区别是没有第三个步骤列混合</p>
+<h2 id="初始变换-Initial-round"><a href="#初始变换-Initial-round" class="headerlink" title="初始变换(Initial round)"></a>初始变换(Initial round)</h2><p>初始变换就是输入的16个字节和密钥(不确定几位)进行密钥扩展后生成的$\text{RoundKey}_0$(16位)异或的结果</p>
+<p>$$<br>\text{State}’ &#x3D; \text{State} \oplus \text{RoundKey}_0<br>$$</p>
+<p>展开为矩阵形式：</p>
+<p>$$<br>\begin{bmatrix}<br>s_{0,0} &amp; s_{0,1} &amp; s_{0,2} &amp; s_{0,3} \<br>s_{1,0} &amp; s_{1,1} &amp; s_{1,2} &amp; s_{1,3} \<br>s_{2,0} &amp; s_{2,1} &amp; s_{2,2} &amp; s_{2,3} \<br>s_{3,0} &amp; s_{3,1} &amp; s_{3,2} &amp; s_{3,3}<br>\end{bmatrix}<br>;\oplus;<br>\begin{bmatrix}<br>k_{0,0} &amp; k_{0,1} &amp; k_{0,2} &amp; k_{0,3} \<br>k_{1,0} &amp; k_{1,1} &amp; k_{1,2} &amp; k_{1,3} \<br>k_{2,0} &amp; k_{2,1} &amp; k_{2,2} &amp; k_{2,3} \<br>k_{3,0} &amp; k_{3,1} &amp; k_{3,2} &amp; k_{3,3}<br>\end{bmatrix}<br>;&#x3D;;<br>\begin{bmatrix}<br>s’<em>{0,0} &amp; s’</em>{0,1} &amp; s’<em>{0,2} &amp; s’</em>{0,3} \<br>s’<em>{1,0} &amp; s’</em>{1,1} &amp; s’<em>{1,2} &amp; s’</em>{1,3} \<br>s’<em>{2,0} &amp; s’</em>{2,1} &amp; s’<em>{2,2} &amp; s’</em>{2,3} \<br>s’<em>{3,0} &amp; s’</em>{3,1} &amp; s’<em>{3,2} &amp; s’</em>{3,3}<br>\end{bmatrix}<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$s_{i,j}$ 为明文状态矩阵中第 $(i,j)$ 个字节  </li>
+<li>$k_{i,j}$ 为轮密钥矩阵中第 $(i,j)$ 个字节  </li>
+<li>$\oplus$ 表示按字节异或（XOR）运算</li>
+</ul>
+<h2 id="循环运算："><a href="#循环运算：" class="headerlink" title="循环运算："></a>循环运算：</h2><h3 id="字节代换："><a href="#字节代换：" class="headerlink" title="字节代换："></a>字节代换：</h3><p><img data-src="D:\ctf\s0m1ng\source\images\aes\字节代换.png" alt="字节代换"></p>
+<p>字节代换就是把第一步初始变换后的16字节矩阵块用s表代换，例如矩阵左上角的数是十六进制19，那就要代换成s盒中第1行第9列，查表可知是d4，以此类推</p>
+<p>结果：</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\aes\字节代换结果.png" alt="字节代换结果"></p>
+<h3 id="行移位："><a href="#行移位：" class="headerlink" title="行移位："></a>行移位：</h3><p>ShiftRows 操作在状态矩阵上进行，规则如下：</p>
+<ul>
+<li>第 0 行不变</li>
+<li>第 1 行循环左移 1 字节</li>
+<li>第 2 行循环左移 2 字节</li>
+<li>第 3 行循环左移 3 字节</li>
+</ul>
+<p>原始状态矩阵：</p>
+<p>$$<br>\text{State} &#x3D;<br>\begin{bmatrix}<br>s_{0,0} &amp; s_{0,1} &amp; s_{0,2} &amp; s_{0,3} \<br>s_{1,0} &amp; s_{1,1} &amp; s_{1,2} &amp; s_{1,3} \<br>s_{2,0} &amp; s_{2,1} &amp; s_{2,2} &amp; s_{2,3} \<br>s_{3,0} &amp; s_{3,1} &amp; s_{3,2} &amp; s_{3,3}<br>\end{bmatrix}<br>$$</p>
+<p>经过行移位后：</p>
+<p>$$<br>\text{State}’ &#x3D;<br>\begin{bmatrix}<br>s_{0,0} &amp; s_{0,1} &amp; s_{0,2} &amp; s_{0,3} \<br>s_{1,1} &amp; s_{1,2} &amp; s_{1,3} &amp; s_{1,0} \<br>s_{2,2} &amp; s_{2,3} &amp; s_{2,0} &amp; s_{2,1} \<br>s_{3,3} &amp; s_{3,0} &amp; s_{3,1} &amp; s_{3,2}<br>\end{bmatrix}<br>$$</p>
+<p>每一行的移位规律如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center">行号</th>
+<th align="center">移位字节数</th>
+<th align="center">移位方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">不变</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">左移</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">左移</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">3</td>
+<td align="center">左移</td>
+</tr>
+</tbody></table>
+<h3 id="列混淆："><a href="#列混淆：" class="headerlink" title="列混淆："></a>列混淆：</h3><p><img data-src="D:\ctf\s0m1ng\source\images\aes\列混淆.png" alt="列混淆"></p>
+<p>左乘一个确定的矩阵，但是这里的乘法不是普通乘法</p>
+<h4 id="列混淆中的乘法"><a href="#列混淆中的乘法" class="headerlink" title="列混淆中的乘法"></a>列混淆中的乘法</h4><p>$$<br>\begin{aligned}<br>s’<em>{0,c} &amp;&#x3D; (02 \cdot s</em>{0,c}) \oplus (03 \cdot s_{1,c}) \oplus s_{2,c} \oplus s_{3,c} \<br>s’<em>{1,c} &amp;&#x3D; s</em>{0,c} \oplus (02 \cdot s_{1,c}) \oplus (03 \cdot s_{2,c}) \oplus s_{3,c} \<br>s’<em>{2,c} &amp;&#x3D; s</em>{0,c} \oplus s_{1,c} \oplus (02 \cdot s_{2,c}) \oplus (03 \cdot s_{3,c}) \<br>s’<em>{3,c} &amp;&#x3D; (03 \cdot s</em>{0,c}) \oplus s_{1,c} \oplus s_{2,c} \oplus (02 \cdot s_{3,c})<br>\end{aligned}<br>$$</p>
+<p>其中乘法在有限域 $GF(2^8)$ 上进行：</p>
+<ul>
+<li>$02 \cdot x$ 表示按字节左移一位（若最高位为 1，则再与 <code>0x1B</code> 异或）  </li>
+<li>$03 \cdot x &#x3D; (02 \cdot x) \oplus x$</li>
+</ul>
+<p>注：与0x1B异或是因为要构造有限域$GF(2^8)$构造出来的多项式把$x^8$模之后的结果，学逆向不用学那么深，只需要知道aes的加密解密和漏洞攻击就可以了</p>
+<h3 id="轮密钥加："><a href="#轮密钥加：" class="headerlink" title="轮密钥加："></a>轮密钥加：</h3><p>AddRoundKey 是 AES 每一轮中最简单但最关键的操作之一。<br>它将 <strong>状态矩阵 (State)</strong> 与 <strong>轮密钥矩阵 (RoundKey)</strong> 按字节异或（XOR）：</p>
+<p>$$<br>\text{State}’ &#x3D; \text{State} \oplus \text{RoundKey}_i<br>$$</p>
+<p>设状态矩阵为：</p>
+<p>$$<br>\text{State} &#x3D;<br>\begin{bmatrix}<br>s_{0,0} &amp; s_{0,1} &amp; s_{0,2} &amp; s_{0,3} \<br>s_{1,0} &amp; s_{1,1} &amp; s_{1,2} &amp; s_{1,3} \<br>s_{2,0} &amp; s_{2,1} &amp; s_{2,2} &amp; s_{2,3} \<br>s_{3,0} &amp; s_{3,1} &amp; s_{3,2} &amp; s_{3,3}<br>\end{bmatrix}<br>$$</p>
+<p>轮密钥矩阵为：</p>
+<p>$$<br>\text{RoundKey}<em>i &#x3D;<br>\begin{bmatrix}<br>k</em>{0,0} &amp; k_{0,1} &amp; k_{0,2} &amp; k_{0,3} \<br>k_{1,0} &amp; k_{1,1} &amp; k_{1,2} &amp; k_{1,3} \<br>k_{2,0} &amp; k_{2,1} &amp; k_{2,2} &amp; k_{2,3} \<br>k_{3,0} &amp; k_{3,1} &amp; k_{3,2} &amp; k_{3,3}<br>\end{bmatrix}<br>$$</p>
+<p>异或后得到：</p>
+<p>$$<br>\text{State}’ &#x3D;<br>\begin{bmatrix}<br>s_{0,0} \oplus k_{0,0} &amp; s_{0,1} \oplus k_{0,1} &amp; s_{0,2} \oplus k_{0,2} &amp; s_{0,3} \oplus k_{0,3} \<br>s_{1,0} \oplus k_{1,0} &amp; s_{1,1} \oplus k_{1,1} &amp; s_{1,2} \oplus k_{1,2} &amp; s_{1,3} \oplus k_{1,3} \<br>s_{2,0} \oplus k_{2,0} &amp; s_{2,1} \oplus k_{2,1} &amp; s_{2,2} \oplus k_{2,2} &amp; s_{2,3} \oplus k_{2,3} \<br>s_{3,0} \oplus k_{3,0} &amp; s_{3,1} \oplus k_{3,1} &amp; s_{3,2} \oplus k_{3,2} &amp; s_{3,3} \oplus k_{3,3}<br>\end{bmatrix}<br>$$</p>
+<h3 id="按字节运算公式"><a href="#按字节运算公式" class="headerlink" title="按字节运算公式"></a>按字节运算公式</h3><p>每个字节的计算方式为：</p>
+<p>$$<br>s’<em>{i,j} &#x3D; s</em>{i,j} \oplus k_{i,j}, \quad 0 \le i,j \le 3<br>$$</p>
+<h2 id="密钥扩展："><a href="#密钥扩展：" class="headerlink" title="密钥扩展："></a>密钥扩展：</h2><p>初始只有128&#x2F;192&#x2F;256位的密钥是怎么更新的呢，这就涉及到密钥扩展</p>
+<p>这是初始状态，这里以128位密钥为例，先全部填入前4列，设第5列为Wi</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\aes\密钥扩展初始.png" alt="密钥扩展初始"></p>
+<ol>
+<li><strong>初始部分：</strong></li>
+</ol>
+<p>$$<br>W[i] &#x3D; \text{原始密钥的第 } i \text{ 个 32 位字}, \quad 0 \le i &lt; N_k<br>$$</p>
+<ol start="2">
+<li><strong>递推部分：（适用于所有aes算法）</strong></li>
+</ol>
+<p>对于 $i \ge N_k$：</p>
+<p>$$<br>W[i] &#x3D;<br>\begin{cases}<br>W[i - N_k] \oplus \text{SubWord}(\text{RotWord}(W[i - 1])) \oplus \text{Rcon}[i&#x2F;N_k], &amp; \text{if } i \bmod N_k &#x3D; 0 \<br>W[i - N_k] \oplus \text{SubWord}(W[i - 1]), &amp; \text{if } N_k &gt; 6 \text{ and } i \bmod N_k &#x3D; 4  (只有aes256有这条)\<br>W[i - N_k] \oplus W[i - 1], &amp; \text{otherwise}<br>\end{cases}<br>$$</p>
+<h3 id="函数定义"><a href="#函数定义" class="headerlink" title="函数定义"></a>函数定义</h3><p><strong>RotWord：</strong><br>循环左移 1 字节  </p>
+<p>$$<br>[a_0, a_1, a_2, a_3] \Rightarrow [a_1, a_2, a_3, a_0]<br>$$</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\aes\字循环.png" alt="字循环"></p>
+<p><strong>SubWord：</strong><br>对 4 个字节分别进行 S-box 替代  </p>
+<p>$$<br>[a_0, a_1, a_2, a_3] \Rightarrow [S(a_0), S(a_1), S(a_2), S(a_3)]<br>$$</p>
+<p><strong>Rcon：</strong><br>轮常数，仅作用于字的第一个字节：</p>
+<p>$$<br>\text{Rcon}[i] &#x3D;<br>\begin{bmatrix}<br>\text{RC}[i] &amp; 00 &amp; 00 &amp; 00<br>\end{bmatrix}<br>$$</p>
+<p>其中<br>$\text{RC}[1] &#x3D; 0x01$，<br>$\text{RC}[2] &#x3D; 0x02$，<br>$\text{RC}[3] &#x3D; 0x04$，<br>$\text{RC}[4] &#x3D; 0x08$，<br>$\text{RC}[5] &#x3D; 0x10$，<br>$\text{RC}[6] &#x3D; 0x20$，<br>$\text{RC}[7] &#x3D; 0x40$，<br>$\text{RC}[8] &#x3D; 0x80$，<br>$\text{RC}[9] &#x3D; 0x1B$，<br>$\text{RC}[10] &#x3D; 0x36$</p>
+<h3 id="最终结果"><a href="#最终结果" class="headerlink" title="最终结果"></a>最终结果</h3><p><img data-src="D:\ctf\s0m1ng\source\images\aes\密钥最终结果.png" alt="密钥最终结果"></p>
+<h1 id="解密方式"><a href="#解密方式" class="headerlink" title="解密方式"></a>解密方式</h1><p>就是把上述过程反过来一遍（解密的第一轮没有列混合逆向）</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\aes\加解密.png" alt="加解密"></p>
+<p>其中的轮密钥加只需要每轮相同状态的W[i,i+3]就可以</p>
+<h2 id="逆列混淆"><a href="#逆列混淆" class="headerlink" title="逆列混淆"></a>逆列混淆</h2><p><img data-src="D:\ctf\s0m1ng\source\images\aes\逆列混淆.png" alt="逆列混淆"></p>
+<h2 id="逆行移位："><a href="#逆行移位：" class="headerlink" title="逆行移位："></a>逆行移位：</h2><p>就是逆向移位就可以，很简单</p>
+<h2 id="逆s表"><a href="#逆s表" class="headerlink" title="逆s表"></a>逆s表</h2><p><img data-src="D:\ctf\s0m1ng\source\images\aes\逆s表.png" alt="逆s表"></p>
+<p>查表即可</p>
+<h1 id="逆向题型："><a href="#逆向题型：" class="headerlink" title="逆向题型："></a>逆向题型：</h1><h2 id="普通AES"><a href="#普通AES" class="headerlink" title="普通AES"></a>普通AES</h2><p>找到密钥，找到密文，逆向脚本，进行解密。</p>
+<h2 id="白盒AES"><a href="#白盒AES" class="headerlink" title="白盒AES"></a>白盒AES</h2><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>普通 AES（黑盒）</th>
+<th>白盒 AES</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>密钥</td>
+<td>独立变量、明确定义</td>
+<td>被混入查表中，不可直接访问</td>
+</tr>
+<tr>
+<td>算法结构</td>
+<td>明确的五步（SubBytes 等）</td>
+<td>各步骤混淆成查表和线性映射</td>
+</tr>
+<tr>
+<td>可移植性</td>
+<td>高（用同样的密钥随处运行）</td>
+<td>低（查表与密钥绑定）</td>
+</tr>
+<tr>
+<td>安全假设</td>
+<td>攻击者看不到内部</td>
+<td>攻击者能看到全部</td>
+</tr>
+</tbody></table>
+<p> 目前市面上大多数app都是基于白盒aes开发的，还有查表法实现的aes真的严格按照上面讲的aes流程走的很少，白盒aes东西太多了，而且还有很多攻击手法，就放在”逆向中的AES(二)“里讲好了</p>
+<h1 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h1><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1i341187fK/?spm_id_from=333.337.search-card.all.click">【AES加密算法】| AES加密过程详解| 对称加密| Rijndael-128| 密码学| 信息安全_哔哩哔哩_bilibili</a></p>
+<p><a target="_blank" rel="noopener" href="https://goodapple.top/archives/162">密码学——AES&#x2F;DES加密算法原理介绍 - 枫のBlog</a></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8A-SEH/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1295,17 +1542,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
