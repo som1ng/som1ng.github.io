@@ -25,7 +25,7 @@
   <meta name="description" content="前言:拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下 rust相比其他编程语言的优势: rust不通过GC(garbage collection)机制管理内存,例如python,golang等基于GC机制的编程语言会在exe运行时不断寻找虚拟地址中无用的内存空间.这会大大降低运行速度  rust使用所有权机制管理内存,这也使得它相比与手动开辟内存的c">
 <meta property="og:type" content="article">
 <meta property="og:title" content="rust逆向基础-rust基础语法">
-<meta property="og:url" content="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:url" content="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="s0m1ng">
 <meta property="og:description" content="前言:拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下 rust相比其他编程语言的优势: rust不通过GC(garbage collection)机制管理内存,例如python,golang等基于GC机制的编程语言会在exe运行时不断寻找虚拟地址中无用的内存空间.这会大大降低运行速度  rust使用所有权机制管理内存,这也使得它相比与手动开辟内存的c">
 <meta property="og:locale" content="zh_CN">
@@ -35,7 +35,7 @@
 <meta property="article:tag" content="rust">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
+<link rel="canonical" href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
 
 
 <script id="page-configurations">
@@ -181,7 +181,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -461,7 +461,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" title="rust逆向基础-rust基础语法">http://example.com/2025/10/01/rust逆向基础/</a>
+    <a href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" title="rust逆向基础-rust基础语法">http://example.com/2025/10/01/rust逆向题单/rust逆向基础/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -500,12 +500,9 @@
 
         
     <div class="post-nav">
+      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2025/09/29/hello-world/" rel="prev" title="Hello World">
-      <i class="fa fa-chevron-left"></i> Hello World
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/10/06/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" rel="next" title="vm逆向基础及做题套路">
+    <a href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" rel="next" title="vm逆向基础及做题套路">
       vm逆向基础及做题套路 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
@@ -582,7 +579,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
