@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="分组密码工作模式工作模式对算法本身结构没有影响，影响的是明文密文 ECB：电子密码本模式(electronic codebook mode) 从ECB的工作原理可以看出，如果明文数据在等分后，两块数据相同则会产生相同的加密数据块，这会辅助攻击者快速判断加密算法的工作模式，而将攻击资源聚集在破解某一块数据即可，一旦成功则意味着全文破解，大大提升了攻击效率。  \text{加密：}\quad C_i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分组密码的加密模式及攻击">
+<meta property="og:url" content="http://example.com/2025/10/09/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="分组密码工作模式工作模式对算法本身结构没有影响，影响的是明文密文 ECB：电子密码本模式(electronic codebook mode) 从ECB的工作原理可以看出，如果明文数据在等分后，两块数据相同则会产生相同的加密数据块，这会辅助攻击者快速判断加密算法的工作模式，而将攻击资源聚集在破解某一块数据即可，一旦成功则意味着全文破解，大大提升了攻击效率。  \text{加密：}\quad C_i">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/ecb.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/cbc.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/dcbc.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/cfb.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/cfb%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/ofb.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/ctr.png">
+<meta property="og:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/poa.png">
+<meta property="article:published_time" content="2025-10-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-11T17:00:05.731Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="aes">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E6%A8%A1%E5%BC%8F/ecb.png">
+
+<link rel="canonical" href="http://example.com/2025/10/09/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>分组密码的加密模式及攻击 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分组密码的加密模式及攻击
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-10-12 01:00:05" itemprop="dateModified" datetime="2025-10-12T01:00:05+08:00">2025-10-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">对称加密题单</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="分组密码工作模式"><a href="#分组密码工作模式" class="headerlink" title="分组密码工作模式"></a>分组密码工作模式</h1><p>工作模式对算法本身结构没有影响，影响的是明文密文</p>
+<h2 id="ECB：电子密码本模式-electronic-codebook-mode"><a href="#ECB：电子密码本模式-electronic-codebook-mode" class="headerlink" title="ECB：电子密码本模式(electronic codebook mode)"></a>ECB：电子密码本模式(electronic codebook mode)</h2><p><img data-src="/images/分组密码模式/ecb.png" alt="ecb"></p>
+<p>从ECB的工作原理可以看出，如果明文数据在等分后，两块数据相同则会产生相同的加密数据块，这会辅助攻击者快速判断加密算法的工作模式，而将攻击资源聚集在破解某一块数据即可，一旦成功则意味着全文破解，大大提升了攻击效率。</p>
+<script type="math/tex; mode=display">
+\text{加密：}\quad C_i = E_k(P_i)</script><script type="math/tex; mode=display">
+\text{解密：}\quad P_i = D_k(C_i)</script><h2 id="CBC：密码分组链接模式（cipher-block-chaining-Triple）"><a href="#CBC：密码分组链接模式（cipher-block-chaining-Triple）" class="headerlink" title="CBC：密码分组链接模式（cipher block chaining Triple）"></a>CBC：密码分组链接模式（cipher block chaining Triple）</h2><p><img data-src="/images/分组密码模式/cbc.png" alt="cbc"></p>
+<p>cbc的解密</p>
+<p><img data-src="/images/分组密码模式/dcbc.png" alt="dcbc"></p>
+<p>CBC模式相比ECB实现了更好的模式隐藏，但因为其将密文引入运算，加解密操作无法并行操作。同时引入的IV向量，并且还需要加、解密双方共同知晓方可。</p>
+<script type="math/tex; mode=display">
+C_0 = \text{IV}</script><script type="math/tex; mode=display">
+\text{加密：}\quad C_i = E_k(P_i \oplus C_{i-1})</script><script type="math/tex; mode=display">
+\text{解密：}\quad P_i = D_k(C_i) \oplus C_{i-1}</script><h2 id="CFB：密文反馈模式（Cipher-FeedBack）"><a href="#CFB：密文反馈模式（Cipher-FeedBack）" class="headerlink" title="CFB：密文反馈模式（Cipher FeedBack）"></a>CFB：密文反馈模式（Cipher FeedBack）</h2><p><img data-src="/images/分组密码模式/cfb.png" alt="cfb"></p>
+<p>与CBC模式类似，但不同的地方在于，CFB模式先生成密码流字典，然后用密码字典与明文进行异或操作并最终生成密文。后一分组的密码字典的生成需要前一分组的密文参与运算。</p>
+<p><img data-src="/images/分组密码模式/cfb结构.png" alt="cfb结构"></p>
+<p>其中s位可任意，不同s位加密结果不同，默认s是算法块规定长度，例des是64，aes是128</p>
+<script type="math/tex; mode=display">
+C_0 = \text{IV}</script><script type="math/tex; mode=display">
+\text{加密：}\quad O_i = E_k(C_{i-1}),\quad C_i = P_i \oplus O_i</script><script type="math/tex; mode=display">
+\text{解密：}\quad O_i = E_k(C_{i-1}),\quad P_i = C_i \oplus O_i</script><h2 id="OFB：输出反馈模式（Output-Feedbaek）"><a href="#OFB：输出反馈模式（Output-Feedbaek）" class="headerlink" title="OFB：输出反馈模式（Output Feedbaek）"></a>OFB：输出反馈模式（Output Feedbaek）</h2><p><img data-src="/images/分组密码模式/ofb.png" alt="ofb"></p>
+<p>OFB和CFB一样，明文块可自定义长度</p>
+<script type="math/tex; mode=display">
+O_0 = \text{IV}</script><script type="math/tex; mode=display">
+\text{生成 keystream：}\quad O_i = E_k(O_{i-1}),\quad S_i = O_i</script><script type="math/tex; mode=display">
+\text{加密：}\quad C_i = P_i \oplus S_i</script><script type="math/tex; mode=display">
+\text{解密：}\quad P_i = C_i \oplus S_i</script><h2 id="CTR：计数器模式（counter-mode）"><a href="#CTR：计数器模式（counter-mode）" class="headerlink" title="CTR：计数器模式（counter mode）"></a>CTR：计数器模式（counter mode）</h2><p><img data-src="/images/分组密码模式/ctr.png" alt="ctr"></p>
+<script type="math/tex; mode=display">
+\text{令 }CTR_i = \text{NONCE} \,\|\, (\text{counter}+i)</script><script type="math/tex; mode=display">
+\text{加密：}\quad S_i = E_k(CTR_i),\quad C_i = P_i \oplus S_i</script><script type="math/tex; mode=display">
+\text{解密：}\quad P_i = C_i \oplus S_i \quad(\text{其中 }S_i = E_k(CTR_i))</script><h2 id="加密模式总结："><a href="#加密模式总结：" class="headerlink" title="加密模式总结："></a>加密模式总结：</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>全称</th>
+<th>优点</th>
+<th>缺点</th>
+<th>是否需 IV</th>
+<th>是否可并行加密</th>
+<th>是否可并行解密</th>
+<th>是否适合流加密</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ECB</strong></td>
+<td>Electronic Codebook</td>
+<td>实现简单；可并行加解密</td>
+<td>同块明文→同块密文，易被模式识别（最不安全）</td>
+<td>否</td>
+<td>是</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td><strong>CBC</strong></td>
+<td>Cipher Block Chaining</td>
+<td>同块明文不同IV→不同密文；常用于文件加密</td>
+<td>无法并行加密；需填充；IV重用会泄密</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td><strong>CFB</strong></td>
+<td>Cipher Feedback</td>
+<td>不需填充；可加密任意长度数据；适合流式</td>
+<td>错误传播严重；速度略慢</td>
+<td>是</td>
+<td>否</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>OFB</strong></td>
+<td>Output Feedback</td>
+<td>不需填充；错误不会传播；适合流加密</td>
+<td>同IV下重用密钥极危险；同步要求高</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>CTR</strong></td>
+<td>Counter</td>
+<td>可随机访问块；可并行加解密；性能优</td>
+<td>计数器不能重用，否则致命泄密</td>
+<td>是（计数器）</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="加密模式攻击"><a href="#加密模式攻击" class="headerlink" title="加密模式攻击"></a>加密模式攻击</h1><h2 id="CBC反转字节攻击："><a href="#CBC反转字节攻击：" class="headerlink" title="CBC反转字节攻击："></a>CBC反转字节攻击：</h2><p>已知密文，和明文。可以在不知道key的情况下，肆意更改明文的值，比如网站验证权限，可以把传进去的密文修改，从而使明文从’user’到’admin’，可能能绕过权限</p>
+<p>设A是第N-1块的密文一个字节，B是第N块密文解密后的中间值的对应部分字节，C是第N块明文对应字节，X是想要修改的字节值</p>
+<p>公式右边是明文变化，左边括号内是输入密文的变化</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+A \oplus B &= C \\
+(A \oplus C) \oplus B &= 0 \\
+(A \oplus C \oplus X)\oplus B &= X
+\end{aligned}</script><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> binascii</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">BS=AES.block_size  <span class="comment">#分组长度</span></span><br><span class="line">key=<span class="string">b'test'</span>  <span class="comment">#密钥</span></span><br><span class="line">iv=uuid.uuid4().<span class="built_in">bytes</span>  <span class="comment">#随机初始向量</span></span><br><span class="line">pad=<span class="keyword">lambda</span> s: s+((BS-<span class="built_in">len</span>(s)%BS)*<span class="built_in">chr</span>(BS-<span class="built_in">len</span>(s)%BS)).encode()  <span class="comment">#Pkcs5Padding</span></span><br><span class="line">data=<span class="string">b'1234567890abcdefabcdef1234567890'</span>  <span class="comment">#明文M</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#加密</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">enc</span>(<span class="params">data</span>):</span><br><span class="line">    aes=AES.new(pad(key),AES.MODE_CBC,iv)</span><br><span class="line">    ciphertext=aes.encrypt(pad(data))</span><br><span class="line">    ciphertext=binascii.b2a_hex(ciphertext)</span><br><span class="line">    <span class="keyword">return</span> ciphertext</span><br><span class="line"></span><br><span class="line"><span class="comment">#解密</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dec</span>(<span class="params">c</span>):</span><br><span class="line">    c=binascii.a2b_hex(c)</span><br><span class="line">    aes=AES.new(pad(key),AES.MODE_CBC,iv)</span><br><span class="line">    data=aes.decrypt(c)</span><br><span class="line">    <span class="keyword">return</span> data</span><br><span class="line"></span><br><span class="line"><span class="comment">#测试CBC翻转</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">CBC_test</span>(<span class="params">c</span>):</span><br><span class="line">    c=<span class="built_in">bytearray</span>(binascii.a2b_hex(c))</span><br><span class="line">    c[<span class="number">0</span>]=c[<span class="number">0</span>]^<span class="built_in">ord</span>(<span class="string">'a'</span>)^<span class="built_in">ord</span>(<span class="string">'A'</span>) <span class="comment">#c[0]为第一组的密文字符，a为第二组相应位置的明文字符，A是我们想要的明文字符</span></span><br><span class="line">    c=binascii.b2a_hex(c)</span><br><span class="line">    <span class="keyword">return</span> c</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"ciphertext:"</span>,enc(data))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"data:"</span>,dec(enc(data)))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"CBC Attack:"</span>,dec(CBC_test(enc(data))))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ciphertext: b'ffa645d1b5e40afbbae47de053a66f978fa0a824e99864a7e8baf38ceccda613c304883f11fc0857c1bb7603f859798e'</span><br><span class="line">data: b'1234567890abcdefabcdef1234567890\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10'</span><br><span class="line">CBC Attack:b':8O&lt;\xe7\x04\xd8v\xe8Q\xfe\xa5I\xc9c]Abcdef1234567890\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10'</span><br></pre></td></tr></table></figure>
+<h2 id="Padding-Oracle-Attack"><a href="#Padding-Oracle-Attack" class="headerlink" title="Padding Oracle Attack"></a>Padding Oracle Attack</h2><p>已知条件：如果明文的padding格式出错服务端会提示某个特定状态码，密文，iv(IV经常会随着密文一起发送。常见的做法是将IV作为一个前缀，附着在密文的前面)</p>
+<p>效果：在不清楚 key 的前提下解密任意给定的密文。</p>
+<p><img data-src="/images/分组密码模式/poa.png" alt="poa"></p>
+<h2 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h2><p>我们有密文，解密后的中间状态(Intermediary Value)我们不知道，爆破每个字节的iv值，当服务端不报错时，说明padding正确，如上图所示，我们知道爆破的第8个字节，就肯定直接padding为0x1,也知道我们此时爆破的iv是多少，就可以推出正确的中间状态(Intermediary Value)是多少，依次类推，把所有字节的中间状态都算出来后，就可以用初始iv异或中间状态得到明文。</p>
+<h2 id="如果已知多组密文解密："><a href="#如果已知多组密文解密：" class="headerlink" title="如果已知多组密文解密："></a>如果已知多组密文解密：</h2><p>从前往后进行解密</p>
+<h2 id="如果已知多组明文加密："><a href="#如果已知多组明文加密：" class="headerlink" title="如果已知多组明文加密："></a>如果已知多组明文加密：</h2><p>先从最后一组开始，爆破最后一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文，以此类推。由此我们可以得到构造密文的步骤</p>
+<ol>
+<li>从最后一组开始，爆破出该组的intermediary并构造出iv，然后将本组的iv当作前一组的密文</li>
+<li>爆破前一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文</li>
+<li>…</li>
+<li>最后会得到第一组的iv，至此我们已经构造出了所有合法密文以及iv</li>
+</ol>
+<h1 id="reference"><a href="#reference" class="headerlink" title="reference:"></a>reference:</h1><p><a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">CBC字节翻转攻击&amp;Padding Oracle Attack原理解析 - 枫のBlog</a></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/10/09/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/" title="分组密码的加密模式及攻击">http://example.com/2025/10/09/分组密码的加密模式/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/aes/" rel="tag"><i class="fa fa-tag"></i> aes</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/10/09/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/" rel="prev" title="异常处理机制-VEH">
+      <i class="fa fa-chevron-left"></i> 异常处理机制-VEH
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/10/09/aes2/" rel="next" title="逆向中的AES(二)">
+      逆向中的AES(二) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">分组密码工作模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ECB%EF%BC%9A%E7%94%B5%E5%AD%90%E5%AF%86%E7%A0%81%E6%9C%AC%E6%A8%A1%E5%BC%8F-electronic-codebook-mode"><span class="nav-number">1.1.</span> <span class="nav-text">ECB：电子密码本模式(electronic codebook mode)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CBC%EF%BC%9A%E5%AF%86%E7%A0%81%E5%88%86%E7%BB%84%E9%93%BE%E6%8E%A5%E6%A8%A1%E5%BC%8F%EF%BC%88cipher-block-chaining-Triple%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">CBC：密码分组链接模式（cipher block chaining Triple）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CFB%EF%BC%9A%E5%AF%86%E6%96%87%E5%8F%8D%E9%A6%88%E6%A8%A1%E5%BC%8F%EF%BC%88Cipher-FeedBack%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">CFB：密文反馈模式（Cipher FeedBack）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OFB%EF%BC%9A%E8%BE%93%E5%87%BA%E5%8F%8D%E9%A6%88%E6%A8%A1%E5%BC%8F%EF%BC%88Output-Feedbaek%EF%BC%89"><span class="nav-number">1.4.</span> <span class="nav-text">OFB：输出反馈模式（Output Feedbaek）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CTR%EF%BC%9A%E8%AE%A1%E6%95%B0%E5%99%A8%E6%A8%A1%E5%BC%8F%EF%BC%88counter-mode%EF%BC%89"><span class="nav-number">1.5.</span> <span class="nav-text">CTR：计数器模式（counter mode）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">1.6.</span> <span class="nav-text">加密模式总结：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F%E6%94%BB%E5%87%BB"><span class="nav-number">2.</span> <span class="nav-text">加密模式攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CBC%E5%8F%8D%E8%BD%AC%E5%AD%97%E8%8A%82%E6%94%BB%E5%87%BB%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">CBC反转字节攻击：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Padding-Oracle-Attack"><span class="nav-number">2.2.</span> <span class="nav-text">Padding Oracle Attack</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">原理：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E5%B7%B2%E7%9F%A5%E5%A4%9A%E7%BB%84%E5%AF%86%E6%96%87%E8%A7%A3%E5%AF%86%EF%BC%9A"><span class="nav-number">2.4.</span> <span class="nav-text">如果已知多组密文解密：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E6%9E%9C%E5%B7%B2%E7%9F%A5%E5%A4%9A%E7%BB%84%E6%98%8E%E6%96%87%E5%8A%A0%E5%AF%86%EF%BC%9A"><span class="nav-number">2.5.</span> <span class="nav-text">如果已知多组明文加密：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reference"><span class="nav-number">3.</span> <span class="nav-text">reference:</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
