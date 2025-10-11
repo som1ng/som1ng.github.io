@@ -613,84 +613,6 @@ W[i - N_k] \oplus W[i - 1], & \text{otherwise}
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/aes2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/10/09/aes2/" class="post-title-link" itemprop="url">逆向中的AES(二)</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-11 22:02:09" itemprop="dateModified" datetime="2025-10-11T22:02:09+08:00">2025-10-11</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">对称加密题单</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>逆向工程中往往使用aes加密的程序不是用的查表法aes，就是用的白盒aes，让你难以分析，傻乎乎的使用aes基础算法很容易被破解</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -722,7 +644,7 @@ W[i - N_k] \oplus W[i - 1], & \text{otherwise}
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-12 01:00:05" itemprop="dateModified" datetime="2025-10-12T01:00:05+08:00">2025-10-12</time>
+                <time title="修改时间：2025-10-12 01:03:23" itemprop="dateModified" datetime="2025-10-12T01:03:23+08:00">2025-10-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -859,9 +781,9 @@ A \oplus B &= C \\
 <h2 id="Padding-Oracle-Attack"><a href="#Padding-Oracle-Attack" class="headerlink" title="Padding Oracle Attack"></a>Padding Oracle Attack</h2><p>已知条件：如果明文的padding格式出错服务端会提示某个特定状态码，密文，iv(IV经常会随着密文一起发送。常见的做法是将IV作为一个前缀，附着在密文的前面)</p>
 <p>效果：在不清楚 key 的前提下解密任意给定的密文。</p>
 <p><img data-src="/images/分组密码模式/poa.png" alt="poa"></p>
-<h2 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h2><p>我们有密文，解密后的中间状态(Intermediary Value)我们不知道，爆破每个字节的iv值，当服务端不报错时，说明padding正确，如上图所示，我们知道爆破的第8个字节，就肯定直接padding为0x1,也知道我们此时爆破的iv是多少，就可以推出正确的中间状态(Intermediary Value)是多少，依次类推，把所有字节的中间状态都算出来后，就可以用初始iv异或中间状态得到明文。</p>
-<h2 id="如果已知多组密文解密："><a href="#如果已知多组密文解密：" class="headerlink" title="如果已知多组密文解密："></a>如果已知多组密文解密：</h2><p>从前往后进行解密</p>
-<h2 id="如果已知多组明文加密："><a href="#如果已知多组明文加密：" class="headerlink" title="如果已知多组明文加密："></a>如果已知多组明文加密：</h2><p>先从最后一组开始，爆破最后一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文，以此类推。由此我们可以得到构造密文的步骤</p>
+<h3 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h3><p>我们有密文，解密后的中间状态(Intermediary Value)我们不知道，爆破每个字节的iv值，当服务端不报错时，说明padding正确，如上图所示，我们知道爆破的第8个字节，就肯定直接padding为0x1,也知道我们此时爆破的iv是多少，就可以推出正确的中间状态(Intermediary Value)是多少，依次类推，把所有字节的中间状态都算出来后，就可以用初始iv异或中间状态得到明文。</p>
+<h3 id="如果已知多组密文解密："><a href="#如果已知多组密文解密：" class="headerlink" title="如果已知多组密文解密："></a>如果已知多组密文解密：</h3><p>从前往后进行解密</p>
+<h3 id="如果已知多组明文加密："><a href="#如果已知多组明文加密：" class="headerlink" title="如果已知多组明文加密："></a>如果已知多组明文加密：</h3><p>先从最后一组开始，爆破最后一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文，以此类推。由此我们可以得到构造密文的步骤</p>
 <ol>
 <li>从最后一组开始，爆破出该组的intermediary并构造出iv，然后将本组的iv当作前一组的密文</li>
 <li>爆破前一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文</li>
@@ -869,152 +791,6 @@ A \oplus B &= C \\
 <li>最后会得到第一组的iv，至此我们已经构造出了所有合法密文以及iv</li>
 </ol>
 <h1 id="reference"><a href="#reference" class="headerlink" title="reference:"></a>reference:</h1><p><a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">CBC字节翻转攻击&amp;Padding Oracle Attack原理解析 - 枫のBlog</a></p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/10/09/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/" class="post-title-link" itemprop="url">异常处理机制-VEH</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2025-10-09 00:00:00 / 修改时间：12:24:47" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/pe%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">pe逆向</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/pe%E9%80%86%E5%90%91/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">反调试技术</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="VEH"><a href="#VEH" class="headerlink" title="VEH"></a>VEH</h1><p>这是 SEH 的一个增强扩展，通过 <code>AddVectoredExceptionHandler</code> 添加。VEH 处理器会在调试器和所有 SEH 处理器<strong>之前</strong>被调用。它们更像是一种“通知”机制，可以观察或拦截进程中的所有异常。</p>
-<h1 id="与veh有关的函数"><a href="#与veh有关的函数" class="headerlink" title="与veh有关的函数"></a>与veh有关的函数</h1><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>函数名</th>
-<th>作用</th>
-<th>参数解释</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>AddVectoredExceptionHandler</strong></td>
-<td>注册一个新的向量化异常处理函数（VEH）。注册后，当线程出现异常（例如访问违规、除零、<code>RaiseException</code>）时，系统会回调你提供的函数。</td>
-<td><strong>ULONG FirstHandler</strong>：是否把此 handler 放在最前面。 <code>1</code> → 高优先级（最先被调用） <code>0</code> → 低优先级（放在队列后面）<strong>PVECTORED_EXCEPTION_HANDLER VectoredHandler</strong>：回调函数地址，函数类型为 <code>LONG CALLBACK handler(EXCEPTION_POINTERS* ExceptionInfo)</code>。返回值控制异常是否继续传播。</td>
-</tr>
-<tr>
-<td><strong>RemoveVectoredExceptionHandler</strong></td>
-<td>移除已注册的 VEH。</td>
-<td><strong>PVOID HandlerHandle</strong>：<code>AddVectoredExceptionHandler</code> 返回的句柄。</td>
-</tr>
-<tr>
-<td><strong>RaiseException</strong></td>
-<td>主动抛出一个软件异常，会触发 VEH。</td>
-<td><strong>DWORD dwExceptionCode</strong>：异常码（自定义或系统定义）。<strong>DWORD dwExceptionFlags</strong>：是否可继续执行。<code>0</code> 表示可继续，<code>EXCEPTION_NONCONTINUABLE</code> 表示不可继续。<strong>DWORD nNumberOfArguments</strong>：额外参数个数。*_const ULONG_PTR _lpArguments__：异常参数数组（可选）。</td>
-</tr>
-<tr>
-<td><strong>EXCEPTION_POINTERS</strong></td>
-<td>VEH 的回调参数结构，包含异常上下文。</td>
-<td>成员有两个：<strong>ExceptionRecord</strong>：描述异常的详细信息（代码、参数、地址等）。<strong>ContextRecord</strong>：保存异常发生时 CPU 的寄存器状态（<code>Rip/Eip</code>, <code>Rsp/Esp</code>, <code>Rax</code>, <code>Rcx</code>…）。可读写！修改后返回 <code>EXCEPTION_CONTINUE_EXECUTION</code> 可以改变执行流。</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h2 id="正向实例："><a href="#正向实例：" class="headerlink" title="正向实例："></a>正向实例：</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// veh_demo.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ======================= 1. 被“隐藏”的函数 =======================</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SecretFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[SecretFunc] VEH 修改 RIP 后跳转到这里执行！&quot;</span> &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[SecretFunc] 恭喜，VEH 已成功拦截并重定向执行流！&quot;</span> &lt;&lt; endl;</span><br><span class="line">    <span class="built_in">ExitProcess</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ======================= 2. VEH 回调函数 =======================</span></span><br><span class="line"><span class="function">LONG CALLBACK <span class="title">MyVectoredHandler</span><span class="params">(EXCEPTION_POINTERS* ExceptionInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[VEH] 异常捕获！&quot;</span> &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;  ExceptionCode: 0x&quot;</span> &lt;&lt; hex &lt;&lt; ExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;  ExceptionAddress: &quot;</span> &lt;&lt; ExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionAddress &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断是不是我们自己触发的异常（0xDEADC0DE）</span></span><br><span class="line">    <span class="keyword">if</span> (ExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode == <span class="number">0xDEADC0DE</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;[VEH] 捕获到自定义异常，修改上下文...&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _M_X64</span></span><br><span class="line">        ExceptionInfo-&gt;ContextRecord-&gt;Rip = (DWORD64)&amp;SecretFunc; <span class="comment">// x64</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">        ExceptionInfo-&gt;ContextRecord-&gt;Eip = (DWORD)&amp;SecretFunc;   <span class="comment">// x86</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 返回 EXCEPTION_CONTINUE_EXECUTION，让程序从修改后的地址继续执行</span></span><br><span class="line">        <span class="keyword">return</span> EXCEPTION_CONTINUE_EXECUTION;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 其他异常交给系统处理</span></span><br><span class="line">    <span class="keyword">return</span> EXCEPTION_CONTINUE_SEARCH;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ======================= 3. 主函数 =======================</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[Main] 注册 VEH...&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册 VEH，优先级高</span></span><br><span class="line">    PVOID hHandler = <span class="built_in">AddVectoredExceptionHandler</span>(<span class="number">1</span>, MyVectoredHandler);</span><br><span class="line">    <span class="keyword">if</span> (!hHandler)</span><br><span class="line">    &#123;</span><br><span class="line">        cerr &lt;&lt; <span class="string">&quot;AddVectoredExceptionHandler failed! error=&quot;</span> &lt;&lt; <span class="built_in">GetLastError</span>() &lt;&lt; endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[Main] 准备触发自定义异常...&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 手动触发异常</span></span><br><span class="line">    <span class="built_in">RaiseException</span>(<span class="number">0xDEADC0DE</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">nullptr</span>);</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[Main] 如果看到这行，说明 VEH 没有拦截执行流。&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 移除 VEH</span></span><br><span class="line">    <span class="built_in">RemoveVectoredExceptionHandler</span>(hHandler);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>输出：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[Main] 注册 VEH...</span><br><span class="line">[Main] 准备触发自定义异常...</span><br><span class="line">[VEH] 异常捕获！</span><br><span class="line">  ExceptionCode: 0xdeadc0de</span><br><span class="line">  ExceptionAddress: 00007FF6F8B21000</span><br><span class="line">[VEH] 捕获到自定义异常，修改上下文...</span><br><span class="line">[SecretFunc] VEH 修改 RIP 后跳转到这里执行！</span><br><span class="line">[SecretFunc] 恭喜，VEH 已成功拦截并重定向执行流！</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><div class="table-container">
-<table>
-<thead>
-<tr>
-<th>函数</th>
-<th>用途</th>
-<th>常用返回</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>AddVectoredExceptionHandler</td>
-<td>注册 VEH</td>
-<td>返回 handler 句柄</td>
-</tr>
-<tr>
-<td>RemoveVectoredExceptionHandler</td>
-<td>移除 VEH</td>
-<td>成功返回非 0</td>
-</tr>
-<tr>
-<td>RaiseException</td>
-<td>主动抛出异常</td>
-<td>会调用 VEH</td>
-</tr>
-<tr>
-<td>MyVectoredHandler</td>
-<td>回调处理异常</td>
-<td>返回 CONTINUE_EXECUTION 或 CONTINUE_SEARCH</td>
-</tr>
-<tr>
-<td>ExceptionInfo-&gt;ContextRecord</td>
-<td>保存寄存器上下文</td>
-<td>可修改以改变执行流</td>
-</tr>
-</tbody>
-</table>
-</div>
 
       
     </div>
@@ -1167,6 +943,230 @@ A \oplus B &= C \\
 <p>前3个没什么用，第四个是我们上面的Trylevel，第5个是过滤函数，第6个是我们的处理函数，也就是ctf中反调试替换掉的逻辑</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">               loc_4011D9:                             ; DATA XREF: .rdata:stru_403758↓o</span><br><span class="line">.text:004011D9                 mov     eax, 1</span><br><span class="line">.text:004011DE                 retn</span><br><span class="line">.text:004011DF ; ---------------------------------------------------------------------------</span><br><span class="line">.text:004011DF</span><br><span class="line">.text:004011DF loc_4011DF:                             ; DATA XREF: .rdata:stru_403758↓o</span><br><span class="line">.text:004011DF                 mov     esp, [ebp+ms_exc.old_esp]</span><br><span class="line">.text:004011E2                 mov     edi, [ebp+var_24]</span><br><span class="line">.text:004011E5                 mov     ecx, edi</span><br><span class="line">.text:004011E7                 shr     ecx, 4</span><br><span class="line">.text:004011EA                 mov     eax, edi</span><br><span class="line">.text:004011EC                 shl     eax, 5</span><br><span class="line">.text:004011EF                 xor     ecx, eax</span><br><span class="line">.text:004011F1                 add     ecx, edi</span><br><span class="line">.text:004011F3                 mov     eax, [ebp+arg_0]</span><br><span class="line">.text:004011F6                 mov     eax, [eax]</span><br><span class="line">.text:004011F8                 add     eax, [ebp+var_20]</span><br><span class="line">.text:004011FB                 xor     ecx, eax</span><br><span class="line">.text:004011FD                 xor     [ebp+var_1C], ecx</span><br><span class="line">.text:00401200                 push    offset Buffer   ; &quot;Something happend...&quot;</span><br><span class="line">.text:00401205                 call    ds:puts</span><br><span class="line">.text:0040120B                 add     esp, 4</span><br><span class="line">.text:0040120E                 mov     [ebp+ms_exc.registration.TryLevel], 0FFFFFFFEh</span><br><span class="line">.text:00401215                 mov     esi, [ebp+var_28]</span><br></pre></td></tr></table></figure>
 <p>这里过滤函数返回值保存在eax中，这里也就是返回了1，说明EXCEPTION_EXECUTE_HANDLER要处理这个异常，把原函数逻辑替换为下面的处理函数然后就可以接着进行逆向分析了，try中遇到error，那条出错指令汇编跳过，执行exception指令，然后执行try{}下面的语句。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/aes2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/09/aes2/" class="post-title-link" itemprop="url">逆向中的AES(二)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-10-11 22:02:09" itemprop="dateModified" datetime="2025-10-11T22:02:09+08:00">2025-10-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">对称加密题单</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>逆向工程中往往使用aes加密的程序不是用的查表法aes，就是用的白盒aes，让你难以分析，傻乎乎的使用aes基础算法很容易被破解</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/09/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/" class="post-title-link" itemprop="url">异常处理机制-VEH</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-10-09 00:00:00 / 修改时间：12:24:47" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pe%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">pe逆向</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/pe%E9%80%86%E5%90%91/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">反调试技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="VEH"><a href="#VEH" class="headerlink" title="VEH"></a>VEH</h1><p>这是 SEH 的一个增强扩展，通过 <code>AddVectoredExceptionHandler</code> 添加。VEH 处理器会在调试器和所有 SEH 处理器<strong>之前</strong>被调用。它们更像是一种“通知”机制，可以观察或拦截进程中的所有异常。</p>
+<h1 id="与veh有关的函数"><a href="#与veh有关的函数" class="headerlink" title="与veh有关的函数"></a>与veh有关的函数</h1><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>作用</th>
+<th>参数解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AddVectoredExceptionHandler</strong></td>
+<td>注册一个新的向量化异常处理函数（VEH）。注册后，当线程出现异常（例如访问违规、除零、<code>RaiseException</code>）时，系统会回调你提供的函数。</td>
+<td><strong>ULONG FirstHandler</strong>：是否把此 handler 放在最前面。 <code>1</code> → 高优先级（最先被调用） <code>0</code> → 低优先级（放在队列后面）<strong>PVECTORED_EXCEPTION_HANDLER VectoredHandler</strong>：回调函数地址，函数类型为 <code>LONG CALLBACK handler(EXCEPTION_POINTERS* ExceptionInfo)</code>。返回值控制异常是否继续传播。</td>
+</tr>
+<tr>
+<td><strong>RemoveVectoredExceptionHandler</strong></td>
+<td>移除已注册的 VEH。</td>
+<td><strong>PVOID HandlerHandle</strong>：<code>AddVectoredExceptionHandler</code> 返回的句柄。</td>
+</tr>
+<tr>
+<td><strong>RaiseException</strong></td>
+<td>主动抛出一个软件异常，会触发 VEH。</td>
+<td><strong>DWORD dwExceptionCode</strong>：异常码（自定义或系统定义）。<strong>DWORD dwExceptionFlags</strong>：是否可继续执行。<code>0</code> 表示可继续，<code>EXCEPTION_NONCONTINUABLE</code> 表示不可继续。<strong>DWORD nNumberOfArguments</strong>：额外参数个数。*_const ULONG_PTR _lpArguments__：异常参数数组（可选）。</td>
+</tr>
+<tr>
+<td><strong>EXCEPTION_POINTERS</strong></td>
+<td>VEH 的回调参数结构，包含异常上下文。</td>
+<td>成员有两个：<strong>ExceptionRecord</strong>：描述异常的详细信息（代码、参数、地址等）。<strong>ContextRecord</strong>：保存异常发生时 CPU 的寄存器状态（<code>Rip/Eip</code>, <code>Rsp/Esp</code>, <code>Rax</code>, <code>Rcx</code>…）。可读写！修改后返回 <code>EXCEPTION_CONTINUE_EXECUTION</code> 可以改变执行流。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="正向实例："><a href="#正向实例：" class="headerlink" title="正向实例："></a>正向实例：</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// veh_demo.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ======================= 1. 被“隐藏”的函数 =======================</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SecretFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[SecretFunc] VEH 修改 RIP 后跳转到这里执行！&quot;</span> &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[SecretFunc] 恭喜，VEH 已成功拦截并重定向执行流！&quot;</span> &lt;&lt; endl;</span><br><span class="line">    <span class="built_in">ExitProcess</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ======================= 2. VEH 回调函数 =======================</span></span><br><span class="line"><span class="function">LONG CALLBACK <span class="title">MyVectoredHandler</span><span class="params">(EXCEPTION_POINTERS* ExceptionInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[VEH] 异常捕获！&quot;</span> &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;  ExceptionCode: 0x&quot;</span> &lt;&lt; hex &lt;&lt; ExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;  ExceptionAddress: &quot;</span> &lt;&lt; ExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionAddress &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断是不是我们自己触发的异常（0xDEADC0DE）</span></span><br><span class="line">    <span class="keyword">if</span> (ExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode == <span class="number">0xDEADC0DE</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;[VEH] 捕获到自定义异常，修改上下文...&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> _M_X64</span></span><br><span class="line">        ExceptionInfo-&gt;ContextRecord-&gt;Rip = (DWORD64)&amp;SecretFunc; <span class="comment">// x64</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">        ExceptionInfo-&gt;ContextRecord-&gt;Eip = (DWORD)&amp;SecretFunc;   <span class="comment">// x86</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 返回 EXCEPTION_CONTINUE_EXECUTION，让程序从修改后的地址继续执行</span></span><br><span class="line">        <span class="keyword">return</span> EXCEPTION_CONTINUE_EXECUTION;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 其他异常交给系统处理</span></span><br><span class="line">    <span class="keyword">return</span> EXCEPTION_CONTINUE_SEARCH;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ======================= 3. 主函数 =======================</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[Main] 注册 VEH...&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注册 VEH，优先级高</span></span><br><span class="line">    PVOID hHandler = <span class="built_in">AddVectoredExceptionHandler</span>(<span class="number">1</span>, MyVectoredHandler);</span><br><span class="line">    <span class="keyword">if</span> (!hHandler)</span><br><span class="line">    &#123;</span><br><span class="line">        cerr &lt;&lt; <span class="string">&quot;AddVectoredExceptionHandler failed! error=&quot;</span> &lt;&lt; <span class="built_in">GetLastError</span>() &lt;&lt; endl;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[Main] 准备触发自定义异常...&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 手动触发异常</span></span><br><span class="line">    <span class="built_in">RaiseException</span>(<span class="number">0xDEADC0DE</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="literal">nullptr</span>);</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;[Main] 如果看到这行，说明 VEH 没有拦截执行流。&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 移除 VEH</span></span><br><span class="line">    <span class="built_in">RemoveVectoredExceptionHandler</span>(hHandler);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[Main] 注册 VEH...</span><br><span class="line">[Main] 准备触发自定义异常...</span><br><span class="line">[VEH] 异常捕获！</span><br><span class="line">  ExceptionCode: 0xdeadc0de</span><br><span class="line">  ExceptionAddress: 00007FF6F8B21000</span><br><span class="line">[VEH] 捕获到自定义异常，修改上下文...</span><br><span class="line">[SecretFunc] VEH 修改 RIP 后跳转到这里执行！</span><br><span class="line">[SecretFunc] 恭喜，VEH 已成功拦截并重定向执行流！</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用途</th>
+<th>常用返回</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AddVectoredExceptionHandler</td>
+<td>注册 VEH</td>
+<td>返回 handler 句柄</td>
+</tr>
+<tr>
+<td>RemoveVectoredExceptionHandler</td>
+<td>移除 VEH</td>
+<td>成功返回非 0</td>
+</tr>
+<tr>
+<td>RaiseException</td>
+<td>主动抛出异常</td>
+<td>会调用 VEH</td>
+</tr>
+<tr>
+<td>MyVectoredHandler</td>
+<td>回调处理异常</td>
+<td>返回 CONTINUE_EXECUTION 或 CONTINUE_SEARCH</td>
+</tr>
+<tr>
+<td>ExceptionInfo-&gt;ContextRecord</td>
+<td>保存寄存器上下文</td>
+<td>可修改以改变执行流</td>
+</tr>
+</tbody>
+</table>
+</div>
 
       
     </div>
