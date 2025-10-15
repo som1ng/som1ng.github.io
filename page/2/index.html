@@ -22,33 +22,31 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前言:拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下 rust相比其他编程语言的优势: rust不通过GC(garbage collection)机制管理内存,例如python,golang等基于GC机制的编程语言会在exe运行时不断寻找虚拟地址中无用的内存空间.这会大大降低运行速度  rust使用所有权机制管理内存,这也使得它相比与手动开辟内存的c">
-<meta property="og:type" content="article">
-<meta property="og:title" content="rust逆向基础-rust基础语法">
-<meta property="og:url" content="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/index.html">
+  <meta name="description" content="学习逆向贵在坚持">
+<meta property="og:type" content="website">
+<meta property="og:title" content="s0m1ng">
+<meta property="og:url" content="http://example.com/page/2/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前言:拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下 rust相比其他编程语言的优势: rust不通过GC(garbage collection)机制管理内存,例如python,golang等基于GC机制的编程语言会在exe运行时不断寻找虚拟地址中无用的内存空间.这会大大降低运行速度  rust使用所有权机制管理内存,这也使得它相比与手动开辟内存的c">
+<meta property="og:description" content="学习逆向贵在坚持">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-09-30T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-10-01T15:24:00.067Z">
 <meta property="article:author" content="s0m1ng">
-<meta property="article:tag" content="rust">
+<meta property="article:tag" content="逆向，实战，外挂">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
+<link rel="canonical" href="http://example.com/page/2/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : false,
-    isPost : true,
+    isHome : true,
+    isPost : false,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>rust逆向基础-rust基础语法 | s0m1ng</title>
+  <title>s0m1ng</title>
   
 
 
@@ -174,10 +172,9 @@
         <div class="content-wrap">
           
 
-          <div class="content post posts-expand">
+          <div class="content index posts-expand">
             
-
-    
+      
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
@@ -193,9 +190,10 @@
       <meta itemprop="name" content="s0m1ng">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          rust逆向基础-rust基础语法
-        </h1>
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">rust逆向基础-rust基础语法</a>
+        </h2>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -218,13 +216,6 @@
             </span>
 
           
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span>
 
         </div>
       </header>
@@ -235,7 +226,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h1><p>拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下</p>
+          <h1 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h1><p>拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下</p>
 <h2 id="rust相比其他编程语言的优势"><a href="#rust相比其他编程语言的优势" class="headerlink" title="rust相比其他编程语言的优势:"></a>rust相比其他编程语言的优势:</h2><ul>
 <li><p>rust不通过<code>GC</code>(garbage collection)机制管理内存,例如python,golang等基于GC机制的编程语言会在exe运行时不断寻找虚拟地址中无用的内存空间.这会大大降低运行速度</p>
 </li>
@@ -432,86 +423,25 @@
 <h3 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap:"></a>HashMap:</h3><p>相当于c++中stl里的map</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> std::collections::HashMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="comment">// 1. 创建一个 HashMap</span></span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">scores</span> = HashMap::<span class="title function_ invoke__">new</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 增加（插入）元素</span></span><br><span class="line">    scores.<span class="title function_ invoke__">insert</span>(<span class="string">&quot;Alice&quot;</span>, <span class="number">10</span>);</span><br><span class="line">    scores.<span class="title function_ invoke__">insert</span>(<span class="string">&quot;Bob&quot;</span>, <span class="number">20</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. 修改（如果 key 已存在，会覆盖旧值）</span></span><br><span class="line">    scores.<span class="title function_ invoke__">insert</span>(<span class="string">&quot;Alice&quot;</span>, <span class="number">30</span>);  <span class="comment">// Alice 的值从 10 -&gt; 30</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 访问（用 get，返回 Option&lt;&amp;V&gt;）</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">let</span> <span class="variable">Some</span>(score) = scores.<span class="title function_ invoke__">get</span>(<span class="string">&quot;Alice&quot;</span>) &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;Alice 的分数是 &#123;&#125;&quot;</span>, score);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 删除（移除某个 key）</span></span><br><span class="line">    scores.<span class="title function_ invoke__">remove</span>(<span class="string">&quot;Bob&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;:?&#125;&quot;</span>, scores);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-    </div>
-
-    
-    
-    
-        <div class="reward-container">
-  <div>您的支持将鼓励我继续创作!</div>
-  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
-    打赏
-  </button>
-  <div id="qr" style="display: none;">
       
-      <div style="display: inline-block;">
-        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
-        <p>微信支付</p>
-      </div>
-
-  </div>
-</div>
-
-        
-
-<div>
-<ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>s0m1ng
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" title="rust逆向基础-rust基础语法">http://example.com/2025/10/01/rust逆向题单/rust逆向基础/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
-
-        
-
-  <div class="followme">
-    <p>欢迎关注我的其它发布渠道</p>
-
-    <div class="social-list">
-
-        <div class="social-item">
-          <a target="_blank" class="social-link" href="/atom.xml">
-            <span class="icon">
-              <i class="fa fa-rss"></i>
-            </span>
-
-            <span class="label">RSS</span>
-          </a>
-        </div>
     </div>
-  </div>
 
-
-      <footer class="post-footer">
-          
-          <div class="post-tags">
-              <a href="/tags/rust/" rel="tag"><i class="fa fa-tag"></i> rust</a>
-          </div>
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item"></div>
-      <div class="post-nav-item">
-    <a href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" rel="next" title="vm逆向基础及做题套路">
-      vm逆向基础及做题套路 <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
-      </footer>
     
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
   </article>
   
   
   
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+  </nav>
 
 
 
@@ -563,7 +493,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言:</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rust%E7%9B%B8%E6%AF%94%E5%85%B6%E4%BB%96%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">1.1.</span> <span class="nav-text">rust相比其他编程语言的优势:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">语法:</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%87%8F"><span class="nav-number">2.1.</span> <span class="nav-text">变量:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">整数类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-number">2.1.2.</span> <span class="nav-text">浮点数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%83%E5%B0%94%E5%9E%8B"><span class="nav-number">2.1.3.</span> <span class="nav-text">布尔型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#char%E5%9E%8B"><span class="nav-number">2.1.4.</span> <span class="nav-text">char型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%9E%8B"><span class="nav-number">2.1.5.</span> <span class="nav-text">字符串型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A7%E5%88%B6%E8%AF%AD%E5%8F%A5"><span class="nav-number">2.2.</span> <span class="nav-text">控制语句:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#if-else-if-else"><span class="nav-number">2.2.1.</span> <span class="nav-text">if-else if-else</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF"><span class="nav-number">2.2.2.</span> <span class="nav-text">循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Match"><span class="nav-number">2.2.3.</span> <span class="nav-text">Match</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0"><span class="nav-number">2.3.</span> <span class="nav-text">函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E4%BD%BF%E7%94%A8"><span class="nav-number">2.3.1.</span> <span class="nav-text">函数使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AD%E5%8C%85"><span class="nav-number">2.3.2.</span> <span class="nav-text">闭包:</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rust%E5%A4%8D%E5%90%88%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.4.</span> <span class="nav-text">rust复合类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%9A%E4%B8%BE"><span class="nav-number">2.4.1.</span> <span class="nav-text">枚举:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E5%9F%BA%E7%A1%80"><span class="nav-number">2.4.2.</span> <span class="nav-text">结构体基础:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E4%BD%93%E8%BF%9B%E9%98%B6"><span class="nav-number">2.4.3.</span> <span class="nav-text">结构体进阶:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E7%BB%84"><span class="nav-number">2.4.4.</span> <span class="nav-text">元组:</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6-amp-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">核心机制&amp;数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E5%92%8C%E5%A0%86%E5%AD%98%E6%94%BE"><span class="nav-number">3.1.</span> <span class="nav-text">栈和堆存放</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%80%E6%9C%89%E6%9D%83%E6%9C%BA%E5%88%B6"><span class="nav-number">3.2.</span> <span class="nav-text">所有权机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E5%92%8C%E5%8F%AF%E5%8F%98%E5%BC%95%E7%94%A8"><span class="nav-number">3.2.1.</span> <span class="nav-text">引用和可变引用:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#clone%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-number">3.2.2.</span> <span class="nav-text">clone的使用:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">3.2.3.</span> <span class="nav-text">生命周期:</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">3.3.</span> <span class="nav-text">常用数据结构:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#String"><span class="nav-number">3.3.1.</span> <span class="nav-text">String:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA"><span class="nav-number">3.3.1.1.</span> <span class="nav-text">创建:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0"><span class="nav-number">3.3.1.2.</span> <span class="nav-text">添加:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%BC%E6%8E%A5"><span class="nav-number">3.3.1.3.</span> <span class="nav-text">拼接:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E9%95%BF%E5%BA%A6%E5%92%8C%E5%AE%B9%E9%87%8F"><span class="nav-number">3.3.1.4.</span> <span class="nav-text">获取长度和容量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E5%86%85%E5%AE%B9"><span class="nav-number">3.3.1.5.</span> <span class="nav-text">删除内容</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E4%B8%8E%E5%88%87%E7%89%87"><span class="nav-number">3.3.1.6.</span> <span class="nav-text">索引与切片</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E5%92%8C%E6%9B%BF%E6%8D%A2"><span class="nav-number">3.3.1.7.</span> <span class="nav-text">查找和替换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E5%89%B2%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="nav-number">3.3.1.8.</span> <span class="nav-text">分割字符串</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%8D%E5%8E%86"><span class="nav-number">3.3.1.9.</span> <span class="nav-text">遍历</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Vector"><span class="nav-number">3.3.2.</span> <span class="nav-text">Vector:</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA-1"><span class="nav-number">3.3.2.1.</span> <span class="nav-text">创建:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%85%83%E7%B4%A0"><span class="nav-number">3.3.2.2.</span> <span class="nav-text">添加元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E5%85%83%E7%B4%A0"><span class="nav-number">3.3.2.3.</span> <span class="nav-text">访问元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9%E5%85%83%E7%B4%A0"><span class="nav-number">3.3.2.4.</span> <span class="nav-text">修改元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E5%85%83%E7%B4%A0"><span class="nav-number">3.3.2.5.</span> <span class="nav-text">删除元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%81%8D%E5%8E%86-1"><span class="nav-number">3.3.2.6.</span> <span class="nav-text">遍历</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HashMap"><span class="nav-number">3.3.3.</span> <span class="nav-text">HashMap:</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
