@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="题目给了exe或者直接给了pyc文件处理exe（解包为 pyc 文件）有的题直接给 .exe 文件，这通常是 PyInstaller 打包的 Python 程序。我们需要先将 .exe 提取出 .pyc 文件夹。 使用工具：pyinstxtractor.py GitHub地址: https:&#x2F;&#x2F;github.com&#x2F;extremecoders-re&#x2F;pyinstxtractor 作用：从 PyIn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="py逆向做题总结">
+<meta property="og:url" content="http://example.com/2025/10/23/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E5%81%9A%E9%A2%98/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="题目给了exe或者直接给了pyc文件处理exe（解包为 pyc 文件）有的题直接给 .exe 文件，这通常是 PyInstaller 打包的 Python 程序。我们需要先将 .exe 提取出 .pyc 文件夹。 使用工具：pyinstxtractor.py GitHub地址: https:&#x2F;&#x2F;github.com&#x2F;extremecoders-re&#x2F;pyinstxtractor 作用：从 PyIn">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py/pyarmor%E5%8E%9F%E7%90%86.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py/pyarmor.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py/pyarmor%E6%88%90%E5%8A%9F.png">
+<meta property="article:published_time" content="2025-10-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T16:10:46.695Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="py逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py/pyarmor%E5%8E%9F%E7%90%86.png">
+
+<link rel="canonical" href="http://example.com/2025/10/23/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E5%81%9A%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>py逆向做题总结 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/23/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E5%81%9A%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          py逆向做题总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-23 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-23T00:00:00+08:00">2025-10-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-10-25 00:10:46" itemprop="dateModified" datetime="2025-10-25T00:10:46+08:00">2025-10-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="题目给了exe或者直接给了pyc文件"><a href="#题目给了exe或者直接给了pyc文件" class="headerlink" title="题目给了exe或者直接给了pyc文件"></a>题目给了exe或者直接给了pyc文件</h1><h2 id="处理exe（解包为-pyc-文件）"><a href="#处理exe（解包为-pyc-文件）" class="headerlink" title="处理exe（解包为 pyc 文件）"></a>处理exe（解包为 pyc 文件）</h2><p>有的题直接给 <code>.exe</code> 文件，这通常是 <strong>PyInstaller 打包的 Python 程序</strong>。<br>我们需要先将 <code>.exe</code> 提取出 <code>.pyc</code> 文件夹。</p>
+<h3 id="使用工具：pyinstxtractor-py"><a href="#使用工具：pyinstxtractor-py" class="headerlink" title="使用工具：pyinstxtractor.py"></a>使用工具：<strong>pyinstxtractor.py</strong></h3><ul>
+<li>GitHub地址: <a target="_blank" rel="noopener" href="https://github.com/extremecoders-re/pyinstxtractor">https://github.com/extremecoders-re/pyinstxtractor</a></li>
+<li>作用：从 PyInstaller 打包的 exe/elf 文件中提取出 <code>.pyc</code> 文件与资源。</li>
+<li>支持：Python 2.x / 3.x 各版本（与目标程序相同版本最稳）</li>
+</ul>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用对应 Python 版本运行（与目标 exe 一致！）</span></span><br><span class="line">python pyinstxtractor.py target.exe</span><br></pre></td></tr></table></figure>
+<p>运行后会生成 <code>target.exe_extracted/</code> 文件夹。<br>在里面可以看到 <code>.pyc</code> 文件和 <code>PYZ-00.pyz_extracted/</code> 目录。</p>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>反编译出的 <code>.pyc</code> 文件<strong>魔数要正确</strong>：<ul>
+<li>每个 Python 版本的魔数（magic number）不同；</li>
+<li>可以从同版本的 <code>struct.pyc</code> 或官方魔数表复制。</li>
+</ul>
+</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Python版本</th>
+<th>魔数字节</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Py2.x</td>
+<td>8字节（magic + timestamp）</td>
+</tr>
+<tr>
+<td>Py3.0–3.2</td>
+<td>12字节（magic + timestamp + size）</td>
+</tr>
+<tr>
+<td>Py3.3+</td>
+<td>16字节（magic + flags + timestamp/hash）</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li><strong>一定要用与原程序一致的 Python 版本运行 <code>pyinstxtractor.py</code></strong>，否则解包后的 <code>PYZ-00.pyz_extracted</code> 可能是空的。</li>
+</ul>
+<hr>
+<h2 id="处理-pyc-文件"><a href="#处理-pyc-文件" class="headerlink" title="处理 pyc 文件"></a>处理 pyc 文件</h2><p>解包后获得 <code>.pyc</code> 文件，我们需要将其反编译成 <code>.py</code> 源码。</p>
+<hr>
+<h3 id="工具一：uncompyle6"><a href="#工具一：uncompyle6" class="headerlink" title="工具一：uncompyle6"></a>工具一：<strong>uncompyle6</strong></h3><ul>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/rocky/python-uncompyle6">https://github.com/rocky/python-uncompyle6</a></li>
+<li>支持 Python 1.5 ~ 3.7，部分支持 3.8、3.9。</li>
+<li>PyPI安装：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install uncompyle6</span><br></pre></td></tr></table></figure>
+<ul>
+<li>命令行用法：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uncompyle6 1.pyc &gt; 1.py</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="工具二：pycdc"><a href="#工具二：pycdc" class="headerlink" title="工具二：pycdc"></a>工具二：<strong>pycdc</strong></h3><ul>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/zrax/pycdc">https://github.com/zrax/pycdc</a></li>
+<li>支持 Python 3.9 及更高版本；</li>
+<li>构建或下载编译好的 pycdc.exe：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pycdc.exe yourfile.pyc &gt; yourfile.py</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="工具三（针对高版本）PyLingual"><a href="#工具三（针对高版本）PyLingual" class="headerlink" title="工具三（针对高版本）PyLingual"></a>工具三（针对高版本）<strong>PyLingual</strong></h3><ul>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/diprajpatra/pylingual">https://github.com/diprajpatra/pylingual</a> 可以直接按readme里的步骤部署,也可以直接在在线网站逆向pyc <a target="_blank" rel="noopener" href="https://pylingual.io/">https://pylingual.io/</a></li>
+<li>适用于 Python 3.11~3.12 字节码分析；</li>
+<li>命令行用法（需在 <code>conda py312</code> 环境下）：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">pylingual 1.pyc</span><br></pre></td></tr></table></figure>
+<h4 id="注意事项-1"><a href="#注意事项-1" class="headerlink" title="注意事项"></a>注意事项</h4><ul>
+<li><code>.pyc</code> 反编译出来的 <code>.py</code> 文件可能：<ul>
+<li><code>while</code>、<code>if</code> 分支混乱；</li>
+<li>列表、条件逻辑丢失；</li>
+<li>要<strong>人工修复逻辑结构</strong>。</li>
+</ul>
+</li>
+<li>若 <code>.pyc</code> 文件加入了<strong>花指令（junk bytecode）</strong>，需手动修复。</li>
+</ul>
+<h1 id="pyc-字节码（Bytecode）分析"><a href="#pyc-字节码（Bytecode）分析" class="headerlink" title="pyc 字节码（Bytecode）分析"></a>pyc 字节码（Bytecode）分析</h1><p>当题目直接给了 pyc 字节码或源码无法反编译时，可以手动分析。</p>
+<h2 id="工具：Python-内置-dis-模块"><a href="#工具：Python-内置-dis-模块" class="headerlink" title="工具：Python 内置 dis 模块"></a>工具：<strong>Python 内置 dis 模块</strong></h2><ul>
+<li><p><code>dis</code> 是 <strong>Python 内置的字节码反汇编工具</strong>。<br>它可以把 Python 的函数、模块或者 code object 的 <strong>字节码 (<code>co_code</code>)</strong> 转换成人类可读的形式（类似汇编指令），显示每条 opcode 和它的参数。</p>
+</li>
+<li><p>官方文档：<a target="_blank" rel="noopener" href="https://docs.python.org/3/library/dis.html">dis — Disassembler for Python bytecode &#8212; Python 3.14.0 documentation</a></p>
+</li>
+<li><p>用法：</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> dis</span><br><span class="line">dis.dis(your_function)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>或直接命令行：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m dis yourfile.pyc</span><br></pre></td></tr></table></figure>
+<h2 id="手动还原思路"><a href="#手动还原思路" class="headerlink" title="手动还原思路"></a>手动还原思路</h2><ul>
+<li>参考 u-tools 的「程序员手册」搜索 <code>dis</code> 指令说明；</li>
+<li>每个 Python 版本字节码结构略不同：<ul>
+<li><strong>Python 2：每条指令 3 字节/1字节</strong></li>
+<li><strong>Python 3：每条指令 2 字节/1字节</strong></li>
+</ul>
+</li>
+</ul>
+<p>通过分析 opcode，可手动还原出 Python 逻辑。</p>
+<h1 id="pyc字节码花指令处理"><a href="#pyc字节码花指令处理" class="headerlink" title="pyc字节码花指令处理"></a>pyc字节码花指令处理</h1><p>花指令即插入无效或干扰反编译的字节码。</p>
+<h2 id="步骤流程"><a href="#步骤流程" class="headerlink" title="步骤流程"></a>步骤流程</h2><ol>
+<li><p><strong>识别花指令</strong></p>
+<ul>
+<li>结合 uncompyle6 的输出,如果pyc字节码加花没办法正确反编译回py文件</li>
+<li>实际字节码判断,若有无用字节码,就是花指令</li>
+<li>参考 Python Opcodes表: <a target="_blank" rel="noopener" href="https://unpyc.sourceforge.net/Opcodes.html">https://unpyc.sourceforge.net/Opcodes.html</a> 查指令含义。</li>
+</ul>
+</li>
+<li><p><strong>定位花指令</strong></p>
+<ul>
+<li>用机器码定位</li>
+</ul>
+</li>
+<li><p><strong>修改花指令</strong></p>
+</li>
+<li><p><strong>修改code object总长度</strong></p>
+</li>
+</ol>
+<p>pyc文件结构:</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> &#123;</span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    <span class="type">int</span> co_argcount;        <span class="comment">/* #arguments, except *args */</span></span><br><span class="line">    <span class="type">int</span> co_nlocals;     <span class="comment">/* #local variables */</span></span><br><span class="line">    <span class="type">int</span> co_stacksize;       <span class="comment">/* #entries needed for evaluation stack */</span></span><br><span class="line">    <span class="type">int</span> co_flags;       <span class="comment">/* CO_..., see below */</span></span><br><span class="line">    PyObject *co_code;      <span class="comment">/* instruction opcodes */</span></span><br><span class="line">    PyObject *co_consts;    <span class="comment">/* list (constants used) */</span></span><br><span class="line">    PyObject *co_names;     <span class="comment">/* list of strings (names used) */</span></span><br><span class="line">    PyObject *co_varnames;  <span class="comment">/* tuple of strings (local variable names) */</span></span><br><span class="line">    PyObject *co_freevars;  <span class="comment">/* tuple of strings (free variable names) */</span></span><br><span class="line">    PyObject *co_cellvars;      <span class="comment">/* tuple of strings (cell variable names) */</span></span><br><span class="line">    <span class="comment">/* The rest doesn&#x27;t count for hash/cmp */</span></span><br><span class="line">    PyObject *co_filename;  <span class="comment">/* string (where it was loaded from) */</span></span><br><span class="line">    PyObject *co_name;      <span class="comment">/* string (name, for reference) */</span></span><br><span class="line">    <span class="type">int</span> co_firstlineno;     <span class="comment">/* first source line number */</span></span><br><span class="line">    PyObject *co_lnotab;    <span class="comment">/* string (encoding addr&lt;-&gt;lineno mapping) */</span></span><br><span class="line">&#125; PyCodeObject;</span><br></pre></td></tr></table></figure>
+<p>其中我们关注的就是co_code字段</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> marshal</span><br><span class="line">code = marshal.load(<span class="built_in">open</span>(<span class="string">&quot;1.pyc&quot;</span>, <span class="string">&quot;rb&quot;</span>))  <span class="comment"># 你的pyc路径</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(code.co_code))</span><br></pre></td></tr></table></figure>
+<p>   根据长度在winhex搜索这个数值,找到的第一个,就是长度,code object长度用四个字节存储,这四个字节前是marshal中byte对象的标识,一个’s’(0x73),这四个字节后就是code object内容</p>
+<h1 id="PyArmor-加壳与加密分析"><a href="#PyArmor-加壳与加密分析" class="headerlink" title="PyArmor 加壳与加密分析"></a>PyArmor 加壳与加密分析</h1><p>PyArmor 是常见的 Python 加密与授权保护工具。<br>PyArmor<strong>是把源码/字节码用加密包装并在运行时由专有 runtime（如 <code>pyarmor_runtime.pyd</code>）解密后执行</strong>。<br>因此你看到的 <code>.py</code> 文件通常只包含一个<strong>启动壳（stub）</strong>，它调用 runtime，并把加密的二进制 blob 交给 runtime 解密并加载——这就是你看到的 <code>__pyarmor__(__name__, __file__, b&#39;...&#39;)</code>。</p>
+<p>原理图:</p>
+<p><img data-src="/images/逆向中的misc/py/pyarmor原理.png" alt="pyarmor原理"></p>
+<h2 id="工具：PyArmor"><a href="#工具：PyArmor" class="headerlink" title="工具：PyArmor"></a>工具：<strong>PyArmor</strong></h2><ul>
+<li>GitHub: <a target="_blank" rel="noopener" href="https://github.com/dashingsoft/pyarmor">https://github.com/dashingsoft/pyarmor</a></li>
+<li>官方文档: <a target="_blank" rel="noopener" href="https://pyarmor.readthedocs.io/en/latest/">https://pyarmor.readthedocs.io/en/latest/</a></li>
+<li>安装：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install pyarmor</span><br></pre></td></tr></table></figure>
+<ul>
+<li>常用命令：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始化项目</span></span><br><span class="line">pyarmor init --src=src --entry=main.py my_project</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成加密文件</span></span><br><span class="line"><span class="built_in">cd</span> my_project</span><br><span class="line">pyarmor gen</span><br><span class="line"></span><br><span class="line"><span class="comment"># 直接加密单个文件</span></span><br><span class="line">pyarmor gen main.py</span><br></pre></td></tr></table></figure>
+<h2 id="常见特征"><a href="#常见特征" class="headerlink" title="常见特征"></a>常见特征</h2><ul>
+<li><p>目录中含 <code>pytransform/</code>、<code>license.lic</code>；</p>
+</li>
+<li><p>存在 <code>_pytransform.dll</code> / <code>pytransform.pyd</code>；</p>
+</li>
+<li><p>反编译 <code>.pyc</code> 失败；</p>
+</li>
+<li><p>程序运行时导入 <code>pytransform</code> 模块。</p>
+</li>
+<li><p>文件夹中有pyarmor字样</p>
+</li>
+</ul>
+<h2 id="解题"><a href="#解题" class="headerlink" title="解题:"></a>解题:</h2><p><a target="_blank" rel="noopener" href="https://github.com/Lil-House/Pyarmor-Static-Unpack-1shot">GitHub - Lil-House/Pyarmor-Static-Unpack-1shot: ✅ No execution ✅ Pyarmor 8.0 - latest 9.1.x ✅ Universal ✅ Statically convert obfuscated scripts to disassembly and (experimentally) source code.</a></p>
+<p>下载release</p>
+<p>打开文件夹</p>
+<p><img data-src="/images/逆向中的misc/py/pyarmor.png" alt="pyarmor"></p>
+<p>如果runtime不用显式指定,在这个目录下用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python shot.py 被混淆程序所在文件路径</span><br></pre></td></tr></table></figure>
+<p>如果题目也把runtime给你了,那就用下面的包含.pyd的命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python shot.py -r /path/to/pyarmor_runtime.pyd /path/to/obfuscated_scripts</span><br></pre></td></tr></table></figure>
+<p>有的程序为了防御这种攻击,会把PyArmor 加密文件的标识符去掉,我们给它在开头加上就行</p>
+<p>比如:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#src.py</span></span><br><span class="line"><span class="keyword">from</span> pyarmor_runtime_000000 <span class="keyword">import</span> __pyarmor__</span><br><span class="line">__pyarmor__(__name__, __file__, <span class="string">b&#x27;\x00\x03\r\x00\xf3\r\r\n\x80\x00\x01\x00\x08\x00\x00\x00\x04\x00\x00\x00@\x00\x00\x00d\n\x00\x00\x12\t\x04\x00y&quot;\x04&quot;\xc0\xa4\t\xad2\\\x17\x13D\x0c\x81\xeb\x00\x00\x00\x00\x00\x00\x00\x00[\xc1%I\xfe56\xaa\x1cc\xc9\xf2E\xa3\x86\xc1\x88=sB\xf08\x14\&#x27;U\xfc\t\x10\xc7%\x1a\xb6\xc4\xa6QvBDK\xfd\xf5\xb0&amp;NZ&amp;n\xe41@VC\x11&amp;j\x8fs\x18\xd6\xe3iQ\xf8_\x9e\xdb\xfa\x92~\xfb\xe7f\xdf#\x00\xa3fv\xb5\x9b\xa13\x99 \x83\xc3\x93\xf2\x1d=\xe2-\x93zb\xb0\x10&amp;\n\xc4\xb8\xb9\x83\x99^\xd0\x94G9\xb9\xa0D\xedX\xff\x01\xbd&gt;\xa9\xe8\xf03]\xdd7\x87\x84\x13;%\xae\xd5\xe8\xcc\xd1\xa8\xe0\xda\xc2\x9f0\x02\xb88J\xac\xe5pS-\x14\x86\xdb\xc4/\xea\xa8\xd3\x05\x04V\x94\xfd_\xf3\xd7\xf1\x7f#\x8d\x9e\xd71\xb1\xfd\xb4\xb9\xd9\xf7&gt;y\xfb\x12\x8f\x9a\xe1\x8d\xe2X\xf9\xcb\xe2\xe3\xa2\xd7\xfc\xfa\xa0\x91n\xb9\xbc\xc0\xf0#\xfd\x83\xad\xb2\\K\xee\x88R\x80\xff\xcf\x93\x8f\x13\xe5\x01`\xbe$)\xad\xa6\xdc;\x8e\\\x0c\xae\x87yJ\xd9\xedF/P\x89\xe8\xb6\xebI\xb1u\x9b&quot;pt\xc3v\x19 \x83\xae\x89\x07\x1fmR\xd9AX4C\x05fa\x81\xf5\xab\xf5\x9a\xfe\xe2\xa2\x88HX\&#x27;\x9c\x9f\xea\x1d\x7f\xeb\n-\xa3\tFDsM\x99MF\xb6\xa9.\x1a\x86n\x95\xc4\x85f\xf8\x90\x076\xb5_\xeb.\xddn\x94f\x12\xb7\x04\xbb_\xd1\x87XO\x054&lt;\x9a\\1%H\xe4eBo)\xf2\xf5\xc6\xe1\xbd\x10i\xe2\xefD\x98\xdc\xea\xf0\xc0\xd1\xdc\x8c&amp;J\x7fX\x87\xc5\xfb\x05d\xb2\xc4\xc5\x0b\xfc\xf8\x9e0R\xb2&#123;em\xb2\x98\\\x05\xd3\xbe_\xf3\x07\x04\x05\x82p\x1b\xa7\x19\xf2\x02\x8e~\x12\xa3;\xb1\xfeb\xdd\x83\x04\xf4VM\xba\xe1&#125;\x8ff\x91\xa0\x94&#125;\xef\x12(\xdf\xa9j\xd4gA\xaa\tB\xf0\\=m%\xa4B\xbd\x1b\xe2AD\xfb\x98\xdf\xfd\xf6\xe5\x80-B\x90a\xf4E_\xa7\xec\x8eBx\xb8\x80\xef\x08X]\x0b\x18\xa3\xab\xf4\x8b\xe8\t\xfd\xd9o\&#x27;\x96&lt;\x1d\xf6\xdb\xe1\xe4\xb5\x8ec5o\x85\x92\xf4\x1e&lt;g\xecJI\xf3\x01\x90\x1e\xb7\x00\xda\t:&#125;\xc7I\x8c\xa5\x01\x13b!\xf2\xcd6JUy\xc5\xfc\xd8Q\x8f\x13\xdb\x0f\xfe\xbf\xd7\xe8\x992\xe4\xdf\x17\xd0\xef\xa5QC\xa6przcd\x9f\x8aS\x963\xa7\x0c\xc4\x97\x11j\xa8\xcf\x19\x1a\xc6\xff\xb1\x1d|\xe9n\x129\x19\xad\x08\x80\xc9\x98=q6\xc7U\xc8\x12\xe2\x0bSt\xc9,\xb4\x07\xd5X\xad\r&#125;\xb1 \xe4\xf6\xfb\xb6m\x11\xf9\x1e\x8c|\xd7\xf5\xd0\x99\x01t\xa39\xd0&amp;X\xa8\&#x27;^\xa5\xd1\x98&#123;\xed\xca\xe1\x95E\x08&amp;\xd1\x0e\xecF^\xc6\xad\x15h\xadV\xfe~\xb2&lt;Xe\xa2$\xf6\x82\xa8Wk\xd1%1\x9d\xcc\x08\x88\xfe\xbck\xb6t\xe4\xc0\xc8F\xf7\xa3\xee\xd8UMb(\xeb\xe9#\xfa( \x97Kp\xe4\xe6\x13&gt;\xbcZ\xab\x89\x99Uy\xe5\xf7s\xcda\x8a\xcb`\x0f\x02]e\xc6:\x84\xf4J\xda3n\x1a\x01?\x83\x98L\xf2P\xae\x10\x80A\xf7\x86\x17F7\xb3 7\xe7\xfb\xed\xed\x0c&quot;v\&#x27;\xf0W\x97\xc7\xdaMe=\xc1\x1c\xf9\xc3\xe2\xa3\x08\x0e\xe0\x0c\xd9\x10\xd7\x0e\x7fJ\xf5\x12\x94\x19\xbf\xf3\xc4K\xe1\xb2b\x07\xa6:\xa6a\x9eW\xf9B\x0e\xab\x9c5\xd4B\xdeN!\xeb\xa9\xb5K\xf4\xcan\xed\x04\x7fp\x87\x95\x14\x18\r-\xa9R\x95H\x9f++\x8f!!\xb5\xc8W\xbeG\x1a\xb0\x1c\x1b\xcdb\xb2y\x89\x16\xab\xbe\xdb)0\xe6\x07\x8a\x1fv\x02n\x83\xfd\x88q\xf3\xa8\xaf4\x84t\x0e\x95I\xf7\x11\x02Q\t.K\x10_\x88\x89\xf4\x98\xaf\xeb\x9d\xc6\x02&quot;u\xb6\x1dbOv\xc6\xfed%\x83-3\x8e\xde\x0ed&quot;\x16\x95j@\x07R\xd5PumB@&quot;\xa4`\xa5\xe7*V\x12\xf2\x90A\x95\xd9\xaal\xb8\x1a\xe6\xcc\x0b1\\\xca\x03m\xa1\xaf;c&#123;\x14\&#x27;\x14\xb4\xb2\x13\xf2\x9e\xe6\xaf\xcf&lt;\x86\x16\xc6&gt;\x86\x01?\xf6J\xa4\x9b/\xce\xd4\xec+\xc9\xf6Y\x9f\xef\x08\x88\x05\xe1B\x12\xc4\xca4\x03?\x9b\x9e\xa9r\x99\xeb\x08\xc9Tfm\xb9,\x8e&quot;\xfcK\xd3\x9dx\x97\x0ff\x15\x08\xfb\x89\xdd\xd0Z\x85W?\x9c\xb9\xd3\x10\xaf\x9dG\x96f\xae ed\tu\x0e\x8e\xccX\xe1\xe4\x82\xbc\xe9\xeb\xa2\xd6\xa44\xf4\xeb]p\xad\xa0k\t\x84\x0f\xba\xed\xc8\x18\xbc\xd3\xc02\x97\x8a\x97B\xd69\xc4\x8c\x11\xca\xeb*\xbed\xefv\x95\x96H\xf7\xb4\xb6\xbd\xfb\xc6q\xc7\x90,eCkf\xc5\xb5\x91\xb1J\x85\xab\xc4\x06\xff\xdb\xae\x03]Cd\xa1\xe4\xdf\x80\xddk2\xb4\xe7\xac\xac\x05i\\6\xf8:\x87Ps\xbcM\x06\n\xce\xdc\xafo\xc1\xd8\xf4\xd5p\x8d\xe1\xa3P\x99e\xc6Z4t\xc5\xdc\xc02.\xa8\x08\x97\xbcJ\xc4ga\xd1\xe6\xc5t\xf1\xf9\x1a\t\xc3\x95\x8a\x05\xea\x99\xe3^\xe9\x05r\xda\xb5\x97\xd4\xbd\x01\x9f\x86\xae!?\x13\xf3\xeb\x93\xc5\x80v\x01F\x96\xd9\xb6\xf6C\xb0w\x9ciH\xbc\xd3\x1c\xa5R\xd0\x08;d\xd8\xac\xbf\x1c\xff\xfca\xf2Ey\xac\x00rY\xf2A\xeb\r\x9f\x8a\xcf\xb6\xa97\xf4\x82\x12\xee,&lt;\xaa\xec\xa7RY`\xb1\x1e\xe3\xac,\xb8\xee\xe2\xc0\xc47\x9e\xf4B\\\xb1?\xd7[I\xf8\x19\xd5\xbe\x87(S\x9e$\xffq\xb0p\x8e2\x85XCE\x84\x8c\x97\xebw\xa3\x00\\_\x13\xf5Jw5\xfeK\x95\xb2\xbb\xd4\x92F\xa0\x9a\xb54\x97\x03\xaa\xe0\x98q\x0b\xdd\xbd\xf3\xe3\xfc\xfdU\x1aH\xbc\x13\x00gP\xe6\xe7\xb3\xa6\x91hP\xd3\&#x27;r\x8c\xab\xa39\xe6\x14\x0f\x15;\tt\x9bf\xa6\x7f\xc8\xe5\xf7\x16\x19\xf8\x9a\xc0n\x7fa\x1c\xf5I\xefU\xf5O\xfb\xfc\xad\x05\xadYB\x17\xb3~xL\x8d\x9f\x05\xc0\xcaWp\xf5x\xd4\xcf\xddX\x96\xad]P[`\x9ei\xfdap\xe2\xf4\xc2w\xf2\xbc\xd1 \xff\x13\xccz\xd0&amp;+\xc8\xa00\xe2\x11\xdb\xa2.\x961\xa2\x0fs(R8\xdd\x898Ve&#125;\x8f&gt;S\x83\x14\x83P\x8bA@s\xe5\x8d\xda\xb2\xf9\xba\x00\xb3\xd0Q\x1d\xaaZ\xae\x03\x9e\x92=.\x13|\xb1\x8dK4\x96A\xa5\xdeM\xbc\xd9dOxB_\xc5\x10\xbdp\xccD1\xc1$d\xdc8\xc5\x18\xd3e\x1a)[s\xecn\xd2htl\x8c\x1a0y\xd8a&amp;Q\xb5\xd7\xcd\xb2&gt;\x1b\xe1\xfdKA\xeb^v&#123;#\xba\x0eo\xef\xf5\x1c,\xe5X\x05\xc7s\xf6\xa7\xfa\xd9\xed\x87\x18\xa0&#123;C\\\xc4\xef6^\xcf%\xc9[\xb7\x87\xb0\xac\tN\xd1\x04\xaa\xa2\x10\xa4kg\xa1Pn\xcb\xfd\xfflL]\x92h&#125;&lt;\xa2\xfej1\x83\xe6\xfb\x97\x9c\xae\xe8\x88\xf1\xbdN\x0f\xde\xfd\x8d\xe6\x87^S\x94\x0c\xad\xee%\t\xb5\xd6\xfb\xac\xb7d0\\\xe8\xb9\xfe\x04\xc2\x92&quot;@\xd7\x08GY%\xdf%\xba\x83\x18\x17\x7f\x00\&#x27;\x1c\&#x27;/\xa7\x7f\xe2\xf7\xc8\x9b 2(\x9cO\xa7\x7fI\xc4\xe7l\x0b\x0f\xda\xe9uR%\xaeb\x9dm\x85\xab\xbf\xe7\x95\x88\xc9\xff\xe0\xd2\x85\xaah\x0e\xd3\xf8\xe2\x89\xd1\x96ix\xe7aic\xb8\x10\x08\x9cJ,\xc6o\xbb\xe0(\x10&#125;\x0c\xb9\x9a\x11\xdf\rR\x9c\x00\x95\x88xO\xeb\xba\xbe+Qi[`u\x86\xce\xf4\xe2C\xd0\xb7\x00_#j\x19.&#123;\xeb4\xecc\xb8N^K&quot;\xab\x0b\x9e\xd7u\xe1\x1c\xe8\x1dL\xfcC\xf2\xbfS\xf5\x95\x00\xe7&gt;\x0e\x9ew\xf6\x83\xee\n\xd1\x1e\xb5\xceV\x93\x9clg\xeaV\xab\xf9\xec\xc7\x01\x9f\x0c\xe5\xd1h0\xafbMC\x13\xd8zJ\xab\x81\x7f\x88|\x0b\x95&lt;(\x15d\x90\xb7\xd7\x9e,\xb5\x14\n\xfe4\xe3\x1a\xa5\x9b&#125;\xf1\xa0\r\x96.5\x99\xce\xc9E\xed\x97\xa3\n4O\xb5\xdb\xc8\xbf\xb4\x88\xdb\xd5V\x0f\xfd\xda\r\x1d9x\xe1\xa0\xc5\xc6L\x08\xda\xc8\x88\x87Z?\x9d\xa8\xd5\xcdI\x16\xb5Q`&gt;\xb8\x1fSbN\xd9\xf2F\x01\xeb\x07\xf2.9\x87\x8e\xab\xb6\x8e\x1e\x8b\x04\xc3\xcb?\xd3F\x18g6r\xc4\x1dh$\xc9|w\xe5+/\xb4X\x94\x1ax\xf5a\x05::\x1c^\xa1\x8e\x08E\x84\xde)2m\x9cD\xb7UBsE\x82\x01\xf6\xa8\xd6E\&#x27;\xe4\x7f^\xdd\xf7\xbb4\xb0*&#125;\x12=\x1f3\x1b9\x9d\xd1\xfc\x8c\xbd\x9bC\x83Z+\xdb\x06\&#x27;_\xf2\xb9\xd6\x8d\x8e\xa0M\xc8\x8a\x13\xfeDC\xc8\xa0\x96?h\xba\xb7&quot;\xb7\x15x\xd2\xb0P\xc9\xc3c~\xdd`\x81\xb8JKJ\xe0\xcd\x80\xe6/&#125;\xce&amp;\x01h\xce\xa6\x8e\xfa*\xf4(l]\xc5\xb1a&#123;&quot;\xbe\xc9\xf3\xd3\xdc\xad\xe5!\xd3\xfd&quot;hR\&#x27;&amp;\xaf\xad\xf6\xb5\x04\xb5\xe1\x98g8\xcc\xe3f\xa9\x8d\&#x27;\xd0\xc4\x94\xf2\x865\x82&gt;U\xdba\x98:\x02V\xad\xfb\x81\xb4PDy&lt;\xdd\xeb\x01\xa9\x99^)\x8bK\xc8E\x04AM\x88\xd4\x99H\x9a\\\x8c\x13OIxmZ\xc5\x19\xe8\xc1\x19\x82E\xf7\x01SNr\xf70\xa4\xe1\x92\xa6\xed\x1d\tZ\xbfD0\xc6\x80\xe5\xf8\xdd\xa9\xd8\xe3\xa2\xb1y\xc5;\x9d\xd6c\x8as\x07\x0fBa&quot;\xc2Mw\x9f,w\x1b\xc7\x98\x8a\xd3\x93\xb0\&#x27;\xdb\xact\x99\x11Vq&lt;\x8d$c\x8bX\xd3\x04\x9d\x92\x17\xa9\x91&#125;\x9fc\xc5x8\xc3\xea\xb2&gt;&lt;\x88krU\x055\x1cN\x8d\xf7\&#x27;S&gt;\x14\xc9pV\xbe\x1fj\xed\xa5\t\xbc\xbfD\xed$\x88\x00n7&lt;\xf5\xd6\xe9h\xaf@\x94\xfb\x1am\x9a\xa4\x1a\xf5Z\xcb\xf9\x80\xb6\x9d\xd6\xf1\x9f\xce\x1e\xaf\x97=\xdcrj\xcfh\xc2\x1dS\xdd\x18\x15\xb5\xc3O=\x0e\xba\x07\x0b\xb1J\x01A\x7fl\xcf?\&#x27;\xb0e\x9aO\xed2\xf7\xf4\xa1\xd3\xdf\x11_H\x8f\x8f\x03\x7f\xeej\x954\r\x1aA\xdanM\x8f\xef\x9dq\xc6\xf5\x16E3\x10\x80\x88\xa0\xd0Q\xfc\xf1\x8b\xf1\xcf\xb5\xed\xa54P\x18\xb4\xc9\x02:&#125;\xc6\xf8\x17\xaa\x8a\xcd\xb88\x03\xecI\xe7\x9a\xef\xab9\x1e\x7f9\x1ah\xef\x1c\xef\x13m\x9bfqb\x1a\x8a\xe1\x02\x8e\xf9\xa1\x9d\x90\xb2$\xcbS\x10QS\x96\xa8\xea\x8bx\xc11\x93\x1c\xb9\x0b\x80~\xde\x9b\xc4\xa2N\xe0N~Q\xaf\xc0@\x01\x9d=[@\r1T\xec\xb9\xd3\xe0q\x94\xd1\xf7\x983\x10*\xad\x1a\xd3hs\x98&#125;\xd8\xfd\x05\n\xd1u\xf7d\xd2\x9a\xc6\x95\xba\x0cJ\\GSC\xbb\&#x27;\x18\x1f\xaa\x12/|q\x0b\x81\xb4)\x15&#125;\xa0\xf9S\xb3\xcb\x86\xdcQ)2OH\x11\xde.\xcb\xe1Z!DA\xd3Q&lt;N&gt;\xa0k\n-Z)r5\xa3k\x9f\x91&amp;\xc7\xb8\xfe\x1814\x16xh\x97^\xe3\x03:\xb0f\x14\xce\\\x85\xe4k_\xadf2\xe5\xb1`\x8f8\xfc\xf6#x\x1f\x98\xdex7+\x98=G\xb1M&#x27;</span>)</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>开头没有标识符,根据运行环境可知特征码是PY000000,我们帮它加上PY000000,工具才能正确识别这个pyarmor加密</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pyarmor_runtime_000000 <span class="keyword">import</span> __pyarmor__</span><br><span class="line">__pyarmor__(__name__, __file__, <span class="string">b&#x27;PY000000\x00\x03\r\x00\xf3\r\r\n\x80\x00\x01\x00\x08\x00\x00\x00\x04\x00</span></span><br><span class="line"><span class="string">后面的省略</span></span><br></pre></td></tr></table></figure>
+<p><img data-src="/images/逆向中的misc/py/pyarmor成功.png" alt="pyarmor成功"></p>
+<p>成功后会出现这种图形化界面,现在我们去到被混淆的文件发现多了很多文件,后缀是.py的文件就是解密后的py源码</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>工具</th>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exe 解包</td>
+<td>pyinstxtractor.py</td>
+<td><code>python pyinstxtractor.py target.exe</code></td>
+<td>提取 pyc</td>
+</tr>
+<tr>
+<td>pyc 反编译</td>
+<td>uncompyle6</td>
+<td><code>uncompyle6 -o ./out ./file.pyc</code></td>
+<td>还原 py</td>
+</tr>
+<tr>
+<td>pyc 反编译</td>
+<td>pycdc</td>
+<td><code>pycdc file.pyc &gt; file.py</code></td>
+<td>还原 py</td>
+</tr>
+<tr>
+<td>高版本 pyc</td>
+<td>pylingual</td>
+<td><code>python pylingual.py file.pyc</code></td>
+<td>分析 py312</td>
+</tr>
+<tr>
+<td>字节码分析</td>
+<td>dis</td>
+<td><code>python -m dis file.pyc</code></td>
+<td>查看汇编</td>
+</tr>
+<tr>
+<td>修复花指令</td>
+<td>WinHex</td>
+<td>手动修补</td>
+<td>去花</td>
+</tr>
+<tr>
+<td>加壳识别</td>
+<td>pyarmor</td>
+<td><code>python shot.py -r /path/to/pyarmor_runtime.pyd /path/to/obfuscated_scripts</code></td>
+<td>加密分析</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/10/23/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E5%81%9A%E9%A2%98/" title="py逆向做题总结">http://example.com/2025/10/23/ctf逆向中的misc/py做题/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/py%E9%80%86%E5%90%91/" rel="tag"><i class="fa fa-tag"></i> py逆向</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/10/15/pe%E9%80%86%E5%90%91/dll%E4%B8%93%E9%A2%98/" rel="prev" title="DLL专题">
+      <i class="fa fa-chevron-left"></i> DLL专题
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E7%BB%99%E4%BA%86exe%E6%88%96%E8%80%85%E7%9B%B4%E6%8E%A5%E7%BB%99%E4%BA%86pyc%E6%96%87%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">题目给了exe或者直接给了pyc文件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86exe%EF%BC%88%E8%A7%A3%E5%8C%85%E4%B8%BA-pyc-%E6%96%87%E4%BB%B6%EF%BC%89"><span class="nav-number">1.1.</span> <span class="nav-text">处理exe（解包为 pyc 文件）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%B7%A5%E5%85%B7%EF%BC%9Apyinstxtractor-py"><span class="nav-number">1.1.1.</span> <span class="nav-text">使用工具：pyinstxtractor.py</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">1.1.2.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">1.1.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86-pyc-%E6%96%87%E4%BB%B6"><span class="nav-number">1.2.</span> <span class="nav-text">处理 pyc 文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E4%B8%80%EF%BC%9Auncompyle6"><span class="nav-number">1.2.1.</span> <span class="nav-text">工具一：uncompyle6</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E4%BA%8C%EF%BC%9Apycdc"><span class="nav-number">1.2.2.</span> <span class="nav-text">工具二：pycdc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%E4%B8%89%EF%BC%88%E9%92%88%E5%AF%B9%E9%AB%98%E7%89%88%E6%9C%AC%EF%BC%89PyLingual"><span class="nav-number">1.2.3.</span> <span class="nav-text">工具三（针对高版本）PyLingual</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9-1"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">注意事项</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#pyc-%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%88Bytecode%EF%BC%89%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">pyc 字节码（Bytecode）分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%EF%BC%9APython-%E5%86%85%E7%BD%AE-dis-%E6%A8%A1%E5%9D%97"><span class="nav-number">2.1.</span> <span class="nav-text">工具：Python 内置 dis 模块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E8%BF%98%E5%8E%9F%E6%80%9D%E8%B7%AF"><span class="nav-number">2.2.</span> <span class="nav-text">手动还原思路</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#pyc%E5%AD%97%E8%8A%82%E7%A0%81%E8%8A%B1%E6%8C%87%E4%BB%A4%E5%A4%84%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">pyc字节码花指令处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A5%E9%AA%A4%E6%B5%81%E7%A8%8B"><span class="nav-number">3.1.</span> <span class="nav-text">步骤流程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#PyArmor-%E5%8A%A0%E5%A3%B3%E4%B8%8E%E5%8A%A0%E5%AF%86%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">PyArmor 加壳与加密分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7%EF%BC%9APyArmor"><span class="nav-number">4.1.</span> <span class="nav-text">工具：PyArmor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%89%B9%E5%BE%81"><span class="nav-number">4.2.</span> <span class="nav-text">常见特征</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E9%A2%98"><span class="nav-number">4.3.</span> <span class="nav-text">解题:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

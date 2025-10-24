@@ -22,18 +22,24 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="学习逆向贵在坚持">
-<meta property="og:type" content="website">
-<meta property="og:title" content="s0m1ng">
-<meta property="og:url" content="http://example.com/tags/vm%E9%80%86%E5%90%91/index.html">
+  <meta name="description" content="题型识别： ida 打开搜索字符串，看有没有godot字段  ida看段表，如果有.pck段就是godot engine题型    解包：用这个工具：GitHub - GDRETools&#x2F;gdsdecomp: Godot reverse engineering tools 下载后运行文件夹里的exe文件 点击图示recover project  文件路径选择我们要解包的程序 点下面的extract">
+<meta property="og:type" content="article">
+<meta property="og:title" content="godot引擎逆向">
+<meta property="og:url" content="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="学习逆向贵在坚持">
+<meta property="og:description" content="题型识别： ida 打开搜索字符串，看有没有godot字段  ida看段表，如果有.pck段就是godot engine题型    解包：用这个工具：GitHub - GDRETools&#x2F;gdsdecomp: Godot reverse engineering tools 下载后运行文件夹里的exe文件 点击图示recover project  文件路径选择我们要解包的程序 点下面的extract">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/pck.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/%E8%A7%A3%E5%8C%85%E5%B7%A5%E5%85%B7.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/%E9%87%8D%E6%89%93%E5%8C%85exe.png">
+<meta property="article:published_time" content="2025-10-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T12:54:13.748Z">
 <meta property="article:author" content="s0m1ng">
-<meta property="article:tag" content="逆向，实战，外挂">
+<meta property="article:tag" content="godot engine">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/pck.png">
 
-<link rel="canonical" href="http://example.com/tags/vm%E9%80%86%E5%90%91/">
+<link rel="canonical" href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
 
 
 <script id="page-configurations">
@@ -41,12 +47,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title>标签: vm逆向 | s0m1ng</title>
+  <title>godot引擎逆向 | s0m1ng</title>
   
 
 
@@ -172,71 +178,176 @@
         <div class="content-wrap">
           
 
-          <div class="content tag">
+          <div class="content post posts-expand">
             
 
+    
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <h2 class="collection-header">vm逆向
-          <small>标签</small>
-        </h2>
-      </div>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          godot引擎逆向
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-06 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-06T00:00:00+08:00">2025-10-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-10-24 20:54:13" itemprop="dateModified" datetime="2025-10-24T20:54:13+08:00">2025-10-24</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2025</span>
+        <h1 id="题型识别："><a href="#题型识别：" class="headerlink" title="题型识别："></a>题型识别：</h1><ul>
+<li><p>ida 打开搜索字符串，看有没有godot字段</p>
+</li>
+<li><p>ida看段表，如果有.pck段就是godot engine题型</p>
+</li>
+</ul>
+<p><img data-src="/images/逆向中的misc/godot/pck.png" alt="pck"></p>
+<h1 id="解包："><a href="#解包：" class="headerlink" title="解包："></a>解包：</h1><p>用这个工具：<a target="_blank" rel="noopener" href="https://github.com/GDRETools/gdsdecomp">GitHub - GDRETools/gdsdecomp: Godot reverse engineering tools</a></p>
+<p>下载后运行文件夹里的exe文件</p>
+<p>点击图示recover project</p>
+<p><img data-src="/images/逆向中的misc/godot/解包工具.png" alt="解包工具"></p>
+<p>文件路径选择我们要解包的程序</p>
+<p>点下面的extract就可以看到解包文件夹了</p>
+<h1 id="分析："><a href="#分析：" class="headerlink" title="分析："></a>分析：</h1><p>脚本后缀都是 <code>.gd</code>：</p>
+<p>这是 godot 自己实现的一种脚本语言，叫 <a target="_blank" rel="noopener" href="https://docs.godotengine.org/zh-cn/4.x/tutorials/scripting/gdscript/gdscript_basics.html">GDScript</a></p>
+<p>可以把main.gd扔给chatgpt，然后让他分析就可以了，不用特别掌握语法</p>
+<h1 id="更改代码逻辑后应用"><a href="#更改代码逻辑后应用" class="headerlink" title="更改代码逻辑后应用"></a>更改代码逻辑后应用</h1><p>如果我们更改里边的代码逻辑（比如直接输出flag）怎么实现呢？</p>
+<h2 id="重新打包回-pck文件"><a href="#重新打包回-pck文件" class="headerlink" title="重新打包回.pck文件"></a>重新打包回.pck文件</h2><p><img data-src="/images/逆向中的misc/godot/重打包exe.png" alt="重打包exe"></p>
+<p>点这个之后文件夹路径放我们刚才改完的文件夹，下面的embed pck指要把pck嵌入到exe中替换吗，我们这里选要替换，把exe文件路径填上就可以实现自实现逻辑了</p>
+<h2 id="frida直接hook"><a href="#frida直接hook" class="headerlink" title="frida直接hook"></a>frida直接hook</h2><p>frida是基于动态插桩的hook脚本工具，是用js写的，可以直接让ai帮你写frida脚本，这个东西非常强大，可以hook安卓apk，win中exe等程序，我会放在安卓逆向中讲用法</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-10-07T00:00:00+08:00"
-              content="2025-10-07">
-          10-07
-        </time>
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
       </div>
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/10/07/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/" itemprop="url">
-            <span itemprop="name">[GWCTF 2019] babyvm</span>
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/" title="godot引擎逆向">http://example.com/2025/10/06/ctf逆向中的misc/godot引擎逆向/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
           </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-10-06T00:00:00+08:00"
-              content="2025-10-06">
-          10-06
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" itemprop="url">
-            <span itemprop="name">vm逆向基础及做题套路</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
+        </div>
     </div>
   </div>
-  
-  
-  
 
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/godot-engine/" rel="tag"><i class="fa fa-tag"></i> godot engine</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" rel="prev" title="vm逆向基础及做题套路">
+      <i class="fa fa-chevron-left"></i> vm逆向基础及做题套路
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/10/07/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/" rel="next" title="[GWCTF 2019] babyvm">
+      [GWCTF 2019] babyvm <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
   
 
 
@@ -289,6 +400,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E5%9E%8B%E8%AF%86%E5%88%AB%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">题型识别：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E5%8C%85%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">解包：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E6%9E%90%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">分析：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9B%B4%E6%94%B9%E4%BB%A3%E7%A0%81%E9%80%BB%E8%BE%91%E5%90%8E%E5%BA%94%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">更改代码逻辑后应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E6%96%B0%E6%89%93%E5%8C%85%E5%9B%9E-pck%E6%96%87%E4%BB%B6"><span class="nav-number">4.1.</span> <span class="nav-text">重新打包回.pck文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#frida%E7%9B%B4%E6%8E%A5hook"><span class="nav-number">4.2.</span> <span class="nav-text">frida直接hook</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
