@@ -22,18 +22,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前言：某些安卓题强制要求arm环境才能跑，模拟器不管是脱壳还是动调都有很多问题，最近搞了个真机重新配一遍安卓逆向环境 root手机">
+  <meta name="description" content="前言：某些安卓题强制要求arm环境才能跑，模拟器不管是脱壳还是动调都有很多问题，最近搞了个真机重新配一遍安卓逆向环境 root手机我这个是三星的galaxy z filp3，不得不说国外的手机root就是比国内的简单 解bl锁：一边按住音量上下键，一边插数据线，出浅蓝界面放手，然后长按音量上 出现unlock放手，短按音量下 这样就把bl锁开了 解oem：连点7次编译版本，然后进开发者模式，打开o">
 <meta property="og:type" content="article">
 <meta property="og:title" content="安卓逆向环境配置">
 <meta property="og:url" content="http://example.com/2025/10/08/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前言：某些安卓题强制要求arm环境才能跑，模拟器不管是脱壳还是动调都有很多问题，最近搞了个真机重新配一遍安卓逆向环境 root手机">
+<meta property="og:description" content="前言：某些安卓题强制要求arm环境才能跑，模拟器不管是脱壳还是动调都有很多问题，最近搞了个真机重新配一遍安卓逆向环境 root手机我这个是三星的galaxy z filp3，不得不说国外的手机root就是比国内的简单 解bl锁：一边按住音量上下键，一边插数据线，出浅蓝界面放手，然后长按音量上 出现unlock放手，短按音量下 这样就把bl锁开了 解oem：连点7次编译版本，然后进开发者模式，打开o">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91\%E7%8E%AF%E5%A2%83\frida.png">
 <meta property="article:published_time" content="2025-10-07T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-10-09T03:44:39.595Z">
+<meta property="article:modified_time" content="2025-10-27T09:50:10.226Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="安卓逆向">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="d:\ctf\s0m1ng\source\images\%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91\%E7%8E%AF%E5%A2%83\frida.png">
 
 <link rel="canonical" href="http://example.com/2025/10/08/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/">
 
@@ -211,7 +213,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-09 11:44:39" itemprop="dateModified" datetime="2025-10-09T11:44:39+08:00">2025-10-09</time>
+                <time title="修改时间：2025-10-27 17:50:10" itemprop="dateModified" datetime="2025-10-27T17:50:10+08:00">2025-10-27</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -219,7 +221,7 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">安卓逆向</span></a>
+                  <a href="/categories/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">安卓逆向基础</span></a>
                 </span>
             </span>
 
@@ -242,7 +244,53 @@
 
       
         <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>某些安卓题强制要求arm环境才能跑，模拟器不管是脱壳还是动调都有很多问题，最近搞了个真机重新配一遍安卓逆向环境</p>
-<h1 id="root手机"><a href="#root手机" class="headerlink" title="root手机"></a>root手机</h1>
+<h1 id="root手机"><a href="#root手机" class="headerlink" title="root手机"></a>root手机</h1><p>我这个是三星的galaxy z filp3，不得不说国外的手机root就是比国内的简单</p>
+<h2 id="解bl锁："><a href="#解bl锁：" class="headerlink" title="解bl锁："></a>解bl锁：</h2><p>一边按住音量上下键，一边插数据线，出浅蓝界面放手，然后长按音量上</p>
+<p>出现unlock放手，短按音量下</p>
+<p>这样就把bl锁开了</p>
+<h2 id="解oem："><a href="#解oem：" class="headerlink" title="解oem："></a>解oem：</h2><p>连点7次编译版本，然后进开发者模式，打开oem</p>
+<h2 id="刷机下载系统包："><a href="#刷机下载系统包：" class="headerlink" title="刷机下载系统包："></a>刷机下载系统包：</h2><p>手机关机不插线，同时按住音量上下键，一边插数据线，到蓝屏界面按一次音量上到download模式，然后选择factory data reset模式，电脑同时启动数据传输，等开机就好了</p>
+<p>开机后在github下载最新的magisk刷入面具root就完了</p>
+<h1 id="配置逆向环境："><a href="#配置逆向环境：" class="headerlink" title="配置逆向环境："></a>配置逆向环境：</h1><h2 id="导入面具模块："><a href="#导入面具模块：" class="headerlink" title="导入面具模块："></a>导入面具模块：</h2><p>在github找xposed模块，下载zip包，放在手机里，在面具软件下边模块点从本地安装，等待就刷入xposed模块了，再从github下一个lsposed管理器，基础环境就完事了</p>
+<h2 id="下载逆向工具："><a href="#下载逆向工具：" class="headerlink" title="下载逆向工具："></a>下载逆向工具：</h2><p>本文所有逆向工具都可以在吾爱破解的<a target="_blank" rel="noopener" href="https://www.52pojie.cn/thread-1695141-1-1.html">《安卓逆向这档事》一、模拟器环境搭建 - 吾爱破解 - 52pojie.cn</a>及后续中找到</p>
+<h3 id="MT管理器-amp-NT管理器："><a href="#MT管理器-amp-NT管理器：" class="headerlink" title="MT管理器&amp;NT管理器："></a>MT管理器&amp;NT管理器：</h3><p>这两个工具是用于操作我们的系统文件的，可以修改签名，修改apk的smali代码，功能很多是安卓逆向的神器</p>
+<h3 id="算法助手："><a href="#算法助手：" class="headerlink" title="算法助手："></a>算法助手：</h3><p>有很多内置的功能，极大增大我们的逆向速度</p>
+<h3 id="xdebugapp："><a href="#xdebugapp：" class="headerlink" title="xdebugapp："></a>xdebugapp：</h3><p>过动调检测的小帮手，我们安卓apk的动态调试步骤：</p>
+<ul>
+<li><p>xdebugapp打开目的app获取debug权限</p>
+</li>
+<li><p>终端启动调试</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb shell am <span class="built_in">start</span> <span class="literal">-D</span> <span class="literal">-n</span> com.zj.wuaipojie/.ui.MainActivity</span><br><span class="line">adb shell am <span class="built_in">start</span> <span class="literal">-D</span> <span class="literal">-n</span> 包名/类名 （去掉<span class="literal">-D</span> 则表示不以debug模式启动app）</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>jeb下断点附上apk</p>
+</li>
+</ul>
+<h3 id="simplehook："><a href="#simplehook：" class="headerlink" title="simplehook："></a>simplehook：</h3><p>里面基本实现了一些hook的功能，如果有简单hook需求就不用写frida脚本了</p>
+<h3 id="android-server"><a href="#android-server" class="headerlink" title="android_server:"></a>android_server:</h3><p>这个东西不用下载，直接在ida下载文件夹里找就可以  <strong>IDA_Pro\dbgsrv\android_server</strong></p>
+<p>然后在cmd里输入</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb push IDA_Pro\dbgsrv\android_server /data/local/tmp</span><br></pre></td></tr></table></figure>
+<p>这样就把我们的调试服务器放在了/data/local/tmp里了</p>
+<p>在mt管理器找到它把文件属性改为777，改名为as(因为很多反调试会检测android_server这个名字)</p>
+<p>需要动调apk的.so文件的时候就</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">adb shell</span><br><span class="line">su</span><br><span class="line"><span class="built_in">cd</span> /<span class="keyword">data</span>/local/tmp</span><br><span class="line">./as</span><br></pre></td></tr></table></figure>
+<h3 id="frida-server"><a href="#frida-server" class="headerlink" title="frida server"></a>frida server</h3><p>安卓逆向的神器，去github下载对应的frida版本，我这里win下载的16.1.3版本，就要去官网找对应16.1.3的server</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(jack) C:\Users\Lenovo&gt;frida --v</span><br><span class="line">16.1.3</span><br></pre></td></tr></table></figure>
+<p><img data-src="D:\ctf\s0m1ng\source\images\安卓逆向\环境\frida.png" alt="frida"></p>
+<p>也放到/data/local/tmp</p>
+<h3 id="Lspatch"><a href="#Lspatch" class="headerlink" title="Lspatch"></a>Lspatch</h3><p>免 Root 使用 Xposed 模块这是 LSPatch 最主要的功能。</p>
+<ul>
+<li><p>它允许在 <strong>不 Root 手机</strong> 的情况下，让应用程序加载和执行 Xposed 模块。</p>
+</li>
+<li><p><strong>传统方式</strong>：需要 Root → 安装 LSPosed → 启用模块</p>
+</li>
+<li><p><strong>LSPatch 方式</strong>：直接修补 APK 文件 → 安装修补后的 APK → 直接使用</p>
+</li>
+</ul>
+<p>应用重打包与修改</p>
+<p>通过修补目标 APK，将模块代码嵌入到应用中，实现功能增强。</p>
+<h3 id="reqable："><a href="#reqable：" class="headerlink" title="reqable："></a>reqable：</h3><p><a target="_blank" rel="noopener" href="https://reqable.com/zh-CN/download">https://reqable.com/zh-CN/download</a></p>
+<p>这个是必备抓包apk，用这个我们可以抓app的包</p>
+
     </div>
 
     
@@ -316,8 +364,8 @@
       <i class="fa fa-chevron-left"></i> [GWCTF 2019] babyvm
     </a></div>
       <div class="post-nav-item">
-    <a href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/" rel="next" title="逆向中的AES(一)">
-      逆向中的AES(一) <i class="fa fa-chevron-right"></i>
+    <a href="/2025/10/09/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8A-SEH/" rel="next" title="异常处理机制-SEH">
+      异常处理机制-SEH <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -377,7 +425,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#root%E6%89%8B%E6%9C%BA"><span class="nav-number">2.</span> <span class="nav-text">root手机</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#root%E6%89%8B%E6%9C%BA"><span class="nav-number">2.</span> <span class="nav-text">root手机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3bl%E9%94%81%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">解bl锁：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3oem%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">解oem：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%B7%E6%9C%BA%E4%B8%8B%E8%BD%BD%E7%B3%BB%E7%BB%9F%E5%8C%85%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">刷机下载系统包：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">配置逆向环境：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%BC%E5%85%A5%E9%9D%A2%E5%85%B7%E6%A8%A1%E5%9D%97%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">导入面具模块：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD%E9%80%86%E5%90%91%E5%B7%A5%E5%85%B7%EF%BC%9A"><span class="nav-number">3.2.</span> <span class="nav-text">下载逆向工具：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MT%E7%AE%A1%E7%90%86%E5%99%A8-amp-NT%E7%AE%A1%E7%90%86%E5%99%A8%EF%BC%9A"><span class="nav-number">3.2.1.</span> <span class="nav-text">MT管理器&amp;NT管理器：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E5%8A%A9%E6%89%8B%EF%BC%9A"><span class="nav-number">3.2.2.</span> <span class="nav-text">算法助手：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xdebugapp%EF%BC%9A"><span class="nav-number">3.2.3.</span> <span class="nav-text">xdebugapp：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#simplehook%EF%BC%9A"><span class="nav-number">3.2.4.</span> <span class="nav-text">simplehook：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#android-server"><span class="nav-number">3.2.5.</span> <span class="nav-text">android_server:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#frida-server"><span class="nav-number">3.2.6.</span> <span class="nav-text">frida server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lspatch"><span class="nav-number">3.2.7.</span> <span class="nav-text">Lspatch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reqable%EF%BC%9A"><span class="nav-number">3.2.8.</span> <span class="nav-text">reqable：</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -393,17 +441,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">18</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">13</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

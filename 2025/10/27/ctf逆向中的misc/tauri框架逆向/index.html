@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="什么是tauri框架？Tauri 是一个用于构建桌面应用的开源框架：前端用任意会输出 HTML&#x2F;JS&#x2F;CSS 的框架（如 React&#x2F;Vue&#x2F;Svelte），后端用 Rust（或平台原生）打包成本地可执行文件。它通过 WebView 显示前端页面，并通过安全的 IPC（消息调用）把前端和 Rust 后端连接起来。 简单来说就是tarti框架构建出来的exe文件，集成了前端和后端代码，打包进了exe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tauri框架逆向">
+<meta property="og:url" content="http://example.com/2025/10/27/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri%E6%A1%86%E6%9E%B6%E9%80%86%E5%90%91/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="什么是tauri框架？Tauri 是一个用于构建桌面应用的开源框架：前端用任意会输出 HTML&#x2F;JS&#x2F;CSS 的框架（如 React&#x2F;Vue&#x2F;Svelte），后端用 Rust（或平台原生）打包成本地可执行文件。它通过 WebView 显示前端页面，并通过安全的 IPC（消息调用）把前端和 Rust 后端连接起来。 简单来说就是tarti框架构建出来的exe文件，集成了前端和后端代码，打包进了exe">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\app.png">
+<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\file.png">
+<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\%E9%9D%99%E6%80%81%E8%A1%A8.png">
+<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\%E5%AE%9A%E4%BD%8D%E5%87%BD%E6%95%B0.png">
+<meta property="article:published_time" content="2025-10-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-28T04:15:04.004Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="tauri">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\app.png">
+
+<link rel="canonical" href="http://example.com/2025/10/27/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri%E6%A1%86%E6%9E%B6%E9%80%86%E5%90%91/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>tauri框架逆向 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/27/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri%E6%A1%86%E6%9E%B6%E9%80%86%E5%90%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          tauri框架逆向
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-27 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-27T00:00:00+08:00">2025-10-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-10-28 12:15:04" itemprop="dateModified" datetime="2025-10-28T12:15:04+08:00">2025-10-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="什么是tauri框架？"><a href="#什么是tauri框架？" class="headerlink" title="什么是tauri框架？"></a>什么是tauri框架？</h1><p>Tauri 是一个用于构建桌面应用的开源框架：前端用任意会输出 HTML/JS/CSS 的框架（如 React/Vue/Svelte），后端用 Rust（或平台原生）打包成本地可执行文件。它通过 WebView 显示前端页面，并通过安全的 IPC（消息调用）把前端和 Rust 后端连接起来。</p>
+<p>简单来说就是tarti框架构建出来的exe文件，集成了前端和后端代码，打包进了exe。运行这个exe，前端代码通过系统webview就可以在界面显示而不需要借助任何浏览器</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\app.png" alt="app"></p>
+<p>通常tauri框架写出的app长上面那样</p>
+<h1 id="tauri框架逆向："><a href="#tauri框架逆向：" class="headerlink" title="tauri框架逆向："></a>tauri框架逆向：</h1><h2 id="运行逻辑："><a href="#运行逻辑：" class="headerlink" title="运行逻辑："></a>运行逻辑：</h2><ul>
+<li><p>你双击 <code>.exe</code>；</p>
+</li>
+<li><p>Rust 程序启动；</p>
+</li>
+<li><p>创建一个原生窗口；</p>
+</li>
+<li><p>在窗口中加载 WebView；</p>
+</li>
+<li><p>WebView 渲染 HTML/JS（从内嵌或外部资源读取）；</p>
+</li>
+<li><p>JS 通过 IPC 调用 Rust 函数，Rust 返回数据给前端。</p>
+</li>
+</ul>
+<h2 id="逆向步骤："><a href="#逆向步骤：" class="headerlink" title="逆向步骤："></a>逆向步骤：</h2><p>一般flag都放在exe的静态资源部分。Tauri 会根据配置文件中是否开启压缩来打包静态资源文件，若压缩选项开启（默认情况），其会使用 brotli 算法对资源进行压缩后再打包。</p>
+<p>我们可以找到静态资源所在地，然后dump下来用brotli解密后分析静态资源</p>
+<p>拿2025年羊城杯的easyTauri.exe举例</p>
+<h3 id="定位静态资源："><a href="#定位静态资源：" class="headerlink" title="定位静态资源："></a>定位静态资源：</h3><p>先shift+f12搜flag，如果没有就去找index.html，index.html就是最开始的web页面</p>
+<p>定位到这个字符串后交叉引用，找到一个形似文件表结构的部分</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\file.png" alt="file"></p>
+<p>其中</p>
+<ul>
+<li><p>0x0000000140642A40是文件名</p>
+</li>
+<li><p>0x0000000140642A48 ~ 0x0000000140642A4F是文件名长度，正好”/index_flag.html”就是16字节</p>
+</li>
+<li><p>0x0000000140642A50存储文件内容</p>
+</li>
+<li><p>0x0000000140642A58 ~ 0x0000000140642A5F是文件内容长度</p>
+</li>
+</ul>
+<p>我们找到这个结构之后就把文件内容dump下来解密就好了</p>
+<p><strong>注意 brotli 对文件的完整性要求似乎很高，多一个或少一个字节都会报错。</strong></p>
+<p>这里给一个ida python的dump脚本：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os, idc</span><br><span class="line"></span><br><span class="line">start_ea = <span class="number">0x14063C8C1</span></span><br><span class="line">size = <span class="number">0x231</span></span><br><span class="line"></span><br><span class="line">out_path = os.path.join(os.path.dirname(idc.get_idb_path()) <span class="keyword">or</span> os.getcwd(), <span class="string">&quot;dump.bin&quot;</span>) //拼接ida分析程序地址和自定义的文件名</span><br><span class="line"></span><br><span class="line">data = idc.get_bytes(start_ea, size)</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(out_path, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">isinstance</span>(data, <span class="built_in">str</span>): //这里<span class="keyword">if</span>分支是在处理python2中get_bytes函数返回<span class="built_in">str</span>类型的问题</span><br><span class="line">        f.write(data.encode(<span class="string">&#x27;latin-1&#x27;</span>)) //latin-<span class="number">1</span>是 <span class="number">1</span> 字节一对一映射，如果用utf-<span class="number">8</span>可能报错</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        f.write(data)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Wrote:&quot;</span>, out_path)</span><br></pre></td></tr></table></figure>
+<p>然后拿到这个新的dump.bin文件后再用brotli算法解密</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> brotli</span><br><span class="line">a = <span class="built_in">open</span>(<span class="string">r&quot;C:\Users\Lenovo\OneDrive\Desktop\dump.bin&quot;</span>, <span class="string">&quot;rb&quot;</span>).read()</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(a))</span><br><span class="line">decompressed = brotli.decompress(a)</span><br><span class="line"><span class="built_in">open</span>(<span class="string">&quot;dump&quot;</span>, <span class="string">&quot;wb&quot;</span>).write(decompressed)</span><br></pre></td></tr></table></figure>
+<p>然后就拿到js写的前端文件了</p>
+<h3 id="前端分析"><a href="#前端分析" class="headerlink" title="前端分析"></a>前端分析</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;!doctype html&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span> <span class="attr">href</span>=<span class="string">&quot;styles.css&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Tauri App<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;js/main.js&quot;</span> <span class="attr">defer</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">main</span> <span class="attr">class</span>=<span class="string">&quot;container&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;row&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;https://tauri.app&quot;</span> <span class="attr">target</span>=<span class="string">&quot;_blank&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Welcome to Tauri 2.0<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>你知道的，这个文件往往是测试的时候使用的，当你找到了这个文件，说明你可以阅读以下hint：<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>   1. 我混淆了js，当你觉得那是一大坨恶心玩意的时候，应该试试开发一个最简Tauri项目<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>   2. 出题人吃过release无pdb的这一坨，当你分析完js一定能找到对应的native函数<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">form</span> <span class="attr">class</span>=<span class="string">&quot;row&quot;</span> <span class="attr">id</span>=<span class="string">&quot;greet-form&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">&quot;greet-input&quot;</span> <span class="attr">placeholder</span>=<span class="string">&quot;Enter a Flag...&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span>&gt;</span>Check<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span> <span class="attr">id</span>=<span class="string">&quot;greet-msg&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">main</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>如果前端文件index没有flag，那就把所有js文件都dump下来看看</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\静态表.png" alt="静态表"></p>
+<p>找到这种形似文件结构的最开始的地址，然后把他们全dump下来</p>
+<p>把要求扔给ai写下面的脚本，但要求要说清楚</p>
+<p>从0x140642660开始是文件结构，每个文件开始8个字节存储文件名地址，后8字节按小端序存储文件名对应字符串字节数，然后8个字节存文件内容地址，后8个字节存文件内容占大小，然后是下一个文件结构，帮我把所有的文件内容dump出来，然后通过brotli算法解密，还原js静态资源。只读js文件和html文件</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br></pre></td><td class="code"><pre><span class="line">ag-<span class="number">0</span>-1j8in2hh6ag-<span class="number">1</span>-1j8in2hh6<span class="comment"># dump_js_html_only.py</span></span><br><span class="line"><span class="comment"># 功能：仅从文件结构中导出 .js 和 .html 文件，并尝试 brotli 解压</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> os, sys, idc, idaapi, subprocess, tempfile, shutil</span><br><span class="line"></span><br><span class="line">TABLE_START = <span class="number">0x140642660</span>   <span class="comment"># 文件表起始地址</span></span><br><span class="line">ENTRY_SIZE = <span class="number">32</span>             <span class="comment"># 每个条目大小：8+8+8+8</span></span><br><span class="line">MAX_ENTRIES = <span class="number">10000</span></span><br><span class="line">OUT_DIR = os.path.join(os.path.dirname(idc.get_idb_path()) <span class="keyword">or</span> os.getcwd(), <span class="string">&quot;dump_js_html&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(OUT_DIR):</span><br><span class="line">    os.makedirs(OUT_DIR)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">read_qword</span>(<span class="params">ea</span>):</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">return</span> idc.get_qword(ea)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        b = idc.get_bytes(ea, <span class="number">8</span>)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> b:</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line">        v = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i, by <span class="keyword">in</span> <span class="built_in">enumerate</span>(b <span class="keyword">if</span> <span class="built_in">isinstance</span>(b, <span class="built_in">bytes</span>) <span class="keyword">else</span> b.encode(<span class="string">&#x27;latin-1&#x27;</span>)):</span><br><span class="line">            v |= (by &amp; <span class="number">0xFF</span>) &lt;&lt; (i*<span class="number">8</span>)</span><br><span class="line">        <span class="keyword">return</span> v</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">read_bytes</span>(<span class="params">ea, size</span>):</span><br><span class="line">    <span class="keyword">return</span> idc.get_bytes(ea, size)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 尝试导入 brotli 模块或 CLI</span></span><br><span class="line">brotli_decompress = <span class="literal">None</span></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">import</span> brotli</span><br><span class="line">    brotli_decompress = brotli.decompress</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[*] Using Python brotli module.&quot;</span>)</span><br><span class="line"><span class="keyword">except</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">import</span> brotlicffi <span class="keyword">as</span> brotli</span><br><span class="line">        brotli_decompress = brotli.decompress</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;[*] Using brotlicffi module.&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        brotli_decompress = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">have_brotli_cli = shutil.which(<span class="string">&quot;brotli&quot;</span>) <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> brotli_decompress <span class="keyword">and</span> have_brotli_cli:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[*] Using brotli CLI for decompression.&quot;</span>)</span><br><span class="line"><span class="keyword">elif</span> <span class="keyword">not</span> brotli_decompress:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;[!] Warning: no brotli module/CLI found; will save raw data only.&quot;</span>)</span><br><span class="line"></span><br><span class="line">ea = TABLE_START</span><br><span class="line">entry_idx = <span class="number">0</span></span><br><span class="line">results = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(MAX_ENTRIES):</span><br><span class="line">    name_addr = read_qword(ea)</span><br><span class="line">    name_len  = read_qword(ea + <span class="number">8</span>)</span><br><span class="line">    content_addr = read_qword(ea + <span class="number">16</span>)</span><br><span class="line">    content_size = read_qword(ea + <span class="number">24</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> name_addr <span class="keyword">or</span> name_addr == <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;[*] End of table at <span class="subst">&#123;<span class="built_in">hex</span>(ea)&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    name_bytes = read_bytes(name_addr, name_len)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> name_bytes:</span><br><span class="line">        ea += ENTRY_SIZE</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        filename = name_bytes.decode(<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        filename = name_bytes.decode(<span class="string">&quot;latin-1&quot;</span>, errors=<span class="string">&quot;replace&quot;</span>)</span><br><span class="line"></span><br><span class="line">    filename_clean = filename.replace(<span class="string">&quot;\\&quot;</span>, <span class="string">&quot;_&quot;</span>).replace(<span class="string">&quot;/&quot;</span>, <span class="string">&quot;_&quot;</span>).strip()</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> (filename_clean.endswith(<span class="string">&quot;.js&quot;</span>) <span class="keyword">or</span> filename_clean.endswith(<span class="string">&quot;.html&quot;</span>)):</span><br><span class="line">        ea += ENTRY_SIZE</span><br><span class="line">        <span class="keyword">continue</span>  <span class="comment"># ⛔ 跳过非 js/html 文件</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;[+] Dumping <span class="subst">&#123;filename_clean&#125;</span> ...&quot;</span>)</span><br><span class="line"></span><br><span class="line">    data = read_bytes(content_addr, content_size)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> data:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;    [!] Failed to read <span class="subst">&#123;filename_clean&#125;</span>&quot;</span>)</span><br><span class="line">        ea += ENTRY_SIZE</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 尝试 brotli 解压</span></span><br><span class="line">    decompressed = <span class="literal">None</span></span><br><span class="line">    <span class="keyword">if</span> brotli_decompress:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            decompressed = brotli_decompress(data)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;    [!] Brotli module failed: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">    <span class="keyword">elif</span> have_brotli_cli:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">with</span> tempfile.NamedTemporaryFile(delete=<span class="literal">False</span>) <span class="keyword">as</span> tmpf:</span><br><span class="line">                tmpf.write(data)</span><br><span class="line">                tmp_br = tmpf.name</span><br><span class="line">            tmp_out = tmp_br + <span class="string">&quot;.out&quot;</span></span><br><span class="line">            proc = subprocess.run([<span class="string">&quot;brotli&quot;</span>, <span class="string">&quot;-d&quot;</span>, <span class="string">&quot;-o&quot;</span>, tmp_out, tmp_br],</span><br><span class="line">                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)</span><br><span class="line">            <span class="keyword">if</span> proc.returncode == <span class="number">0</span> <span class="keyword">and</span> os.path.exists(tmp_out):</span><br><span class="line">                <span class="keyword">with</span> <span class="built_in">open</span>(tmp_out, <span class="string">&quot;rb&quot;</span>) <span class="keyword">as</span> tf:</span><br><span class="line">                    decompressed = tf.read()</span><br><span class="line">            os.remove(tmp_br)</span><br><span class="line">            <span class="keyword">if</span> os.path.exists(tmp_out): os.remove(tmp_out)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;    [!] CLI brotli failed: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 写出文件</span></span><br><span class="line">    out_path = os.path.join(OUT_DIR, filename_clean)</span><br><span class="line">    <span class="keyword">if</span> decompressed:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(out_path, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            f.write(decompressed)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;    [+] Wrote decompressed -&gt; <span class="subst">&#123;out_path&#125;</span>&quot;</span>)</span><br><span class="line">        results.append((filename_clean, <span class="string">&quot;decompressed&quot;</span>))</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(out_path + <span class="string">&quot;.br&quot;</span>, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">isinstance</span>(data, <span class="built_in">str</span>):</span><br><span class="line">                f.write(data.encode(<span class="string">&#x27;latin-1&#x27;</span>))</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                f.write(data)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;    [-] Saved raw brotli file -&gt; <span class="subst">&#123;out_path&#125;</span>.br&quot;</span>)</span><br><span class="line">        results.append((filename_clean, <span class="string">&quot;raw_only&quot;</span>))</span><br><span class="line"></span><br><span class="line">    ea += ENTRY_SIZE</span><br><span class="line">    entry_idx += <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n=== Dump Finished ===&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> name, status <span class="keyword">in</span> results:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;status:<span class="number">12</span>&#125;</span> <span class="subst">&#123;name&#125;</span>&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;\nOutput folder: <span class="subst">&#123;OUT_DIR&#125;</span>&quot;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>出来的js文件里没有</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="property">__TAURI__</span>.<span class="property">core</span></span><br></pre></td></tr></table></figure>
+<p>的可以直接删了，因为最后逻辑要交给后端rust的话，必须要用win内核调用</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; invoke &#125; = <span class="variable language_">window</span>.<span class="property">__TAURI__</span>.<span class="property">core</span>;</span><br></pre></td></tr></table></figure>
+<p>通常设为变量名invoke，但也可能是自定义的调用名，所以只搜索<code>window.__TAURI__.core</code>就可以了</p>
+<p>最后我们在html_actuator.js里找到get_flag的变量名</p>
+<p>分析这个js文件：</p>
+<p>用在线网站解混淆一下</p>
+<p><a target="_blank" rel="noopener" href="https://js-deobfuscator.vercel.app/#eNqdWQtT20gS/iuzutrCWoyR3wZCrngl4Srs7SWk9nLYx46ksa1FlnzSCHBY//fr7hlJI2GzZKmiSurXdH/d09MjP1medWhNs8iTQRyxD9dXH088mXEZJw2bPY2TccSYnAdpSwahOIsjyYNIJAz+jpkfe9lCRLL1v0wkq88iFB7qjS0S3vNy6bFlHxmWUi9OKqZeskTCW025IpWvdgqFt1paiDTlM8OtlyzN+ELsaY3cTj1AMOAQY51zTXBbyySWsVwtRYsTCeWLNDRmSeA32UJI7nPJi0Tc84SlIpyCLC6k/Q+mjVySPLO1NP55c+HdncaPL4ZDQnvTOFmUoJjKH+QiBAO/lRzG3qA480Kepsdji7vxvdjDxccWC3ygzBIhpLb51lQE1SBaZtIUIwJoLkPuiXkc+iIB3kUkIQ+cvQv5rNVqAX+/bsnNpAS8EEdQSDN3EYCdt2fo+Jt9xa3ovNlHlwzSbxvibQURVACmC6I2QdCyRUbV60MQ+fFDKxEAbCpPomDBMYvvEoCjUea0yCKjHLa8UPCkqLcG0SqbzKwrxrAkWp4Iw7QFIVxwb27Y9uIwW0TGChAMkTbJgo2KJFbQRrJ2lPv+NfilJAy4NBD6seTox0qw2RLKU3zGjVEWK+2TUs8QPAUga8K4e4lUtY6uFzJQL4sgAn2/EklFBgo1qcVJC+vt3JjyMIU12P4++xpnLIxTYUTJBHCrBh/iKvA1ezLJDHNQKz8Y5grIypA0eusiStDEkggiqC7Y9oLhNmMNN5ZzlgAoPJGMRz67E2KJO2gVRDP7hX6DHRCNvUczZtOp9nsqzysdRN2nbaYrJV0xXvTdYpWHORSVwWhNgwS6OVDN7JXsRCwgd8TfrGTuzj91VRd1xUfcfS/22pLzkPDlsn54eYmA2rsIBb5BY/WD+7Khohb1Fcr892gt4zQgB9EVcBGiEPdBnKW/5Iw//mBP7PFQcR+bbKUfV0zhULVzhk1bh9WqEBv5m7nHoP5+Fczj0Y5kGRQ/9fwwSCVzhceREkiWxgto3A9sFgYSOmYK2RURlCd2dKhHpSTS0hlNADduxhY6O7aaTD3tQaffVQHc8zATzarnE8M33IilIHvLOk5vZOfGW8ssnQOiZDTNIF8bDmvIY7giwyJt6LQ2cwumNCUPShwYHyF6rKDcNrHKpClJKR5pNoGs5okjLze5X8+osQEA/it+J1iawUwh51xSD0AtNhMyBYwjOC6FD6sSJzdVlg1tkdzc9x9WsAcVGDedCQRCza1aNdtqzzws1EnyMtYY6xfq/yoSvUjtXKl0YVpqIZKZ8N8l8cJsHBtqQAmaQ873lQBl4xMBXmQBezIkRZvOzVbd2nAKK2YF5sphq/n1Q7UI/sU4I/HwV4KsnEMQ6YnvU5iqbS3xoImnZfnJmJ61Ld3U1QuuBjCpZk3qtY7yCwyAhSGc4ODZjXmiEXx+46hY1Ku88lQyI6/0exiBseeWKOSoakYrFfJEyiSAQVIAtiSGfSrH/Pc4iIAOfct+pS8RTJ88DL6JonebDhXtN3ckETJLItXcc2brEbpjmzZaQVohSTf7P/Whfg68sH7RQ/Rp8cz92olReKwLMeeqll6JYGzViKvXeW9MkhXf1TD5fIQpJ+wNl0+zKvFU8oPpFJpp5KFtdY3bM+50z26xudTGG2BZu7WjoGqvPAqM1d8yx+gN6Bo0hjwVrxsdWKHy7NBSl+qcvVGl6vLY2qVklR5WuuKmmM39mlv9vhGtdhWoZLu8DVQyXvkeUIuhUHldnen5vbKqOepjTlBQTXPAYX8HmOjLALwAWof5K944xpYxiJWmc7XiaqDUaDRHNSDUS6v+oaKWXHTpxQ8bLZgadMWkp6trPvsZT/6xtYQyuHEmNdC09neM//rKsPlmAZ3/8gL6fbhiEoaaFB4FQIKzG5wmasJncJpyOBgWovW6sJUahFCC/zIC21RVouqdHP/hvgHz7hOchPcxzGJrTJ0apG5vr0++fLq8vYV7lbGhQyHhxg7fNi7x08aF+nJQEK/SmSbhfzEVNG6dx4MhF6LThKd2z+/6B/aTWhsJ/bbTHh7DU3fQdVGk4zrdAwcpSg3uaXSravzww83EfpLJqtTuuge+3zuGUzwVl9AtCoMN59F1bHsf3nc3crlH3M4WLidud3dvM9sldm8be0js/k+NzewRsQf2NnVB/OFPjS38AfFHW/V94h8cwTe0EqNjRFTD70KLvTuikasA/GYHh62dCarklHQeTCWQYBBYexzuQGSvNxoN4HvcqzXXa1LjjtuEqMXQ7enBothLF5GXrJYSpHi33XV6KN93um2320QHFdEomk7H5V6laPr+0B31jmFGZNew18FgDPNsw74ppBGYA5ucVKZtKjbf7bsHr9TTflAdT4fT0YD0vgSRHJ0kCV+BaNtx7CPcErjMoCP6nWPn0TmCUbmhqZ2exx2fqOXrG9I0CLu7BLBahpwh8gRjVo8UtVqBYqLH3U06SFT4lMQfq7Qi0qk9mdg/kjdN5DwzVgaPRLXqZHJcldXkqqw2MDla5/i43YHXRSQoE05feG3Cpchzr9fzpio7BspF2p65bptA9zvDDqQoB1q9vtmubEhp9LWDBC897kI8OTqly+QQPVbhVzpb4NTMGkRk5RmcmlyDXhmYlGh1O4NRV1XDM7FaYSiD2rOjAmlSIARUoRVAaeJ/K1bUepBPPR4XZo7Wxc7WW5QagBj6Q4c2dI93vNHI2NDYHNwBbWh4go5fmkT1Y/MwQUJ7quw4nb7Xplwpat4S2tM97JP5TuyOhtO+m5t3lfckNjFXIqmjNeJcc7r0uRYbeWvEMZy6bXF8s9PtjLpOvyO/nZ/cn+40d/o9wG/wD3/x7eff4bXXbncG/VFyvbr+97/gvT046Pfkl69L7sNbKKKZnKNYf9gedD8+vL/MvsBrZ3AwgFbLrz/gS7frdPv821TEJ/A6GMTvv16scC2YZKGJoYhz0OsOO3f/+ZRc8p0J5hkdLtG0n4zoyfWjtQmIykVxfy4iz4rNeB2f8lQMeg2Ob8VIpABx4bN1soKxgkRbU/hooOVaC75suCv8gegt+wyX0WhG7LM53m18QTzbVnfRnZ3aPcyVMW8o43quMccanq4ir5zTcI6A1MG5U05s5hDz0o9If6v8kpN7UU47r9BdpLNSk2YlIfG3H1A1vTC+ouXoecFyLhKcXEH22Qk5tj5z/zqOZl+Dk+DTWe/DB7zDa+PPPa1NwPyBw/dNNfiBqWDp3XrxYgFf3NHKE4tgcjzclObSKbv4qJ8Dr4dHGNgv7mEZnEUFXlHH1vk/r/TaH2Pu48eqJs7PkHudkALFco4/XV3ira7yM94m2/nvY2AR7k2lSfjgQV8gQfpcTHkWSv3BH1lmUeTXNx2NfWQ1rdg6fLKCFCoTEP5E87R1SD+iNK0gCmHg/lV9rUnPxVLOrcNO0/IFzQ4fY5iUoPCuhJzHPvwOnVJ5E4xgWUud8TA8i7NIWoftvtM0hdTuz+lQ8UvcEWCItNNgFp0rG3jHUeQgVT5qhnWIv880LfEoPL0I+BekVzy5u4i4G4KakrgTq4c48VPr8AZsu9lsBtoTlD3HtyJmqIwZauUQpFdBFEwD4efmiLFe/x9UYJJO">JS Deobfuscator</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">HTMLActuator</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">tileContainer</span> = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;.tile-container&quot;</span>);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">scoreContainer</span> = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;.score-container&quot;</span>);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">bestContainer</span> = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;.best-container&quot;</span>);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">messageContainer</span> = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;.game-message&quot;</span>);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">score</span> = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">actuate</span> = <span class="keyword">function</span> (<span class="params">grid, metadata</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> self = <span class="variable language_">this</span>;</span><br><span class="line">  <span class="keyword">if</span> (metadata.<span class="property">game</span>) &#123;</span><br><span class="line">    checkBox = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;.check-form&quot;</span>);</span><br><span class="line">    checkBoxHtml = <span class="string">`</span></span><br><span class="line"><span class="string">        &lt;form class=&quot;above-game&quot; id=&quot;greet-form&quot;&gt;</span></span><br><span class="line"><span class="string">          &lt;input id=&quot;greet-input&quot; placeholder=&quot;Enter a Flag...&quot; /&gt;</span></span><br><span class="line"><span class="string">          &lt;button type=&quot;submit&quot;&gt;Check&lt;/button&gt;</span></span><br><span class="line"><span class="string">        &lt;/form&gt;</span></span><br><span class="line"><span class="string">      `</span>;</span><br><span class="line">    checkBox.<span class="property">innerHTML</span> = checkBoxHtml;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">window</span>.<span class="title function_">requestAnimationFrame</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">    self.<span class="title function_">clearContainer</span>(self.<span class="property">tileContainer</span>);</span><br><span class="line">    grid.<span class="property">cells</span>.<span class="title function_">forEach</span>(<span class="keyword">function</span> (<span class="params">column</span>) &#123;</span><br><span class="line">      column.<span class="title function_">forEach</span>(<span class="keyword">function</span> (<span class="params">cell</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (cell) &#123;</span><br><span class="line">          self.<span class="title function_">addTile</span>(cell);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">    self.<span class="title function_">updateScore</span>(metadata.<span class="property">score</span>);</span><br><span class="line">    self.<span class="title function_">updateBestScore</span>(metadata.<span class="property">bestScore</span>);</span><br><span class="line">    <span class="keyword">if</span> (metadata.<span class="property">terminated</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (metadata.<span class="property">over</span>) &#123;</span><br><span class="line">        self.<span class="title function_">message</span>(<span class="literal">false</span>); <span class="comment">// You lose</span></span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (metadata.<span class="property">won</span>) &#123;</span><br><span class="line">        self.<span class="title function_">message</span>(<span class="literal">true</span>); <span class="comment">// You win!</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Continues the game (both restart and keep playing)</span></span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">continueGame</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">clearMessage</span>();</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">clearContainer</span> = <span class="keyword">function</span> (<span class="params">container</span>) &#123;</span><br><span class="line">  <span class="keyword">while</span> (container.<span class="property">firstChild</span>) &#123;</span><br><span class="line">    container.<span class="title function_">removeChild</span>(container.<span class="property">firstChild</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">addTile</span> = <span class="keyword">function</span> (<span class="params">tile</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> self = <span class="variable language_">this</span>;</span><br><span class="line">  <span class="keyword">var</span> wrapper = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;div&quot;</span>);</span><br><span class="line">  <span class="keyword">var</span> inner = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;div&quot;</span>);</span><br><span class="line">  <span class="keyword">var</span> position = tile.<span class="property">previousPosition</span> || &#123;</span><br><span class="line">    <span class="attr">x</span>: tile.<span class="property">x</span>,</span><br><span class="line">    <span class="attr">y</span>: tile.<span class="property">y</span></span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">var</span> positionClass = <span class="variable language_">this</span>.<span class="title function_">positionClass</span>(position);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// We can&#x27;t use classlist because it somehow glitches when replacing classes</span></span><br><span class="line">  <span class="keyword">var</span> classes = [<span class="string">&quot;tile&quot;</span>, <span class="string">&quot;tile-&quot;</span> + tile.<span class="property">value</span>, positionClass];</span><br><span class="line">  <span class="keyword">if</span> (tile.<span class="property">value</span> &gt; <span class="number">2048</span>) &#123;</span><br><span class="line">    classes.<span class="title function_">push</span>(<span class="string">&quot;tile-super&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">applyClasses</span>(wrapper, classes);</span><br><span class="line">  inner.<span class="property">classList</span>.<span class="title function_">add</span>(<span class="string">&quot;tile-inner&quot;</span>);</span><br><span class="line">  inner.<span class="property">textContent</span> = tile.<span class="property">value</span>;</span><br><span class="line">  <span class="keyword">if</span> (tile.<span class="property">previousPosition</span>) &#123;</span><br><span class="line">    <span class="comment">// Make sure that the tile gets rendered in the previous position first</span></span><br><span class="line">    <span class="variable language_">window</span>.<span class="title function_">requestAnimationFrame</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">      classes[<span class="number">2</span>] = self.<span class="title function_">positionClass</span>(&#123;</span><br><span class="line">        <span class="attr">x</span>: tile.<span class="property">x</span>,</span><br><span class="line">        <span class="attr">y</span>: tile.<span class="property">y</span></span><br><span class="line">      &#125;);</span><br><span class="line">      self.<span class="title function_">applyClasses</span>(wrapper, classes); <span class="comment">// Update the position</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (tile.<span class="property">mergedFrom</span>) &#123;</span><br><span class="line">    classes.<span class="title function_">push</span>(<span class="string">&quot;tile-merged&quot;</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">applyClasses</span>(wrapper, classes);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Render the tiles that merged</span></span><br><span class="line">    tile.<span class="property">mergedFrom</span>.<span class="title function_">forEach</span>(<span class="keyword">function</span> (<span class="params">merged</span>) &#123;</span><br><span class="line">      self.<span class="title function_">addTile</span>(merged);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    classes.<span class="title function_">push</span>(<span class="string">&quot;tile-new&quot;</span>);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">applyClasses</span>(wrapper, classes);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Add the inner part of the tile to the wrapper</span></span><br><span class="line">  wrapper.<span class="title function_">appendChild</span>(inner);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Put the tile on the board</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">tileContainer</span>.<span class="title function_">appendChild</span>(wrapper);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">applyClasses</span> = <span class="keyword">function</span> (<span class="params">element, classes</span>) &#123;</span><br><span class="line">  element.<span class="title function_">setAttribute</span>(<span class="string">&quot;class&quot;</span>, classes.<span class="title function_">join</span>(<span class="string">&quot; &quot;</span>));</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">normalizePosition</span> = <span class="keyword">function</span> (<span class="params">position</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">x</span>: position.<span class="property">x</span> + <span class="number">1</span>,</span><br><span class="line">    <span class="attr">y</span>: position.<span class="property">y</span> + <span class="number">1</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">positionClass</span> = <span class="keyword">function</span> (<span class="params">position</span>) &#123;</span><br><span class="line">  position = <span class="variable language_">this</span>.<span class="title function_">normalizePosition</span>(position);</span><br><span class="line">  <span class="keyword">return</span> <span class="string">&quot;tile-position-&quot;</span> + position.<span class="property">x</span> + <span class="string">&quot;-&quot;</span> + position.<span class="property">y</span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">updateScore</span> = <span class="keyword">function</span> (<span class="params">score</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">clearContainer</span>(<span class="variable language_">this</span>.<span class="property">scoreContainer</span>);</span><br><span class="line">  <span class="keyword">var</span> difference = score - <span class="variable language_">this</span>.<span class="property">score</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">score</span> = score;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">scoreContainer</span>.<span class="property">textContent</span> = <span class="variable language_">this</span>.<span class="property">score</span>;</span><br><span class="line">  <span class="keyword">if</span> (difference &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> addition = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="string">&quot;div&quot;</span>);</span><br><span class="line">    addition.<span class="property">classList</span>.<span class="title function_">add</span>(<span class="string">&quot;score-addition&quot;</span>);</span><br><span class="line">    addition.<span class="property">textContent</span> = <span class="string">&quot;+&quot;</span> + difference;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">scoreContainer</span>.<span class="title function_">appendChild</span>(addition);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">updateBestScore</span> = <span class="keyword">function</span> (<span class="params">bestScore</span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">bestContainer</span>.<span class="property">textContent</span> = bestScore;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">message</span> = <span class="keyword">function</span> (<span class="params">won</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> type = won ? <span class="string">&quot;game-won&quot;</span> : <span class="string">&quot;game-over&quot;</span>;</span><br><span class="line">  <span class="keyword">var</span> message = won ? <span class="string">&quot;You win!&quot;</span> : <span class="string">&quot;Game over!&quot;</span>;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">messageContainer</span>.<span class="property">classList</span>.<span class="title function_">add</span>(type);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">messageContainer</span>.<span class="title function_">getElementsByTagName</span>(<span class="string">&quot;p&quot;</span>)[<span class="number">0</span>].<span class="property">textContent</span> = message;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="title class_">HTMLActuator</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">clearMessage</span> = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// IE only takes one value to remove at a time.</span></span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">messageContainer</span>.<span class="property">classList</span>.<span class="title function_">remove</span>(<span class="string">&quot;game-won&quot;</span>);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">messageContainer</span>.<span class="property">classList</span>.<span class="title function_">remove</span>(<span class="string">&quot;game-over&quot;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> &#123;</span><br><span class="line">  invoke</span><br><span class="line">&#125; = <span class="variable language_">window</span>.<span class="property">__TAURI__</span>.<span class="property">core</span>;</span><br><span class="line"><span class="keyword">let</span> greetInputEl;</span><br><span class="line"><span class="keyword">let</span> greetMsgEl;</span><br><span class="line">(<span class="keyword">function</span> (<span class="params">_0x97aee2, _0x14d3d9</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> _0x151017 = _0x363b;</span><br><span class="line">  <span class="keyword">const</span> _0x2b0390 = <span class="title function_">_0x97aee2</span>();</span><br><span class="line">  <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> _0x3b9dd4 = <span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">176</span>)) / <span class="number">1</span> + <span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">172</span>)) / <span class="number">2</span> + <span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">170</span>)) / <span class="number">3</span> + -<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">171</span>)) / <span class="number">4</span> + -<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">167</span>)) / <span class="number">5</span> * (<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">168</span>)) / <span class="number">6</span>) + -<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">174</span>)) / <span class="number">7</span> * (-<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">166</span>)) / <span class="number">8</span>) + -<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">173</span>)) / <span class="number">9</span>;</span><br><span class="line">      <span class="keyword">if</span> (_0x3b9dd4 === _0x14d3d9) &#123;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        _0x2b0390.<span class="title function_">push</span>(_0x2b0390.<span class="title function_">shift</span>());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (_0x34886e) &#123;</span><br><span class="line">      _0x2b0390.<span class="title function_">push</span>(_0x2b0390.<span class="title function_">shift</span>());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)(_0x3a0b, <span class="number">452532</span>);</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Encrypt_0xa31304</span>(<span class="params">_0x5031b3, _0xa31304</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> _0x22bac7 = _0x363b;</span><br><span class="line">  <span class="keyword">const</span> _0x5d7b84 = <span class="keyword">new</span> <span class="title class_">TextEncoder</span>()[<span class="title function_">_0x22bac7</span>(<span class="number">169</span>)](_0x5031b3);</span><br><span class="line">  <span class="keyword">const</span> _0x2db5b9 = <span class="keyword">new</span> <span class="title class_">TextEncoder</span>()[<span class="title function_">_0x22bac7</span>(<span class="number">169</span>)](_0xa31304);</span><br><span class="line">  <span class="keyword">const</span> _0x1f7f86 = <span class="keyword">new</span> <span class="title class_">Uint8Array</span>(<span class="number">256</span>);</span><br><span class="line">  <span class="keyword">let</span> _0x562e52 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> _0x24ca0d = <span class="number">0</span>; _0x24ca0d &lt; <span class="number">256</span>; _0x24ca0d++) &#123;</span><br><span class="line">    _0x1f7f86[_0x24ca0d] = _0x24ca0d;</span><br><span class="line">    _0x562e52 = (_0x562e52 + _0x1f7f86[_0x24ca0d] + _0x5d7b84[_0x24ca0d % _0x5d7b84[<span class="title function_">_0x22bac7</span>(<span class="number">175</span>)]]) % <span class="number">256</span>;</span><br><span class="line">    [_0x1f7f86[_0x24ca0d], _0x1f7f86[_0x562e52]] = [_0x1f7f86[_0x562e52], _0x1f7f86[_0x24ca0d]];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">let</span> _0x5b36c3 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">let</span> _0x205ec1 = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">const</span> _0x444cf9 = <span class="keyword">new</span> <span class="title class_">Uint8Array</span>(_0x2db5b9[<span class="title function_">_0x22bac7</span>(<span class="number">175</span>)]);</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> _0x527286 = <span class="number">0</span>; _0x527286 &lt; _0x2db5b9[<span class="title function_">_0x22bac7</span>(<span class="number">175</span>)]; _0x527286++) &#123;</span><br><span class="line">    _0x5b36c3 = (_0x5b36c3 + <span class="number">1</span>) % <span class="number">256</span>;</span><br><span class="line">    _0x205ec1 = (_0x205ec1 + _0x1f7f86[_0x5b36c3]) % <span class="number">256</span>;</span><br><span class="line">    [_0x1f7f86[_0x5b36c3], _0x1f7f86[_0x205ec1]] = [_0x1f7f86[_0x205ec1], _0x1f7f86[_0x5b36c3]];</span><br><span class="line">    <span class="keyword">const</span> _0x326832 = (_0x1f7f86[_0x5b36c3] + _0x1f7f86[_0x205ec1]) % <span class="number">256</span>;</span><br><span class="line">    _0x444cf9[_0x527286] = _0x2db5b9[_0x527286] ^ _0x1f7f86[_0x326832];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> _0x444cf9;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">_0x363b</span>(<span class="params">_0x3e7d70, _0x4a2c88</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> _0x3a0bb6 = <span class="title function_">_0x3a0b</span>();</span><br><span class="line">  _0x363b = <span class="keyword">function</span> (<span class="params">_0x363b1f, _0x4025c1</span>) &#123;</span><br><span class="line">    _0x363b1f = _0x363b1f - <span class="number">166</span>;</span><br><span class="line">    <span class="keyword">let</span> _0x387f5b = _0x3a0bb6[_0x363b1f];</span><br><span class="line">    <span class="keyword">return</span> _0x387f5b;</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">_0x363b</span>(_0x3e7d70, _0x4a2c88);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">_0x3a0b</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> _0x37fb1e = [<span class="string">&quot;3283052tzDAvB&quot;</span>, <span class="string">&quot;542866JdmzNj&quot;</span>, <span class="string">&quot;4112658rTyTXQ&quot;</span>, <span class="string">&quot;16954tUYpad&quot;</span>, <span class="string">&quot;length&quot;</span>, <span class="string">&quot;457163LwGIuU&quot;</span>, <span class="string">&quot;2696pusaTH&quot;</span>, <span class="string">&quot;233035azfeoA&quot;</span>, <span class="string">&quot;66oGYEyB&quot;</span>, <span class="string">&quot;encode&quot;</span>, <span class="string">&quot;2094372kZRrIa&quot;</span>];</span><br><span class="line">  _0x3a0b = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> _0x37fb1e;</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">_0x3a0b</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">uint8ArrayToBase64</span>(<span class="params">array</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> binary = <span class="title class_">Array</span>.<span class="title function_">from</span>(array).<span class="title function_">map</span>(<span class="function"><span class="params">byte</span> =&gt;</span> <span class="title class_">String</span>.<span class="title function_">fromCharCode</span>(byte)).<span class="title function_">join</span>(<span class="string">&quot;&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">btoa</span>(binary);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">_0x9a2c6e7</span>(<span class="params"></span>) &#123;</span><br><span class="line">  greetInputEl = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;#greet-input&quot;</span>);</span><br><span class="line">  greetMsgEl = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&quot;#greet-msg&quot;</span>);</span><br><span class="line">  <span class="keyword">let</span> getFlag = greetInputEl.<span class="property">value</span>;</span><br><span class="line">  <span class="keyword">const</span> ciphertext = <span class="title class_">Encrypt</span>_0xa31304(<span class="string">&quot;SadTongYiAiRC4HH&quot;</span>, getFlag);</span><br><span class="line">  greetMsgEl.<span class="property">textContent</span> = <span class="keyword">await</span> <span class="title function_">invoke</span>(<span class="string">&quot;ipc_command&quot;</span>, &#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="title function_">uint8ArrayToBase64</span>(ciphertext)</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&quot;DOMContentLoaded&quot;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;check-form&quot;</span>).<span class="title function_">addEventListener</span>(<span class="string">&quot;submit&quot;</span>, <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">    e.<span class="title function_">preventDefault</span>();</span><br><span class="line">    <span class="title function_">_0x9a2c6e7</span>();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>发现是先rc4加密，再base64后传给后端逻辑</p>
+<p>然后rc4由于是流密码，拿到密钥流就可以异或回去，注意这里不能把加密当解密函数用，因为加密数据是可读字符串，但解密数据ascii可能&gt;128</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> _0x5d7b84 = <span class="keyword">new</span> <span class="title class_">TextEncoder</span>().<span class="title function_">encode</span>(key)</span><br><span class="line"><span class="keyword">const</span> _0x2db5b9 = <span class="keyword">new</span> <span class="title class_">TextEncoder</span>().<span class="title function_">encode</span>(input)</span><br></pre></td></tr></table></figure>
+<p>在这个rc4实现中，&gt;128的字符被当成两个utf-8ag-0-1j8in2hh6ag-1-1j8in2hh6</p>
+<p>正确获取密钥流代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 原始混淆代码保持不变</span></span><br><span class="line"></span><br><span class="line">(<span class="keyword">function</span>(<span class="params">_0x97aee2,_0x14d3d9</span>)&#123;<span class="keyword">const</span> _0x151017=_0x363b,_0x2b0390=<span class="title function_">_0x97aee2</span>();<span class="keyword">while</span>(!![])&#123;<span class="keyword">try</span>&#123;<span class="keyword">const</span> _0x3b9dd4=<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xb0</span>))/<span class="number">0x1</span>+<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xac</span>))/<span class="number">0x2</span>+<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xaa</span>))/<span class="number">0x3</span>+-<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xab</span>))/<span class="number">0x4</span>+-<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xa7</span>))/<span class="number">0x5</span>*(<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xa8</span>))/<span class="number">0x6</span>)+-<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xae</span>))/<span class="number">0x7</span>*(-<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xa6</span>))/<span class="number">0x8</span>)+-<span class="built_in">parseInt</span>(<span class="title function_">_0x151017</span>(<span class="number">0xad</span>))/<span class="number">0x9</span>;<span class="keyword">if</span>(_0x3b9dd4===_0x14d3d9)<span class="keyword">break</span>;<span class="keyword">else</span> _0x2b0390[<span class="string">&#x27;push&#x27;</span>](_0x2b0390[<span class="string">&#x27;shift&#x27;</span>]());&#125;<span class="keyword">catch</span>(_0x34886e)&#123;_0x2b0390[<span class="string">&#x27;push&#x27;</span>](_0x2b0390[<span class="string">&#x27;shift&#x27;</span>]());&#125;&#125;&#125;(_0x3a0b,<span class="number">0x6e7b4</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Encrypt_0x5031b3</span>(<span class="params">_0x5031b3, _0xa31304</span>)&#123;<span class="keyword">const</span> _0x22bac7=_0x363b,_0x5d7b84=<span class="keyword">new</span> <span class="title class_">TextEncoder</span>()[<span class="title function_">_0x22bac7</span>(<span class="number">0xa9</span>)](_0x5031b3),_0x2db5b9=<span class="keyword">new</span> <span class="title class_">TextEncoder</span>()[<span class="title function_">_0x22bac7</span>(<span class="number">0xa9</span>)](_0xa31304),_0x1f7f86=<span class="keyword">new</span> <span class="title class_">Uint8Array</span>(<span class="number">0x100</span>);<span class="keyword">let</span> _0x562e52=<span class="number">0x0</span>;<span class="keyword">for</span>(<span class="keyword">let</span> _0x24ca0d=<span class="number">0x0</span>; _0x24ca0d&lt;<span class="number">0x100</span>; _0x24ca0d++)&#123;_0x1f7f86[_0x24ca0d]=_0x24ca0d,_0x562e52=(_0x562e52+_0x1f7f86[_0x24ca0d]+_0x5d7b84[_0x24ca0d%_0x5d7b84[<span class="title function_">_0x22bac7</span>(<span class="number">0xaf</span>)]])%<span class="number">0x100</span>,[_0x1f7f86[_0x24ca0d],_0x1f7f86[_0x562e52]]=[_0x1f7f86[_0x562e52],_0x1f7f86[_0x24ca0d]];&#125;<span class="keyword">let</span> _0x5b36c3=<span class="number">0x0</span>,_0x205ec1=<span class="number">0x0</span>;<span class="keyword">const</span> _0x444cf9=<span class="keyword">new</span> <span class="title class_">Uint8Array</span>(_0x2db5b9[<span class="title function_">_0x22bac7</span>(<span class="number">0xaf</span>)]);<span class="keyword">for</span>(<span class="keyword">let</span> _0x527286=<span class="number">0x0</span>; _0x527286&lt;_0x2db5b9[<span class="title function_">_0x22bac7</span>(<span class="number">0xaf</span>)]; _0x527286++)&#123;_0x5b36c3=(_0x5b36c3+<span class="number">0x1</span>)%<span class="number">0x100</span>,_0x205ec1=(_0x205ec1+_0x1f7f86[_0x5b36c3])%<span class="number">0x100</span>,[_0x1f7f86[_0x5b36c3],_0x1f7f86[_0x205ec1]]=[_0x1f7f86[_0x205ec1],_0x1f7f86[_0x5b36c3]];<span class="keyword">const</span> _0x326832=(_0x1f7f86[_0x5b36c3]+_0x1f7f86[_0x205ec1])%<span class="number">0x100</span>;_0x444cf9[_0x527286]=_0x2db5b9[_0x527286]^_0x1f7f86[_0x326832];&#125;<span class="keyword">return</span> _0x444cf9;&#125;<span class="keyword">function</span> <span class="title function_">_0x363b</span>(<span class="params">_0x3e7d70, _0x4a2c88</span>)&#123;<span class="keyword">const</span> _0x3a0bb6=<span class="title function_">_0x3a0b</span>();<span class="keyword">return</span> _0x363b=<span class="keyword">function</span>(<span class="params">_0x363b1f, _0x4025c1</span>)&#123;_0x363b1f=_0x363b1f-<span class="number">0xa6</span>;<span class="keyword">let</span> _0x387f5b=_0x3a0bb6[_0x363b1f];<span class="keyword">return</span> _0x387f5b;&#125;,<span class="title function_">_0x363b</span>(_0x3e7d70,_0x4a2c88);&#125;<span class="keyword">function</span> <span class="title function_">_0x3a0b</span>(<span class="params"></span>)&#123;<span class="keyword">const</span> _0x37fb1e=[<span class="string">&#x27;3283052tzDAvB&#x27;</span>,<span class="string">&#x27;542866JdmzNj&#x27;</span>,<span class="string">&#x27;4112658rTyTXQ&#x27;</span>,<span class="string">&#x27;16954tUYpad&#x27;</span>,<span class="string">&#x27;length&#x27;</span>,<span class="string">&#x27;457163LwGIuU&#x27;</span>,<span class="string">&#x27;2696pusaTH&#x27;</span>,<span class="string">&#x27;233035azfeoA&#x27;</span>,<span class="string">&#x27;66oGYEyB&#x27;</span>,<span class="string">&#x27;encode&#x27;</span>,<span class="string">&#x27;2094372kZRrIa&#x27;</span>];_0x3a0b=<span class="keyword">function</span>(<span class="params"></span>)&#123;<span class="keyword">return</span> _0x37fb1e;&#125;;<span class="keyword">return</span> <span class="title function_">_0x3a0b</span>();&#125;</span><br><span class="line"><span class="comment">// 提取keystream的代码</span></span><br><span class="line"><span class="keyword">const</span> key = <span class="string">&quot;SAdt0ngY1AIrC4hH&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> plaintext = <span class="string">&#x27;a&#x27;</span>.<span class="title function_">repeat</span>(<span class="number">64</span>);  <span class="comment">// 64个&#x27;a&#x27;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用原始函数加密</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> encrypted = <span class="title class_">Encrypt</span>_0x5031b3(key, plaintext);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 提取keystream: ciphertext XOR plaintext = keystream</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> keystream = [];</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> aCharCode = <span class="string">&#x27;a&#x27;</span>.<span class="title function_">charCodeAt</span>(<span class="number">0</span>);  <span class="comment">// 97</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; encrypted.<span class="property">length</span>; i++) &#123;</span><br><span class="line"></span><br><span class="line">    keystream.<span class="title function_">push</span>(encrypted[i] ^ aCharCode);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 按要求的格式输出</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;KEYSTREAM = [&#x27;</span>, keystream.<span class="title function_">join</span>(<span class="string">&#x27;,&#x27;</span>), <span class="string">&#x27;]&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>KEYSTREAM = [ 232,0,230,97,0,0,88,88,0,118,233,0,91,8,29,213,0,224,188,251,252,20,20,0,0,0,0,0,0,0,222,119,0,0,177,0,0,0,0,0,0,0,149,8,120,233,187,175,0,3,3,0,238,96,0,0,241,87,73,96,0,31,31,0 ]</p>
+<h3 id="后端分析："><a href="#后端分析：" class="headerlink" title="后端分析："></a>后端分析：</h3><p>定位关键函数：</p>
+<p>由于我们传入参数时js代码是这样：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">greetMsgEl.<span class="property">textContent</span> = <span class="keyword">await</span> <span class="title function_">invoke</span>(<span class="string">&quot;ipc_command&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="title function_">uint8ArrayToBase64</span>(ciphertext)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>所以直接在ida pro找ipc_command和name字符串就能定位到后端逻辑函数了</p>
+<p>找到后发现</p>
+<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\定位函数.png" alt="定位函数"></p>
+<p>把name（前端加密结果）传入v89，后边就分析v89就可以了</p>
+<p>把这整个函数扔给ai，ai分析出是一个tea加密+一个base64加密</p>
+<p>exp:</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line"><span class="comment"># 后端 .rdata 那串 base64（你给出的）</span></span><br><span class="line">b64 = <span class="string">&quot;daF/DkQxixGmzn0aPFW2E2PhM8NabRtLjp6pI+c8TtY3WMuPxfnvlAsp9aluf8noZy/T6Sz9DJg=&quot;</span></span><br><span class="line">ct = base64.b64decode(b64)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 你给的 KEYSTREAM（RC4 xor 流）</span></span><br><span class="line">KEYSTREAM = [<span class="number">232</span>,<span class="number">0</span>,<span class="number">230</span>,<span class="number">97</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">88</span>,<span class="number">88</span>,<span class="number">0</span>,<span class="number">118</span>,<span class="number">233</span>,<span class="number">0</span>,<span class="number">91</span>,<span class="number">8</span>,<span class="number">29</span>,<span class="number">213</span>,<span class="number">0</span>,<span class="number">224</span>,<span class="number">188</span>,<span class="number">251</span>,<span class="number">252</span>,<span class="number">20</span>,<span class="number">20</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">222</span>,<span class="number">119</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">177</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">149</span>,<span class="number">8</span>,<span class="number">120</span>,<span class="number">233</span>,<span class="number">187</span>,<span class="number">175</span>,<span class="number">0</span>,<span class="number">3</span>,<span class="number">3</span>,<span class="number">0</span>,<span class="number">238</span>,<span class="number">96</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">241</span>,<span class="number">87</span>,<span class="number">73</span>,<span class="number">96</span>,<span class="number">0</span>,<span class="number">31</span>,<span class="number">31</span>,<span class="number">0</span>]</span><br><span class="line">KS = <span class="built_in">bytes</span>(KEYSTREAM)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从反编译还原的常数（对应 C++ 中出现的那些十进制常量）</span></span><br><span class="line">C1 = <span class="number">1668048215</span>   <span class="comment"># 0x636c6557</span></span><br><span class="line">C2 = <span class="number">1949527375</span>   <span class="comment"># 0x74336d4f</span></span><br><span class="line">C3 = <span class="number">1937076784</span>   <span class="comment"># 0x73757230</span></span><br><span class="line">C4 = <span class="number">1432441972</span>   <span class="comment"># 0x55615474</span></span><br><span class="line">DELTA = <span class="number">2117703607</span>  <span class="comment"># 0x7e3997b7</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">swap32</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">return</span> ((x &amp; <span class="number">0xFF</span>) &lt;&lt; <span class="number">24</span>) | ((x &amp; <span class="number">0xFF00</span>) &lt;&lt; <span class="number">8</span>) | ((x &gt;&gt; <span class="number">8</span>) &amp; <span class="number">0xFF00</span>) | ((x &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xFF</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">decrypt_block</span>(<span class="params">block8</span>):</span><br><span class="line">    <span class="comment"># block8: 8 bytes (as stored in ct)</span></span><br><span class="line">    a = <span class="built_in">int</span>.from_bytes(block8[<span class="number">0</span>:<span class="number">4</span>], <span class="string">&#x27;little&#x27;</span>)</span><br><span class="line">    b = <span class="built_in">int</span>.from_bytes(block8[<span class="number">4</span>:<span class="number">8</span>], <span class="string">&#x27;little&#x27;</span>)</span><br><span class="line">    v11 = swap32(a)</span><br><span class="line">    v12 = swap32(b)</span><br><span class="line">    sum_ = DELTA * <span class="number">32</span></span><br><span class="line">    <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">32</span>):</span><br><span class="line">        v12 = (v12 - ( ((<span class="number">16</span> * v11 + C3) ^ (sum_ + v11)) ^ ((v11 &gt;&gt; <span class="number">5</span>) + C4) )) &amp; <span class="number">0xFFFFFFFF</span></span><br><span class="line">        v11 = (v11 - ( ((<span class="number">16</span> * v12 + C1) ^ (v12 + sum_)) ^ ((v12 &gt;&gt; <span class="number">5</span>) + C2) )) &amp; <span class="number">0xFFFFFFFF</span></span><br><span class="line">        sum_ = (sum_ - DELTA) &amp; <span class="number">0xFFFFFFFFFFFFFFFF</span></span><br><span class="line">    <span class="keyword">return</span> v11.to_bytes(<span class="number">4</span>,<span class="string">&#x27;little&#x27;</span>) + v12.to_bytes(<span class="number">4</span>,<span class="string">&#x27;little&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1) TEA-like 解密（对 ct 按 8 字节块）</span></span><br><span class="line">plain = <span class="built_in">bytearray</span>()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="built_in">len</span>(ct), <span class="number">8</span>):</span><br><span class="line">    block = ct[i:i+<span class="number">8</span>]</span><br><span class="line">    plain += decrypt_block(block)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2) 解出的是个 base64 字符串，去除尾部可能的 0x00，再 decode</span></span><br><span class="line">plain_b64 = <span class="built_in">bytes</span>(plain).rstrip(<span class="string">b&#x27;\x00&#x27;</span>)</span><br><span class="line">middle = base64.b64decode(plain_b64)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3) 用你给的 KEYSTREAM 异或（取 middle 长度）</span></span><br><span class="line">res = <span class="built_in">bytes</span>(middle[i] ^ KS[i] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(middle)))</span><br><span class="line"><span class="built_in">print</span>(res.decode())</span><br><span class="line"><span class="comment"># -&gt; flag&#123;cf8be09b1c8a415f8b5e8f1dac71d4af&#125;</span></span><br></pre></td></tr></table></figure>
+<h1 id="reference"><a href="#reference" class="headerlink" title="reference:"></a>reference:</h1><p><a target="_blank" rel="noopener" href="https://blog.yllhwa.com/2023/05/09/Tauri%20%E6%A1%86%E6%9E%B6%E7%9A%84%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E6%8F%90%E5%8F%96%E6%96%B9%E6%B3%95%E6%8E%A2%E7%A9%B6/">Tauri 框架的静态资源提取方法探究 | yllhwa&#39;s blog</a></p>
+<p><a target="_blank" rel="noopener" href="https://110.41.78.46/bk/index.php/archives/548/">https://110.41.78.46/bk/index.php/archives/548/</a></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/10/27/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri%E6%A1%86%E6%9E%B6%E9%80%86%E5%90%91/" title="tauri框架逆向">http://example.com/2025/10/27/ctf逆向中的misc/tauri框架逆向/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/tauri/" rel="tag"><i class="fa fa-tag"></i> tauri</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/10/23/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E5%81%9A%E9%A2%98/" rel="prev" title="py逆向做题总结">
+      <i class="fa fa-chevron-left"></i> py逆向做题总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/10/30/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/2025%E7%BE%8A%E5%9F%8E%E6%9D%AFPLUS/" rel="next" title="2025羊城杯PLUS复现">
+      2025羊城杯PLUS复现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFtauri%E6%A1%86%E6%9E%B6%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么是tauri框架？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tauri%E6%A1%86%E6%9E%B6%E9%80%86%E5%90%91%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">tauri框架逆向：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">运行逻辑：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%86%E5%90%91%E6%AD%A5%E9%AA%A4%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">逆向步骤：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%BD%8D%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%EF%BC%9A"><span class="nav-number">2.2.1.</span> <span class="nav-text">定位静态资源：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E7%AB%AF%E5%88%86%E6%9E%90"><span class="nav-number">2.2.2.</span> <span class="nav-text">前端分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E7%AB%AF%E5%88%86%E6%9E%90%EF%BC%9A"><span class="nav-number">2.2.3.</span> <span class="nav-text">后端分析：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reference"><span class="nav-number">3.</span> <span class="nav-text">reference:</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
