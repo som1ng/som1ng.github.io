@@ -235,7 +235,8 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h1><p>拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下</p>
+  
+  <h1 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h1><p>拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下</p>
 <h2 id="rust相比其他编程语言的优势"><a href="#rust相比其他编程语言的优势" class="headerlink" title="rust相比其他编程语言的优势:"></a>rust相比其他编程语言的优势:</h2><ul>
 <li><p>rust不通过<code>GC</code>(garbage collection)机制管理内存,例如python,golang等基于GC机制的编程语言会在exe运行时不断寻找虚拟地址中无用的内存空间.这会大大降低运行速度</p>
 </li>
@@ -432,7 +433,7 @@
 <h3 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap:"></a>HashMap:</h3><p>相当于c++中stl里的map</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> std::collections::HashMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="comment">// 1. 创建一个 HashMap</span></span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">scores</span> = HashMap::<span class="title function_ invoke__">new</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 增加（插入）元素</span></span><br><span class="line">    scores.<span class="title function_ invoke__">insert</span>(<span class="string">&quot;Alice&quot;</span>, <span class="number">10</span>);</span><br><span class="line">    scores.<span class="title function_ invoke__">insert</span>(<span class="string">&quot;Bob&quot;</span>, <span class="number">20</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. 修改（如果 key 已存在，会覆盖旧值）</span></span><br><span class="line">    scores.<span class="title function_ invoke__">insert</span>(<span class="string">&quot;Alice&quot;</span>, <span class="number">30</span>);  <span class="comment">// Alice 的值从 10 -&gt; 30</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 访问（用 get，返回 Option&lt;&amp;V&gt;）</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">let</span> <span class="variable">Some</span>(score) = scores.<span class="title function_ invoke__">get</span>(<span class="string">&quot;Alice&quot;</span>) &#123;</span><br><span class="line">        <span class="built_in">println!</span>(<span class="string">&quot;Alice 的分数是 &#123;&#125;&quot;</span>, score);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5. 删除（移除某个 key）</span></span><br><span class="line">    scores.<span class="title function_ invoke__">remove</span>(<span class="string">&quot;Bob&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">println!</span>(<span class="string">&quot;&#123;:?&#125;&quot;</span>, scores);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-    </div>
+
 
     
     
@@ -589,7 +590,7 @@
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

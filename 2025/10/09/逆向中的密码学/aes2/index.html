@@ -89,7 +89,6 @@
   </style>
 </noscript>
 
-<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
 <style>mjx-container[jax="SVG"] {
   direction: ltr;
 }
@@ -202,7 +201,8 @@ mjx-container[display="true"] {
 mjx-container[display="true"] + br {
   display: none;
 }
-</style></head>
+</style><link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -367,7 +367,8 @@ mjx-container[display="true"] + br {
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>逆向工程中往往使用aes加密的程序不是用的查表法aes，就是用的白盒aes，让你难以分析，傻乎乎的使用aes基础算法很容易被破解</p>
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>逆向工程中往往使用aes加密的程序不是用的查表法aes，就是用的白盒aes，让你难以分析，傻乎乎的使用aes基础算法很容易被破解</p>
 <h1 id="查表法实现的aes："><a href="#查表法实现的aes：" class="headerlink" title="查表法实现的aes："></a>查表法实现的aes：</h1><p>在前一篇文章中我们详细讲解了AES的每一轮中具体的四层结构，以加密过程为例分别是：字节代换层、行移位层、列混淆层和轮密钥加层</p>
 <p>对于查表法实现，就是要将每一轮中的前三层操作(字节代换层、行移位层和列混淆层)合并为查找表。</p>
 <p>查表法的核心思想是将字节代换层、ShiftRows层和MixColumn层融合为查找表：每个表的大小是32 bits(4字节)乘以256项，一般称为T盒(T-Box)或T表。加密过程4个表(Te)，解密过程4个表(Td)，共8个。每一轮操作都通过16次查表产生。</p>
@@ -468,7 +469,7 @@ a_0' \\ a_1' \\ a_2' \\ a_3'
 <p><a target="_blank" rel="noopener" href="http://91fans.com.cn/post/ilikeaestwo/#gsc.tab=0">找回消失的密钥 —- DFA分析白盒AES算法 - 奋飞安全</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.zskkk.cn/posts/15785/#%E8%BF%98%E5%8E%9F%E5%AF%86%E6%96%87">https://www.zskkk.cn/posts/15785/#%E8%BF%98%E5%8E%9F%E5%AF%86%E6%96%87</a></p>
 
-    </div>
+
 
     
     
@@ -537,8 +538,8 @@ a_0' \\ a_1' \\ a_2' \\ a_3'
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/" rel="prev" title="分组密码的加密模式及攻击">
-      <i class="fa fa-chevron-left"></i> 分组密码的加密模式及攻击
+    <a href="/2025/10/09/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8A-SEH/" rel="prev" title="异常处理机制-SEH">
+      <i class="fa fa-chevron-left"></i> 异常处理机制-SEH
     </a></div>
       <div class="post-nav-item">
     <a href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/" rel="next" title="逆向中的AES(一)">
@@ -628,7 +629,7 @@ a_0' \\ a_1' \\ a_2' \\ a_3'
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

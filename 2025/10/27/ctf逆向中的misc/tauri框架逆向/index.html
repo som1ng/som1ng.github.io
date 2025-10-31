@@ -29,16 +29,16 @@
 <meta property="og:site_name" content="s0m1ng">
 <meta property="og:description" content="什么是tauri框架？Tauri 是一个用于构建桌面应用的开源框架：前端用任意会输出 HTML&#x2F;JS&#x2F;CSS 的框架（如 React&#x2F;Vue&#x2F;Svelte），后端用 Rust（或平台原生）打包成本地可执行文件。它通过 WebView 显示前端页面，并通过安全的 IPC（消息调用）把前端和 Rust 后端连接起来。 简单来说就是tarti框架构建出来的exe文件，集成了前端和后端代码，打包进了exe">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\app.png">
-<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\file.png">
-<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\%E9%9D%99%E6%80%81%E8%A1%A8.png">
-<meta property="og:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\%E5%AE%9A%E4%BD%8D%E5%87%BD%E6%95%B0.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri/app.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri/file.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri/%E9%9D%99%E6%80%81%E8%A1%A8.png">
+<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri/%E5%AE%9A%E4%BD%8D%E5%87%BD%E6%95%B0.png">
 <meta property="article:published_time" content="2025-10-26T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-10-28T04:15:04.004Z">
+<meta property="article:modified_time" content="2025-10-31T09:50:39.563Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="tauri">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="d:\ctf\s0m1ng\source\images\%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc\tauri\app.png">
+<meta name="twitter:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri/app.png">
 
 <link rel="canonical" href="http://example.com/2025/10/27/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/tauri%E6%A1%86%E6%9E%B6%E9%80%86%E5%90%91/">
 
@@ -216,7 +216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-28 12:15:04" itemprop="dateModified" datetime="2025-10-28T12:15:04+08:00">2025-10-28</time>
+                <time title="修改时间：2025-10-31 17:50:39" itemprop="dateModified" datetime="2025-10-31T17:50:39+08:00">2025-10-31</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -246,9 +246,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="什么是tauri框架？"><a href="#什么是tauri框架？" class="headerlink" title="什么是tauri框架？"></a>什么是tauri框架？</h1><p>Tauri 是一个用于构建桌面应用的开源框架：前端用任意会输出 HTML/JS/CSS 的框架（如 React/Vue/Svelte），后端用 Rust（或平台原生）打包成本地可执行文件。它通过 WebView 显示前端页面，并通过安全的 IPC（消息调用）把前端和 Rust 后端连接起来。</p>
+  
+  <h1 id="什么是tauri框架？"><a href="#什么是tauri框架？" class="headerlink" title="什么是tauri框架？"></a>什么是tauri框架？</h1><p>Tauri 是一个用于构建桌面应用的开源框架：前端用任意会输出 HTML/JS/CSS 的框架（如 React/Vue/Svelte），后端用 Rust（或平台原生）打包成本地可执行文件。它通过 WebView 显示前端页面，并通过安全的 IPC（消息调用）把前端和 Rust 后端连接起来。</p>
 <p>简单来说就是tarti框架构建出来的exe文件，集成了前端和后端代码，打包进了exe。运行这个exe，前端代码通过系统webview就可以在界面显示而不需要借助任何浏览器</p>
-<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\app.png" alt="app"></p>
+<p><img data-src="/images/逆向中的misc/tauri/app.png" alt="app"></p>
 <p>通常tauri框架写出的app长上面那样</p>
 <h1 id="tauri框架逆向："><a href="#tauri框架逆向：" class="headerlink" title="tauri框架逆向："></a>tauri框架逆向：</h1><h2 id="运行逻辑："><a href="#运行逻辑：" class="headerlink" title="运行逻辑："></a>运行逻辑：</h2><ul>
 <li><p>你双击 <code>.exe</code>；</p>
@@ -269,7 +270,7 @@
 <p>拿2025年羊城杯的easyTauri.exe举例</p>
 <h3 id="定位静态资源："><a href="#定位静态资源：" class="headerlink" title="定位静态资源："></a>定位静态资源：</h3><p>先shift+f12搜flag，如果没有就去找index.html，index.html就是最开始的web页面</p>
 <p>定位到这个字符串后交叉引用，找到一个形似文件表结构的部分</p>
-<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\file.png" alt="file"></p>
+<p><img data-src="/images/逆向中的misc/tauri/file.png" alt="file"></p>
 <p>其中</p>
 <ul>
 <li><p>0x0000000140642A40是文件名</p>
@@ -290,7 +291,7 @@
 <p>然后就拿到js写的前端文件了</p>
 <h3 id="前端分析"><a href="#前端分析" class="headerlink" title="前端分析"></a>前端分析</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;!doctype html&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span> <span class="attr">href</span>=<span class="string">&quot;styles.css&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Tauri App<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;module&quot;</span> <span class="attr">src</span>=<span class="string">&quot;js/main.js&quot;</span> <span class="attr">defer</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">main</span> <span class="attr">class</span>=<span class="string">&quot;container&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;row&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;https://tauri.app&quot;</span> <span class="attr">target</span>=<span class="string">&quot;_blank&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Welcome to Tauri 2.0<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>你知道的，这个文件往往是测试的时候使用的，当你找到了这个文件，说明你可以阅读以下hint：<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>   1. 我混淆了js，当你觉得那是一大坨恶心玩意的时候，应该试试开发一个最简Tauri项目<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>   2. 出题人吃过release无pdb的这一坨，当你分析完js一定能找到对应的native函数<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">form</span> <span class="attr">class</span>=<span class="string">&quot;row&quot;</span> <span class="attr">id</span>=<span class="string">&quot;greet-form&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">&quot;greet-input&quot;</span> <span class="attr">placeholder</span>=<span class="string">&quot;Enter a Flag...&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span>&gt;</span>Check<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span> <span class="attr">id</span>=<span class="string">&quot;greet-msg&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">main</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
 <p>如果前端文件index没有flag，那就把所有js文件都dump下来看看</p>
-<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\静态表.png" alt="静态表"></p>
+<p><img data-src="/images/逆向中的misc/tauri/静态表.png" alt="静态表"></p>
 <p>找到这种形似文件结构的最开始的地址，然后把他们全dump下来</p>
 <p>把要求扔给ai写下面的脚本，但要求要说清楚</p>
 <p>从0x140642660开始是文件结构，每个文件开始8个字节存储文件名地址，后8字节按小端序存储文件名对应字符串字节数，然后8个字节存文件内容地址，后8个字节存文件内容占大小，然后是下一个文件结构，帮我把所有的文件内容dump出来，然后通过brotli算法解密，还原js静态资源。只读js文件和html文件</p>
@@ -317,7 +318,7 @@
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">greetMsgEl.<span class="property">textContent</span> = <span class="keyword">await</span> <span class="title function_">invoke</span>(<span class="string">&quot;ipc_command&quot;</span>, &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="title function_">uint8ArrayToBase64</span>(ciphertext)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>所以直接在ida pro找ipc_command和name字符串就能定位到后端逻辑函数了</p>
 <p>找到后发现</p>
-<p><img data-src="D:\ctf\s0m1ng\source\images\逆向中的misc\tauri\定位函数.png" alt="定位函数"></p>
+<p><img data-src="/images/逆向中的misc/tauri/定位函数.png" alt="定位函数"></p>
 <p>把name（前端加密结果）传入v89，后边就分析v89就可以了</p>
 <p>把这整个函数扔给ai，ai分析出是一个tea加密+一个base64加密</p>
 <p>exp:</p>
@@ -325,7 +326,7 @@
 <h1 id="reference"><a href="#reference" class="headerlink" title="reference:"></a>reference:</h1><p><a target="_blank" rel="noopener" href="https://blog.yllhwa.com/2023/05/09/Tauri%20%E6%A1%86%E6%9E%B6%E7%9A%84%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E6%8F%90%E5%8F%96%E6%96%B9%E6%B3%95%E6%8E%A2%E7%A9%B6/">Tauri 框架的静态资源提取方法探究 | yllhwa&#39;s blog</a></p>
 <p><a target="_blank" rel="noopener" href="https://110.41.78.46/bk/index.php/archives/548/">https://110.41.78.46/bk/index.php/archives/548/</a></p>
 
-    </div>
+
 
     
     
@@ -398,8 +399,8 @@
       <i class="fa fa-chevron-left"></i> py逆向做题总结
     </a></div>
       <div class="post-nav-item">
-    <a href="/2025/10/30/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/2025%E7%BE%8A%E5%9F%8E%E6%9D%AFPLUS/" rel="next" title="2025羊城杯PLUS复现">
-      2025羊城杯PLUS复现 <i class="fa fa-chevron-right"></i>
+    <a href="/2025/10/30/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/2025%E7%BE%8A%E5%9F%8E%E6%9D%AFPLUS/" rel="next" title="2025羊城杯PLUS与pyd逆向">
+      2025羊城杯PLUS与pyd逆向 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -485,7 +486,7 @@
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

@@ -88,7 +88,6 @@
   </style>
 </noscript>
 
-<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
 <style>mjx-container[jax="SVG"] {
   direction: ltr;
 }
@@ -201,7 +200,8 @@ mjx-container[display="true"] {
 mjx-container[display="true"] + br {
   display: none;
 }
-</style></head>
+</style><link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
   <div class="container use-motion">
@@ -366,7 +366,8 @@ mjx-container[display="true"] + br {
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="分组密码工作模式"><a href="#分组密码工作模式" class="headerlink" title="分组密码工作模式"></a>分组密码工作模式</h1><p>工作模式对算法本身结构没有影响，影响的是明文密文</p>
+  
+  <h1 id="分组密码工作模式"><a href="#分组密码工作模式" class="headerlink" title="分组密码工作模式"></a>分组密码工作模式</h1><p>工作模式对算法本身结构没有影响，影响的是明文密文</p>
 <h2 id="ECB：电子密码本模式-electronic-codebook-mode"><a href="#ECB：电子密码本模式-electronic-codebook-mode" class="headerlink" title="ECB：电子密码本模式(electronic codebook mode)"></a>ECB：电子密码本模式(electronic codebook mode)</h2><p><img data-src="/images/分组密码模式/ecb.png" alt="ecb"></p>
 <p>从ECB的工作原理可以看出，如果明文数据在等分后，两块数据相同则会产生相同的加密数据块，这会辅助攻击者快速判断加密算法的工作模式，而将攻击资源聚集在破解某一块数据即可，一旦成功则意味着全文破解，大大提升了攻击效率。</p>
 <script type="math/tex; mode=display">
@@ -487,7 +488,7 @@ A \oplus B &= C \\
 </ol>
 <h1 id="reference"><a href="#reference" class="headerlink" title="reference:"></a>reference:</h1><p><a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">CBC字节翻转攻击&amp;Padding Oracle Attack原理解析 - 枫のBlog</a></p>
 
-    </div>
+
 
     
     
@@ -556,12 +557,12 @@ A \oplus B &= C \\
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2025/10/09/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8A-SEH/" rel="prev" title="异常处理机制-SEH">
-      <i class="fa fa-chevron-left"></i> 异常处理机制-SEH
+    <a href="/2025/10/08/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="prev" title="安卓逆向环境配置">
+      <i class="fa fa-chevron-left"></i> 安卓逆向环境配置
     </a></div>
       <div class="post-nav-item">
-    <a href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes2/" rel="next" title="逆向中的AES(二)">
-      逆向中的AES(二) <i class="fa fa-chevron-right"></i>
+    <a href="/2025/10/09/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8A-SEH/" rel="next" title="异常处理机制-SEH">
+      异常处理机制-SEH <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -647,7 +648,7 @@ A \oplus B &= C \\
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
