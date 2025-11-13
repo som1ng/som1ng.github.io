@@ -22,17 +22,17 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前言：用一道经典安卓题练习一下脱壳 拖进jadx发现  启动类是sctf.demo.myapplication.t,但是反编译的类没有。（有android.intent.action.MAIN才是启动类） 猜测是加壳或者别的什么需要动态抓dex的混淆方法 动态提取&#x2F;脱壳利用反射大师提取dex：在xposed模块勾选反射大师，再把我们要分析的app放在反射大师的作用域下。 然后运行反射大师，点选中该">
+  <meta name="description" content="前言：用一道经典安卓题练习一下脱壳 BUUCTF在线评测 拖进jadx发现  启动类是sctf.demo.myapplication.t,但是反编译的类没有。（有android.intent.action.MAIN才是启动类） 猜测是加壳或者别的什么需要动态抓dex的混淆方法 动态提取&#x2F;脱壳利用反射大师提取dex：在xposed模块勾选反射大师，再把我们要分析的app放在反射大师的作用域下。 然后">
 <meta property="og:type" content="article">
 <meta property="og:title" content="[SCTF2019]Strange apk">
 <meta property="og:url" content="http://example.com/2025/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/[SCTF2019]Strange%20apk/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前言：用一道经典安卓题练习一下脱壳 拖进jadx发现  启动类是sctf.demo.myapplication.t,但是反编译的类没有。（有android.intent.action.MAIN才是启动类） 猜测是加壳或者别的什么需要动态抓dex的混淆方法 动态提取&#x2F;脱壳利用反射大师提取dex：在xposed模块勾选反射大师，再把我们要分析的app放在反射大师的作用域下。 然后运行反射大师，点选中该">
+<meta property="og:description" content="前言：用一道经典安卓题练习一下脱壳 BUUCTF在线评测 拖进jadx发现  启动类是sctf.demo.myapplication.t,但是反编译的类没有。（有android.intent.action.MAIN才是启动类） 猜测是加壳或者别的什么需要动态抓dex的混淆方法 动态提取&#x2F;脱壳利用反射大师提取dex：在xposed模块勾选反射大师，再把我们要分析的app放在反射大师的作用域下。 然后">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/strange_apk/manifest.png">
 <meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/strange_apk/%E8%BF%87%E7%A8%8B.png">
 <meta property="article:published_time" content="2025-11-09T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-11-12T16:05:26.319Z">
+<meta property="article:modified_time" content="2025-11-13T05:09:58.994Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="安卓逆向">
 <meta name="twitter:card" content="summary">
@@ -214,7 +214,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-11-13 00:05:26" itemprop="dateModified" datetime="2025-11-13T00:05:26+08:00">2025-11-13</time>
+                <time title="修改时间：2025-11-13 13:09:58" itemprop="dateModified" datetime="2025-11-13T13:09:58+08:00">2025-11-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -250,6 +250,7 @@
       
   
   <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>用一道经典安卓题练习一下脱壳</p>
+<p><a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#[SCTF2019]Strange%20apk">BUUCTF在线评测</a></p>
 <h1 id="拖进jadx"><a href="#拖进jadx" class="headerlink" title="拖进jadx"></a>拖进jadx</h1><p>发现</p>
 <p><img data-src="/images/安卓逆向/strange_apk/manifest.png" alt="manifest"></p>
 <p>启动类是sctf.demo.myapplication.t,但是反编译的类没有。（有android.intent.action.MAIN才是启动类）</p>
@@ -376,7 +377,10 @@
     <a href="/2025/10/30/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/2025%E7%BE%8A%E5%9F%8E%E6%9D%AFPLUS/" rel="prev" title="2025羊城杯PLUS与pyd逆向">
       <i class="fa fa-chevron-left"></i> 2025羊城杯PLUS与pyd逆向
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2025/11/11/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%5B%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84%5Dbang/" rel="next" title="[网鼎杯 2020 青龙组]bang">
+      [网鼎杯 2020 青龙组]bang <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -451,7 +455,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

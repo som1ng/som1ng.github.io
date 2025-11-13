@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：一道例题练习frida方式脱壳 题目来源 BUUCTF在线评测 流程：查壳： 查壳，工具连接在 https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1rDfsEvqQwhUmep1UBLUwSQ 密码: wefd 脱壳：先列出目前内存中运行的进程： 1234567891011(jack) C:\Users\Lenovo\OneDrive\Desktop&gt;frida-ps -U -a  PI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[网鼎杯 2020 青龙组]bang">
+<meta property="og:url" content="http://example.com/2025/11/11/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/[%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84]bang/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：一道例题练习frida方式脱壳 题目来源 BUUCTF在线评测 流程：查壳： 查壳，工具连接在 https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1rDfsEvqQwhUmep1UBLUwSQ 密码: wefd 脱壳：先列出目前内存中运行的进程： 1234567891011(jack) C:\Users\Lenovo\OneDrive\Desktop&gt;frida-ps -U -a  PI">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/bang/%E6%9F%A5%E5%A3%B3.png">
+<meta property="og:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/bang/%E8%84%B1%E5%A3%B3%E5%90%8E.png">
+<meta property="article:published_time" content="2025-11-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-11-13T08:38:22.427Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="安卓逆向">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/bang/%E6%9F%A5%E5%A3%B3.png">
+
+<link rel="canonical" href="http://example.com/2025/11/11/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/[%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84]bang/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>[网鼎杯 2020 青龙组]bang | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/11/11/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/[%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84]bang/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          [网鼎杯 2020 青龙组]bang
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-11-11 00:00:00" itemprop="dateCreated datePublished" datetime="2025-11-11T00:00:00+08:00">2025-11-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-11-13 16:38:22" itemprop="dateModified" datetime="2025-11-13T16:38:22+08:00">2025-11-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">安卓逆向</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">安卓逆向题单</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>一道例题练习frida方式脱壳</p>
+<p>题目来源</p>
+<p><a target="_blank" rel="noopener" href="https://buuoj.cn/challenges#[%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84]bang">BUUCTF在线评测</a></p>
+<h1 id="流程："><a href="#流程：" class="headerlink" title="流程："></a>流程：</h1><h2 id="查壳："><a href="#查壳：" class="headerlink" title="查壳："></a>查壳：</h2><p><img data-src="/images/安卓逆向/bang/查壳.png" alt="查壳"></p>
+<p>查壳，工具连接在</p>
+<p><a target="_blank" rel="noopener" href="https://links.jianshu.com/go?to=https%3A%2F%2Fpan.baidu.com%2Fs%2F1rDfsEvqQwhUmep1UBLUwSQ">https://pan.baidu.com/s/1rDfsEvqQwhUmep1UBLUwSQ</a> 密码: wefd</p>
+<h2 id="脱壳："><a href="#脱壳：" class="headerlink" title="脱壳："></a>脱壳：</h2><p>先列出目前内存中运行的进程：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">(jack) C:\Users\Lenovo\OneDrive\Desktop&gt;frida-ps -U -a</span><br><span class="line">  PID  Name       Identifier</span><br><span class="line">-----  ---------  ---------------------------------</span><br><span class="line">12357  MT管理器      bin.mt.plus</span><br><span class="line"> 1123  Magisk     com.topjohnwu.magisk</span><br><span class="line"> 8519  QQ         com.tencent.mobileqq</span><br><span class="line">12844  how_debug  com.example.how_debug</span><br><span class="line">13308  三星生活助手     com.samsung.android.app.sreminder</span><br><span class="line">11689  三星钱包       com.samsung.android.spay</span><br><span class="line">31737  日历         com.samsung.android.calendar</span><br><span class="line">31422  联系人        com.samsung.android.app.contacts</span><br></pre></td></tr></table></figure>
+<p>这里命令中-ps指的是process status</p>
+<p>-U 指的是以USB方式连接</p>
+<p>-a 指列出all</p>
+<p>然后开启手机上的frida-server</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\Lenovo&gt;adb shell</span><br><span class="line">b2q:/ $ su</span><br><span class="line">b2q:/ # cd /data/local/tmp</span><br><span class="line">b2q:/data/local/tmp # ls</span><br><span class="line">ActivationDevice_V2  CustomCACert.log  as  fr64  sys-ca-copy</span><br><span class="line">b2q:/data/local/tmp # ./fr64</span><br></pre></td></tr></table></figure>
+<p>然后开始frida-dexdump脱壳</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">(jack) C:\Users\Lenovo\OneDrive\Desktop&gt;frida-dexdump -U -f com.example.how_debug</span><br><span class="line"></span><br><span class="line">---------------------------------------------------------------------------------------------------------------------</span><br><span class="line">                         __      _     _                 _              _</span><br><span class="line">                       / _|_ __(_) __| | __ _        __| | _____  ____| |_   _ _ __ ___  _ __</span><br><span class="line">                      | |_| &#x27;__| |/ _` |/ _` |_____ / _` |/ _ \ \/ / _` | | | | &#x27;_ ` _ \| &#x27;_ \</span><br><span class="line">                      |  _| |  | | (_| | (_| |_____| (_| |  __/&gt;  &lt; (_| | |_| | | | | | | |_) |</span><br><span class="line">                      |_| |_|  |_|\__,_|\__,_|      \__,_|\___/_/\_\__,_|\__,_|_| |_| |_| .__/</span><br><span class="line">                                                                                        |_|</span><br><span class="line">                                        https://github.com/hluwa/frida-dexdump</span><br><span class="line">---------------------------------------------------------------------------------------------------------------------</span><br><span class="line"></span><br><span class="line">Spawning `com.example.how_debug`...</span><br><span class="line">INFO:Agent:DexDumpAgent&lt;Connection(pid=Session(pid=13600), connected:True), attached=True&gt;: Attach.</span><br><span class="line">INFO:frida-dexdump:Waiting 5s...</span><br><span class="line">INFO:frida-dexdump:[+] Searching...</span><br><span class="line">INFO:frida-dexdump:[*] Successful found 36 dex, used 1 time.</span><br><span class="line">INFO:frida-dexdump:[+] Starting dump to &#x27;C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug&#x27;...</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=ba1cf759fe177114c859d4901e3635a2, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes.dex, DexSize=0x1d60b8</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=28514d4f7ccf16c6bb7ba28602b5d72f, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes02.dex, DexSize=0x446c</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=9f6ed667bc041ca01d5781aafa9e949b, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes03.dex, DexSize=0x11caac</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=72cedc72c81da6f4a2ea80d41f0396db, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes04.dex, DexSize=0x1b1fe8</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=081b79d1a0e1f649f18ac2ce5e8c6687, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes05.dex, DexSize=0xbaf38</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=a65dcfdc791633d8b0921fd5f62557b8, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes06.dex, DexSize=0xadbfc</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=cac2716758fc7bec33298e16760b0d72, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes07.dex, DexSize=0x821ec</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=7e5c1910c90d67e4f4ec040163b1313f, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes08.dex, DexSize=0x158754</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=2aa501d10e8553fee07f31cb72d132c5, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes09.dex, DexSize=0x2cead4</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=704b06ca5fed180a97fe803fb9e1d289, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes10.dex, DexSize=0x123238</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=9b5ace8b5a362e5b6d3cd2eade413d32, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes11.dex, DexSize=0x1691e0</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=f7b58a3209dafc422e52ea0c327844e6, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes12.dex, DexSize=0x5504b4</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=2fa8055373d7fad871cc7eb1f4773100, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes13.dex, DexSize=0x8b92c</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=e12fbb91f1e50490d723d392cfb64462, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes14.dex, DexSize=0x727ac</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=a0557abc4a75581fef74a615335e217c, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes15.dex, DexSize=0x5c968</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=ad8261bb66fc787adbf0f3ead519cbfa, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes16.dex, DexSize=0x68b08</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=8aba98d63fc9efc0b65a1787b04cbaaf, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes17.dex, DexSize=0x630b8</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=e4edc50af9e1235448162f3d897fe46d, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes18.dex, DexSize=0x260</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=a9c5171d09972adcbcb2533c1b2fce81, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes19.dex, DexSize=0x33fac</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=9c0fa3700d8f1ac8a8b5d96548c524bc, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes20.dex, DexSize=0x21dcc</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=222e9040d440df80485c27f1ccc67aac, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes21.dex, DexSize=0x2cbac</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=39ebc9a37d751ac3076c55e617d5e9c6, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes22.dex, DexSize=0x37408</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=a31ad083fd47c76a53adf884e2ae7e2a, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes23.dex, DexSize=0x225c4</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=5c9f56f29221493a2fd3a22e1f8f492c, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes24.dex, DexSize=0x1399c</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=c65aaa204d733781aeeee779f5f28ce1, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes25.dex, DexSize=0x18d38</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=c411e4e46e8fc5d2c14718d26a942215, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes26.dex, DexSize=0x10e9c</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=56f6ffc46797695382918d55b57b0513, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes27.dex, DexSize=0x14b80</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=efb9359d1a151dc65d2fc91030194b6a, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes28.dex, DexSize=0x135cc</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=171711041e67582660c0563841bfae0c, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes29.dex, DexSize=0x56a4</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=f5ae84a0c91c8732a1ee39d57523d6b2, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes30.dex, DexSize=0x131c</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=f08d322fa4870c3c15ad0013656987c0, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes31.dex, DexSize=0x31ec</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=7c151936d903263d1d3bff36799f424f, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes32.dex, DexSize=0x6ac8</span><br><span class="line">INFO:frida-dexdump:[+] DexMd5=82d3511ca8f86f286a6f668983fc3df7, SavePath=C:\Users\Lenovo\OneDrive\Desktop\com.example.how_debug\classes33.dex, DexSize=0x19e4</span><br><span class="line">INFO:frida-dexdump:[*] All done...</span><br></pre></td></tr></table></figure>
+<p>这里frida-dexdump是一个基于frida开发的工具</p>
+<p>-f指force spawn，从程序最开始启动程序</p>
+<h2 id="打包apk"><a href="#打包apk" class="headerlink" title="打包apk"></a>打包apk</h2><p>把生成的文件夹压缩为zip</p>
+<p>然后改名apk</p>
+<p>拉进jadx分析</p>
+<p><img data-src="/images/安卓逆向/bang/脱壳后.png" alt="脱壳后"></p>
+<p>这里直接就拿到flag了</p>
+<h1 id="flag"><a href="#flag" class="headerlink" title="flag"></a>flag</h1><p>flag{borring_things}</p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/11/11/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/[%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84]bang/" title="[网鼎杯 2020 青龙组]bang">http://example.com/2025/11/11/安卓逆向/[网鼎杯 2020 青龙组]bang/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/" rel="tag"><i class="fa fa-tag"></i> 安卓逆向</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%5BSCTF2019%5DStrange%20apk/" rel="prev" title="[SCTF2019]Strange apk">
+      <i class="fa fa-chevron-left"></i> [SCTF2019]Strange apk
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">流程：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E5%A3%B3%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">查壳：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%84%B1%E5%A3%B3%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">脱壳：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%8C%85apk"><span class="nav-number">2.3.</span> <span class="nav-text">打包apk</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#flag"><span class="nav-number">3.</span> <span class="nav-text">flag</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
