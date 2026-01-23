@@ -22,24 +22,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="题型识别： ida 打开搜索字符串，看有没有godot字段  ida看段表，如果有.pck段就是godot engine题型    解包：用这个工具：GitHub - GDRETools&#x2F;gdsdecomp: Godot reverse engineering tools 下载后运行文件夹里的exe文件 点击图示recover project  文件路径选择我们要解包的程序 点下面的extract">
+  <meta name="description" content="什么是wasm：WebAssembly 简称Wasm，是一个低级编程语言。WebAssembly是可移植性的[抽象语法树，被设计来提供比JavaScript更快速的编译及执行。WebAssembly将让开发者能运用自己熟悉的编程语言（最初以C&#x2F;C +作为实现目标）编译，再藉虚拟机引擎在浏览器内执行。 其中wasm文件的文件格式：总的来说，wasm文件类型设计两种:.wasm和.wat其中.wasm">
 <meta property="og:type" content="article">
-<meta property="og:title" content="godot引擎逆向">
-<meta property="og:url" content="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/index.html">
+<meta property="og:title" content="wasm逆向基础">
+<meta property="og:url" content="http://example.com/2025/11/20/js%E9%80%86%E5%90%91/wasm/wasm/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="题型识别： ida 打开搜索字符串，看有没有godot字段  ida看段表，如果有.pck段就是godot engine题型    解包：用这个工具：GitHub - GDRETools&#x2F;gdsdecomp: Godot reverse engineering tools 下载后运行文件夹里的exe文件 点击图示recover project  文件路径选择我们要解包的程序 点下面的extract">
+<meta property="og:description" content="什么是wasm：WebAssembly 简称Wasm，是一个低级编程语言。WebAssembly是可移植性的[抽象语法树，被设计来提供比JavaScript更快速的编译及执行。WebAssembly将让开发者能运用自己熟悉的编程语言（最初以C&#x2F;C +作为实现目标）编译，再藉虚拟机引擎在浏览器内执行。 其中wasm文件的文件格式：总的来说，wasm文件类型设计两种:.wasm和.wat其中.wasm">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/pck.png">
-<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/%E8%A7%A3%E5%8C%85%E5%B7%A5%E5%85%B7.png">
-<meta property="og:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/%E9%87%8D%E6%89%93%E5%8C%85exe.png">
-<meta property="article:published_time" content="2025-10-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2025-10-24T12:54:13.748Z">
+<meta property="article:published_time" content="2025-11-19T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-11-21T12:44:28.262Z">
 <meta property="article:author" content="s0m1ng">
-<meta property="article:tag" content="godot engine">
+<meta property="article:tag" content="wasm">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/images/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot/pck.png">
 
-<link rel="canonical" href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
+<link rel="canonical" href="http://example.com/2025/11/20/js%E9%80%86%E5%90%91/wasm/wasm/">
 
 
 <script id="page-configurations">
@@ -52,7 +48,7 @@
   };
 </script>
 
-  <title>godot引擎逆向 | s0m1ng</title>
+  <title>wasm逆向基础 | s0m1ng</title>
   
 
 
@@ -185,7 +181,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/11/20/js%E9%80%86%E5%90%91/wasm/wasm/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -198,7 +194,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          godot引擎逆向
+          wasm逆向基础
         </h1>
 
         <div class="post-meta">
@@ -208,14 +204,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2025-10-06 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-06T00:00:00+08:00">2025-10-06</time>
+              <time title="创建时间：2025-11-20 00:00:00" itemprop="dateCreated datePublished" datetime="2025-11-20T00:00:00+08:00">2025-11-20</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-24 20:54:13" itemprop="dateModified" datetime="2025-10-24T20:54:13+08:00">2025-10-24</time>
+                <time title="修改时间：2025-11-21 20:44:28" itemprop="dateModified" datetime="2025-11-21T20:44:28+08:00">2025-11-21</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -223,7 +219,11 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
+                  <a href="/categories/js%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">js逆向</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/js%E9%80%86%E5%90%91/wasm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">wasm逆向基础</span></a>
                 </span>
             </span>
 
@@ -246,26 +246,40 @@
 
       
   
-  <h1 id="题型识别："><a href="#题型识别：" class="headerlink" title="题型识别："></a>题型识别：</h1><ul>
-<li><p>ida 打开搜索字符串，看有没有godot字段</p>
-</li>
-<li><p>ida看段表，如果有.pck段就是godot engine题型</p>
-</li>
-</ul>
-<p><img data-src="/images/逆向中的misc/godot/pck.png" alt="pck"></p>
-<h1 id="解包："><a href="#解包：" class="headerlink" title="解包："></a>解包：</h1><p>用这个工具：<a target="_blank" rel="noopener" href="https://github.com/GDRETools/gdsdecomp">GitHub - GDRETools/gdsdecomp: Godot reverse engineering tools</a></p>
-<p>下载后运行文件夹里的exe文件</p>
-<p>点击图示recover project</p>
-<p><img data-src="/images/逆向中的misc/godot/解包工具.png" alt="解包工具"></p>
-<p>文件路径选择我们要解包的程序</p>
-<p>点下面的extract就可以看到解包文件夹了</p>
-<h1 id="分析："><a href="#分析：" class="headerlink" title="分析："></a>分析：</h1><p>脚本后缀都是 <code>.gd</code>：</p>
-<p>这是 godot 自己实现的一种脚本语言，叫 <a target="_blank" rel="noopener" href="https://docs.godotengine.org/zh-cn/4.x/tutorials/scripting/gdscript/gdscript_basics.html">GDScript</a></p>
-<p>可以把main.gd扔给chatgpt，然后让他分析就可以了，不用特别掌握语法</p>
-<h1 id="更改代码逻辑后应用"><a href="#更改代码逻辑后应用" class="headerlink" title="更改代码逻辑后应用"></a>更改代码逻辑后应用</h1><p>如果我们更改里边的代码逻辑（比如直接输出flag）怎么实现呢？</p>
-<h2 id="重新打包回-pck文件"><a href="#重新打包回-pck文件" class="headerlink" title="重新打包回.pck文件"></a>重新打包回.pck文件</h2><p><img data-src="/images/逆向中的misc/godot/重打包exe.png" alt="重打包exe"></p>
-<p>点这个之后文件夹路径放我们刚才改完的文件夹，下面的embed pck指要把pck嵌入到exe中替换吗，我们这里选要替换，把exe文件路径填上就可以实现自实现逻辑了</p>
-<h2 id="frida直接hook"><a href="#frida直接hook" class="headerlink" title="frida直接hook"></a>frida直接hook</h2><p>frida是基于动态插桩的hook脚本工具，是用js写的，可以直接让ai帮你写frida脚本，这个东西非常强大，可以hook安卓apk，win中exe等程序，我会放在安卓逆向中讲用法</p>
+  <h1 id="什么是wasm："><a href="#什么是wasm：" class="headerlink" title="什么是wasm："></a>什么是wasm：</h1><p>WebAssembly 简称Wasm，是一个低级编程语言。WebAssembly是可移植性的[抽象语法树，被设计来提供比JavaScript更快速的编译及执行。WebAssembly将让开发者能运用自己熟悉的编程语言（最初以C/C +作为实现目标）编译，再藉虚拟机引擎在浏览器内执行。</p>
+<p>其中wasm文件的文件格式：<br>总的来说，<code>wasm</code>文件类型设计两种:<strong>.wasm和.wat</strong><br>其中<br><strong>.wasm就是可以直接在浏览器上运行的程序（二进制文件），而.wat是人类可读的.wasm代码的转换</strong>（txt形式文件）</p>
+<h1 id="静态分析wasm代码"><a href="#静态分析wasm代码" class="headerlink" title="静态分析wasm代码"></a>静态分析wasm代码</h1><h2 id="wabt："><a href="#wabt：" class="headerlink" title="wabt："></a>wabt：</h2><p><a target="_blank" rel="noopener" href="https://github.com/WebAssembly/wabt">GitHub - WebAssembly/wabt: The WebAssembly Binary Toolkit</a></p>
+<p>全称 <strong>WebAssembly Binary Toolkit</strong>，是一组专门处理 WebAssembly 的命令行工具，</p>
+<p>有了它，你就能得到wasm的类c语言来阅读，或者得到相应的wat格式</p>
+<p>.wasm-&gt;.c</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wasm2c test.wasm -o test.c</span><br></pre></td></tr></table></figure>
+<p>.wasm-&gt;.wat</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wasm2wat test.wasm -o test.wat</span><br></pre></td></tr></table></figure>
+<h2 id="在ida里分析wasm文件："><a href="#在ida里分析wasm文件：" class="headerlink" title="在ida里分析wasm文件："></a>在ida里分析wasm文件：</h2><p>我们上面不是拿到了一个test.c吗，我们可以在本地编译这个文件，就可以得到一个类似exe的东西，我们不能执行它，因为这个.c文件没有main函数，wasm的目的只是导出函数共js代码使用。但可以拖进ida pro分析它的导出表</p>
+<p>我这里用vitual studio 2022里自带的命令行</p>
+<p><code>x64_x86 Cross Tools Command Prompt for VS 2022</code>来编译</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cl /I<span class="string">&quot;D:\ctf\reverse_tools\js逆向\wasm静态分析\wabt-1.0.39\include&quot;</span> test.c /link <span class="string">&quot;D:\ctf\reverse_tools\js逆向\wasm静态分析\wabt-1.0.39\lib\wasm-rt-impl.lib&quot;</span> /out:test.exe</span><br></pre></td></tr></table></figure>
+<p>效果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\Lenovo\OneDrive\Desktop&gt;cl /I<span class="string">&quot;D:\ctf\reverse_tools\js逆向\wasm静态分析\wabt-1.0.39\include&quot;</span> test.c /link <span class="string">&quot;D:\ctf\reverse_tools\js逆向\wasm静态分析\wabt-1.0.39\lib\wasm-rt-impl.lib&quot;</span> /out:test.exe</span><br><span class="line">用于 x86 的 Microsoft (R) C/C++ 优化编译器 19.42.34433 版</span><br><span class="line">版权所有(C) Microsoft Corporation。保留所有权利。</span><br><span class="line"></span><br><span class="line">test.c</span><br><span class="line">Microsoft (R) Incremental Linker Version 14.42.34433.0</span><br><span class="line">Copyright (C) Microsoft Corporation.  All rights reserved.</span><br><span class="line"></span><br><span class="line">/out:test.exe</span><br><span class="line">D:\ctf\reverse_tools\js逆向\wasm静态分析\wabt-1.0.39\lib\wasm-rt-impl.lib</span><br><span class="line">/out:test.exe</span><br><span class="line">test.obj</span><br><span class="line">LINK : fatal error LNK1561: 必须定义入口点</span><br><span class="line"></span><br><span class="line">C:\Users\Lenovo\OneDrive\Desktop&gt;</span><br></pre></td></tr></table></figure>
+<p>然后把生成的.obj文件拖进ida pro看导出表就可以分析了</p>
+<p>i32_load形式的函数为取值函数，第一个参数为取值对象，第二个参数为偏移<br>i32_store形式的函数为操作存储函数，第一个参数为存储对象，第二个参数为存储位置，第三个参数为操作方式</p>
+<h1 id="在js代码定位调用的wasm函数"><a href="#在js代码定位调用的wasm函数" class="headerlink" title="在js代码定位调用的wasm函数"></a>在js代码定位调用的wasm函数</h1><h2 id="利用-WebAssembly-API"><a href="#利用-WebAssembly-API" class="headerlink" title="利用 WebAssembly API"></a>利用 WebAssembly API</h2><p>如果代码里直接出现：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="title class_">WebAssembly</span>.<span class="title function_">instantiate</span>(buffer, imports)</span><br><span class="line"><span class="title class_">WebAssembly</span>.<span class="title function_">instantiateStreaming</span>(<span class="title function_">fetch</span>(<span class="string">&#x27;xxx.wasm&#x27;</span>), imports)</span><br></pre></td></tr></table></figure>
+<p>这是最直接的证据，说明加载了一个 <code>.wasm</code> 文件。返回值通常包含 <code>instance.exports</code>，可以直接访问 WASM 导出函数</p>
+<h2 id="Emscripten-封装"><a href="#Emscripten-封装" class="headerlink" title="Emscripten 封装"></a>Emscripten 封装</h2><p>Emscripten 编译的 WASM 会生成一个 JS “模块对象”，常见特点：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> mod = <span class="title class_">Module</span>(); <span class="comment">// 或者 import * as mod from &#x27;./module.js&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>调用 WASM 导出函数通常通过 <code>mod.cwrap</code> 或 <code>mod.ccall</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fn = mod.<span class="title function_">cwrap</span>(<span class="string">&quot;check&quot;</span>, <span class="string">&quot;number&quot;</span>, [<span class="string">&quot;string&quot;</span>, <span class="string">&quot;number&quot;</span>]);</span><br><span class="line"><span class="title function_">fn</span>(<span class="string">&quot;input&quot;</span>, <span class="number">5</span>);</span><br></pre></td></tr></table></figure>
+<p><code>cwrap</code> / <code>ccall</code> 是 <strong>明显的标志</strong>，说明 JS 调用的是 WASM 函数，而不是普通 JS 函数</p>
+<p>cwrap里第一个是wasm函数名，第二个是返回值类型，第三个是参数列表类型</p>
+<h2 id="WASM-模块实例方法"><a href="#WASM-模块实例方法" class="headerlink" title="WASM 模块实例方法"></a>WASM 模块实例方法</h2><p>有些代码直接引用 <code>instance.exports</code>：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> result = instance.<span class="property">exports</span>.<span class="title function_">check</span>(inputDataPtr, len);</span><br></pre></td></tr></table></figure>
+<p><code>instance.exports</code> 的函数都是 WASM 里导出的函数</p>
+<p>参数通常是数字或指针（内存地址），因为 WASM 内部是线性内存</p>
+<h2 id="内存操作的痕迹"><a href="#内存操作的痕迹" class="headerlink" title="内存操作的痕迹"></a>内存操作的痕迹</h2><p>WASM 使用线性内存，JS 里可能会看到：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mod.<span class="property">HEAP8</span>[index] = value;</span><br><span class="line">mod.<span class="property">HEAPU32</span>[offset] = someInt;</span><br></pre></td></tr></table></figure>
+<p>对 <code>HEAP8</code>、<code>HEAP16</code>、<code>HEAP32</code>、<code>HEAPU8</code> 等数组的读写，通常是给 WASM 内存传值</p>
+<p>如果没有这些操作，仍然可以调用 WASM，但这种操作是典型特征</p>
 
 
 
@@ -296,7 +310,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/" title="godot引擎逆向">http://example.com/2025/10/06/ctf逆向中的misc/godot引擎逆向/</a>
+    <a href="http://example.com/2025/11/20/js%E9%80%86%E5%90%91/wasm/wasm/" title="wasm逆向基础">http://example.com/2025/11/20/js逆向/wasm/wasm/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -327,7 +341,7 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/godot-engine/" rel="tag"><i class="fa fa-tag"></i> godot engine</a>
+              <a href="/tags/wasm/" rel="tag"><i class="fa fa-tag"></i> wasm</a>
           </div>
 
         
@@ -336,13 +350,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" rel="prev" title="vm逆向基础及做题套路">
-      <i class="fa fa-chevron-left"></i> vm逆向基础及做题套路
+    <a href="/2025/11/13/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/des/" rel="prev" title="逆向中的DES">
+      <i class="fa fa-chevron-left"></i> 逆向中的DES
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/10/07/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/" rel="next" title="[GWCTF 2019] babyvm">
-      [GWCTF 2019] babyvm <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -401,7 +412,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E5%9E%8B%E8%AF%86%E5%88%AB%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">题型识别：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E5%8C%85%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">解包：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E6%9E%90%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">分析：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9B%B4%E6%94%B9%E4%BB%A3%E7%A0%81%E9%80%BB%E8%BE%91%E5%90%8E%E5%BA%94%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">更改代码逻辑后应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E6%96%B0%E6%89%93%E5%8C%85%E5%9B%9E-pck%E6%96%87%E4%BB%B6"><span class="nav-number">4.1.</span> <span class="nav-text">重新打包回.pck文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#frida%E7%9B%B4%E6%8E%A5hook"><span class="nav-number">4.2.</span> <span class="nav-text">frida直接hook</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFwasm%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">什么是wasm：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90wasm%E4%BB%A3%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">静态分析wasm代码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#wabt%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">wabt：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8ida%E9%87%8C%E5%88%86%E6%9E%90wasm%E6%96%87%E4%BB%B6%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">在ida里分析wasm文件：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9C%A8js%E4%BB%A3%E7%A0%81%E5%AE%9A%E4%BD%8D%E8%B0%83%E7%94%A8%E7%9A%84wasm%E5%87%BD%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">在js代码定位调用的wasm函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8-WebAssembly-API"><span class="nav-number">3.1.</span> <span class="nav-text">利用 WebAssembly API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Emscripten-%E5%B0%81%E8%A3%85"><span class="nav-number">3.2.</span> <span class="nav-text">Emscripten 封装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WASM-%E6%A8%A1%E5%9D%97%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95"><span class="nav-number">3.3.</span> <span class="nav-text">WASM 模块实例方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%93%8D%E4%BD%9C%E7%9A%84%E7%97%95%E8%BF%B9"><span class="nav-number">3.4.</span> <span class="nav-text">内存操作的痕迹</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
