@@ -181,7 +181,8 @@
   <div class="post-block">
     <div class="posts-collapse">
       <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 24 篇日志。 继续努力。</span>
+        
+        <span class="collection-header">还行! 目前共计 33 篇日志。 继续努力。</span>
       </div>
 
       
@@ -201,7 +202,7 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" itemprop="url">
+          <a class="post-title-link" href="/2025/10/06/REVERSE/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" itemprop="url">
             <span itemprop="name">vm逆向基础及做题套路</span>
           </a>
       </div>
@@ -221,8 +222,88 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url">
+          <a class="post-title-link" href="/2025/10/01/REVERSE/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url">
             <span itemprop="name">rust逆向基础-rust基础语法</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2025-09-05T00:16:22+08:00"
+              content="2025-09-05">
+          09-05
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/" itemprop="url">
+            <span itemprop="name">未命名</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2025-09-03T18:48:46+08:00"
+              content="2025-09-03">
+          09-03
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2025/09/03/PWN/pwn_attack/format_string/w_every_addr/" itemprop="url">
+            <span itemprop="name">未命名</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2025-09-03T18:23:14+08:00"
+              content="2025-09-03">
+          09-03
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/" itemprop="url">
+            <span itemprop="name">未命名</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2025-05-14T23:06:39+08:00"
+              content="2025-05-14">
+          05-14
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2025/05/14/PWN/pwn_defense/awd/awd/" itemprop="url">
+            <span itemprop="name">AWD summary for pwn players</span>
           </a>
       </div>
 
@@ -306,17 +387,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -441,6 +522,48 @@
   
 
   
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
 
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
 </body>
 </html>

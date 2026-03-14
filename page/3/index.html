@@ -77,7 +77,119 @@
   </style>
 </noscript>
 
-<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
@@ -178,7 +290,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/07/vm%E9%80%86%E5%90%91/[GWCTF%202019]babyvm/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/REVERSE/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -192,7 +304,472 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2025/10/07/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/" class="post-title-link" itemprop="url">[GWCTF 2019] babyvm</a>
+            <a href="/2025/10/09/REVERSE/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/" class="post-title-link" itemprop="url">异常处理机制-VEH</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/pe%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">pe逆向</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/pe%E9%80%86%E5%90%91/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">反调试技术</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="VEH"><a href="#VEH" class="headerlink" title="VEH"></a>VEH</h1><p>这是 SEH 的一个增强扩展，通过 <code>AddVectoredExceptionHandler</code> 添加。VEH 处理器会在调试器和所有 SEH 处理器<strong>之前</strong>被调用。它们更像是一种“通知”机制，可以观察......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2025/10/09/REVERSE/pe%E9%80%86%E5%90%91/%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%E4%B8%8B-VEH/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/" class="post-title-link" itemprop="url">逆向中的AES(一)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">对称加密基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>aes在逆向有很多应用，尤其是现在越来越多软件加密逻辑都选择aes，所以总结一下aes的算法和在ctf逆向中的考点</p><br><h1 id="aes算法基础"><a href="#aes算法基础" class="headerlink" title="ae......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes2/" class="post-title-link" itemprop="url">逆向中的AES(二)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">对称加密基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>逆向工程中往往使用aes加密的程序不是用的查表法aes，就是用的白盒aes，让你难以分析，傻乎乎的使用aes基础算法很容易被破解</p><br><h1 id="查表法实现的aes："><a href="#查表法实现的aes：" class="headerli......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes2/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">分组密码的加密模式及攻击</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-09 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-09T00:00:00+08:00">2025-10-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">逆向中的密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">对称加密基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="分组密码工作模式"><a href="#分组密码工作模式" class="headerlink" title="分组密码工作模式"></a>分组密码工作模式</h1><p>工作模式对算法本身结构没有影响，影响的是明文密文</p><br><h2 id="ECB：电子密码本模式-electronic-codebook-mode"><a href="#ECB：电子密码本模式-electroni......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/08/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/08/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" class="post-title-link" itemprop="url">安卓逆向环境配置</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-10-08 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-08T00:00:00+08:00">2025-10-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">安卓逆向</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">安卓逆向基础</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>某些安卓题强制要求arm环境才能跑，模拟器不管是脱壳还是动调都有很多问题，最近搞了个真机重新配一遍安卓逆向环境</p><br><h1 id="root手机"><a href="#root手机" class="headerlink" title="root手机......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2025/10/08/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/07/REVERSE/vm%E9%80%86%E5%90%91/[GWCTF%202019]babyvm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/10/07/REVERSE/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/" class="post-title-link" itemprop="url">[GWCTF 2019] babyvm</a>
         </h2>
 
         <div class="post-meta">
@@ -209,7 +786,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-08 15:10:47" itemprop="dateModified" datetime="2025-10-08T15:10:47+08:00">2025-10-08</time>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -217,7 +794,11 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/vm%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">vm逆向题单</span></a>
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/vm%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">vm逆向题单</span></a>
                 </span>
             </span>
 
@@ -240,7 +821,7 @@
     <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>这道题算非常经典的vm题了，用这道题来熟悉一下vm题基本流程</p><br><h1 id="正文："><a href="#正文：" class="headerlink" title="正文："></a>正文：</h1><h2 id="创建结构体："><a h......
   </div>
     <div class="post-button">
-      <a class="btn" href="/2025/10/07/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/">
+      <a class="btn" href="/2025/10/07/REVERSE/vm%E9%80%86%E5%90%91/%5BGWCTF%202019%5Dbabyvm/">
         阅读全文 &raquo;
       </a>
     </div>
@@ -263,7 +844,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/06/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -277,7 +858,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/" class="post-title-link" itemprop="url">godot引擎逆向</a>
+            <a href="/2025/10/06/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/" class="post-title-link" itemprop="url">godot引擎逆向</a>
         </h2>
 
         <div class="post-meta">
@@ -294,7 +875,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-24 20:54:13" itemprop="dateModified" datetime="2025-10-24T20:54:13+08:00">2025-10-24</time>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -302,7 +883,11 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
                 </span>
             </span>
 
@@ -325,7 +910,7 @@
     <h1 id="题型识别："><a href="#题型识别：" class="headerlink" title="题型识别："></a>题型识别：</h1><ul><br><li><p>ida 打开搜索字符串，看有没有godot字段</p><br></li><br><li><p>ida看段表，如果有.pck段就是godot engine题型</p><br></li><br></ul><br><p><img data-src="/i......
   </div>
     <div class="post-button">
-      <a class="btn" href="/2025/10/06/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
+      <a class="btn" href="/2025/10/06/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/godot%E5%BC%95%E6%93%8E%E9%80%86%E5%90%91/">
         阅读全文 &raquo;
       </a>
     </div>
@@ -348,7 +933,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/06/REVERSE/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -362,7 +947,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">vm逆向基础及做题套路</a>
+            <a href="/2025/10/06/REVERSE/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">vm逆向基础及做题套路</a>
         </h2>
 
         <div class="post-meta">
@@ -379,7 +964,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2025-10-20 15:37:03" itemprop="dateModified" datetime="2025-10-20T15:37:03+08:00">2025-10-20</time>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -387,7 +972,11 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/vm%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">vm逆向题单</span></a>
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/vm%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" itemprop="url" rel="index"><span itemprop="name">vm逆向题单</span></a>
                 </span>
             </span>
 
@@ -410,7 +999,7 @@
     <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>学过计算机组成原理的应该都知道，程序的运行是靠cpu解释可执行文件中操作码来实现的功能，vm逆向顾名思义就是自己定义了小型cpu并定义了指令集，将程序的代码转换自定义的操作码(opcode)，然后在程序执行时再通过解释这些操作码，选择对应的函数执行，从......
   </div>
     <div class="post-button">
-      <a class="btn" href="/2025/10/06/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/">
+      <a class="btn" href="/2025/10/06/REVERSE/vm%E9%80%86%E5%90%91/vm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80%E5%92%8C%E5%9F%BA%E6%9C%AC%E5%A5%97%E8%B7%AF%E6%80%BB%E7%BB%93/">
         阅读全文 &raquo;
       </a>
     </div>
@@ -433,7 +1022,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/01/REVERSE/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -447,7 +1036,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">rust逆向基础-rust基础语法</a>
+            <a href="/2025/10/01/REVERSE/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">rust逆向基础-rust基础语法</a>
         </h2>
 
         <div class="post-meta">
@@ -456,17 +1045,27 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2025-10-01 00:00:00 / 修改时间：23:24:00" itemprop="dateCreated datePublished" datetime="2025-10-01T00:00:00+08:00">2025-10-01</time>
+              <time title="创建时间：2025-10-01 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-01T00:00:00+08:00">2025-10-01</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">rust逆向基础</span></a>
+                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/REVERSE/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">rust逆向基础</span></a>
                 </span>
             </span>
 
@@ -489,7 +1088,83 @@
     <h1 id="前言"><a href="#前言" class="headerlink" title="前言:"></a>前言:</h1><p>拖了很久的rust逆向都一直没学,正好编译原理要做rust语法分析器,顺便把rust语言学一下</p><br><h2 id="rust相比其他编程语言的优势"><a href="#rust相比其他编程语言的优势" class="headerlink" title......
   </div>
     <div class="post-button">
-      <a class="btn" href="/2025/10/01/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
+      <a class="btn" href="/2025/10/01/REVERSE/rust%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/" class="post-title-link" itemprop="url">未命名</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-09-05 00:16:22" itemprop="dateCreated datePublished" datetime="2025-09-05T00:16:22+08:00">2025-09-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-09-06 22:30:37" itemprop="dateModified" datetime="2025-09-06T22:30:37+08:00">2025-09-06</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h1><p>一般格式化字符串没办法获取shell，但是可以借助got表来改写printf为system，再输入/bin/sh即可获取shell</p><br><h2 id="情况一，劫持got表，把print的got表改为system"><a href="#情况......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2025/09/05/PWN/pwn_attack/format_string/fmt_getshell/">
         阅读全文 &raquo;
       </a>
     </div>
@@ -511,7 +1186,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -579,17 +1254,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -712,8 +1387,105 @@
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+          load: ['[tex]/mhchem'],
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+          packages: {'[+]': ['mhchem']},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
 
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
 </body>
 </html>

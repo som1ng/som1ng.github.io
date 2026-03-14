@@ -203,7 +203,7 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/10/12/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%BC%BA%E7%BD%91%E6%9D%AF2023-dotdot%E5%A4%8D%E7%8E%B0/" itemprop="url">
+          <a class="post-title-link" href="/2025/10/12/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%BC%BA%E7%BD%91%E6%9D%AF2023-dotdot%E5%A4%8D%E7%8E%B0/" itemprop="url">
             <span itemprop="name">强网杯2023-dotdot复现</span>
           </a>
       </div>
@@ -223,27 +223,7 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes2/" itemprop="url">
-            <span itemprop="name">逆向中的AES(二)</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2025-10-09T00:00:00+08:00"
-              content="2025-10-09">
-          10-09
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/" itemprop="url">
+          <a class="post-title-link" href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes1/" itemprop="url">
             <span itemprop="name">逆向中的AES(一)</span>
           </a>
       </div>
@@ -263,7 +243,27 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/10/09/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/" itemprop="url">
+          <a class="post-title-link" href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/aes2/" itemprop="url">
+            <span itemprop="name">逆向中的AES(二)</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2025-10-09T00:00:00+08:00"
+              content="2025-10-09">
+          10-09
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/2025/10/09/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E7%9A%84%E5%8A%A0%E5%AF%86%E6%A8%A1%E5%BC%8F/" itemprop="url">
             <span itemprop="name">分组密码的加密模式及攻击</span>
           </a>
       </div>
@@ -344,17 +344,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -479,6 +479,48 @@
   
 
   
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
 
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
 </body>
 </html>

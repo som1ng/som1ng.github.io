@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="圈神的笔记，不改了直接搁这吧 漏洞修复基础知识当比赛没有提供源代码时，我们只能在原有的 elf 上面对漏洞进行修复，这里用到的 ida 插件为 keypatch，项目地址为：https:&#x2F;&#x2F;github.com&#x2F;keystone-engine&#x2F;keypatch   这里简单介绍一下该插件的用法。看下面这一段汇编代码：   123456.text:00000000004012C1 48 8D 45">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWD summary for pwn players">
+<meta property="og:url" content="http://example.com/2025/05/14/PWN/pwn_defense/awd/awd/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="圈神的笔记，不改了直接搁这吧 漏洞修复基础知识当比赛没有提供源代码时，我们只能在原有的 elf 上面对漏洞进行修复，这里用到的 ida 插件为 keypatch，项目地址为：https:&#x2F;&#x2F;github.com&#x2F;keystone-engine&#x2F;keypatch   这里简单介绍一下该插件的用法。看下面这一段汇编代码：   123456.text:00000000004012C1 48 8D 45">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/PWN/defense/awd%E5%9F%BA%E7%A1%80/1.png">
+<meta property="og:image" content="http://example.com/images/PWN/defense/awd%E5%9F%BA%E7%A1%80/2.png">
+<meta property="og:image" content="http://example.com/images/PWN/defense/awd%E5%9F%BA%E7%A1%80/3.png">
+<meta property="og:image" content="http://example.com/images/PWN/defense/awd%E5%9F%BA%E7%A1%80/4.png">
+<meta property="article:published_time" content="2025-05-14T15:06:39.748Z">
+<meta property="article:modified_time" content="2026-03-13T11:24:16.149Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="逆向，实战，外挂">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/PWN/defense/awd%E5%9F%BA%E7%A1%80/1.png">
+
+<link rel="canonical" href="http://example.com/2025/05/14/PWN/pwn_defense/awd/awd/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>AWD summary for pwn players | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/14/PWN/pwn_defense/awd/awd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWD summary for pwn players
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-05-14 23:06:39" itemprop="dateCreated datePublished" datetime="2025-05-14T23:06:39+08:00">2025-05-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-13 19:24:16" itemprop="dateModified" datetime="2026-03-13T19:24:16+08:00">2026-03-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/PWN-DEFENSE/" itemprop="url" rel="index"><span itemprop="name">PWN_DEFENSE</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/PWN-DEFENSE/AWD/" itemprop="url" rel="index"><span itemprop="name">AWD</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <p>圈神的笔记，不改了直接搁这吧</p>
+<h1 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h1><h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><p>当比赛没有提供源代码时，我们只能在原有的 <code>elf</code> 上面对漏洞进行修复，这里用到的 <code>ida</code> 插件为 <code>keypatch</code>，项目地址为：<a target="_blank" rel="noopener" href="https://github.com/keystone-engine/keypatch">https://github.com/keystone-engine/keypatch</a>  </p>
+<p>这里简单介绍一下该插件的用法。看下面这一段汇编代码：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.text:00000000004012C1 48 8D 45 FC                   lea     rax, [rbp-4]</span><br><span class="line">.text:00000000004012C5 48 89 C6                      mov     rsi, rax</span><br><span class="line">.text:00000000004012C8 48 8D 05 A7 0D 00 00          lea     rax, aD                         ; &quot;%d&quot;</span><br><span class="line">.text:00000000004012CF 48 89 C7                      mov     rdi, rax</span><br><span class="line">.text:00000000004012D2 B8 00 00 00 00                mov     eax, 0</span><br><span class="line">.text:00000000004012D7 E8 34 FE FF FF                call    ___isoc99_scanf</span><br></pre></td></tr></table></figure>
+<p>我们能够通过下面这些步骤对 <code>mov  eax, 0</code> 这段汇编进行修改<br>单击要修改的汇编代码右键选择 <code>Keypatch-&gt;Patcher</code><br><img data-src="/images/PWN/defense/awd基础/1.png" alt=" "><br>然后就行修改<br><img data-src="/images/PWN/defense/awd基础/2.png" alt="  "></p>
+<p>修改结果如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:00000000004012C1 48 8D 45 FC                   lea     rax, [rbp-4]</span><br><span class="line">.text:00000000004012C5 48 89 C6                      mov     rsi, rax</span><br><span class="line">.text:00000000004012C8 48 8D 05 A7 0D 00 00          lea     rax, aD                         ; &quot;%d&quot;</span><br><span class="line">.text:00000000004012CF 48 89 C7                      mov     rdi, rax</span><br><span class="line">.text:00000000004012D2 B8 10 00 00 00                mov     eax, 10h                        ; Keypatch modified this from:</span><br><span class="line">.text:00000000004012D2                                                                       ;   mov eax, 0</span><br><span class="line">.text:00000000004012D7 E8 34 FE FF FF                call    ___isoc99_scanf</span><br></pre></td></tr></table></figure>
+<p>可以看见 <code>eax, 0</code> 成功修改为 <code>eax, 10h</code><br>可以使用 <code>Ctrl + z</code> 撤回 <code>patch</code> 操作，如果要将结果保存回 <code>elf</code> 可以点击 <code>Edit-&gt;Patch program-&gt;Apply patches......</code>  </p>
+<h2 id="常见漏洞修复"><a href="#常见漏洞修复" class="headerlink" title="常见漏洞修复"></a>常见漏洞修复</h2><h3 id="整数溢出漏洞"><a href="#整数溢出漏洞" class="headerlink" title="整数溢出漏洞"></a>整数溢出漏洞</h3><p>在进行修复前要先了解一下各种跳转指令：<br>无符号跳转：<br>| 汇编指令 | 描述 |<br>| —- | —- |<br>| JA | 无符号大于则跳转 |<br>| JNA | 无符号不大于则跳转 |<br>| JAE | 无符号大于等于则跳转（同JNB） |<br>| JNAE | 无符号不大于等于则跳转（同JB） |<br>| JB | 无符号小于则跳转 |<br>| JNB | 无符号不小于则跳转 |<br>| JBE | 无符号小于等于则跳转（同JNA） |<br>| JBNE | 无符号不小于等于则跳转（同JA） |  </p>
+<p>有符号跳转：<br>| 汇编指令 | 描述 |<br>| —- | —- |<br>| JG   | 有符号大于则跳转 |<br>| JNG  | 有符号不大于则跳转 |<br>| JGE  | 有符号大于等于则跳转（同JNL） |<br>| JNGE | 有符号不大于等于则跳转（同JL） |<br>| JL   | 有符号小于则跳转 |<br>| JNL  | 有符号不小于则跳转 |<br>| JLE  | 有符号小于等于则跳转（同JNG） |<br>| JNLE | 有符号不小于等于则跳转（同JG） |  </p>
+<p>首先看看这段有整数溢出的代码：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> buf[<span class="number">0x10</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">vuln</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> num;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%u&quot;</span>, &amp;num);</span><br><span class="line">    <span class="keyword">if</span>((<span class="type">int</span>)num &lt; <span class="number">0x10</span>)&#123;</span><br><span class="line">        read(<span class="number">0</span>, buf, num);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    vuln();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其漏洞出的汇编如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.text:00000000000011BF 8B 45 F4                      mov     eax, dword ptr [rbp+nbytes]</span><br><span class="line">.text:00000000000011C2 83 F8 0F                      cmp     eax, 0Fh</span><br><span class="line">.text:00000000000011C5 7F 1E                         jg      short loc_11E5</span><br></pre></td></tr></table></figure>
+<p>可以看到这里的比较用的是 <code>jg</code>，即有符号大于则跳转，我们可以将其 <code>patch</code> 为 <code>JA</code>（无符号大于则跳转） ，如下： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">.text:00000000000011BF 8B 45 F4                      mov     eax, dword ptr [rbp+nbytes]</span><br><span class="line">.text:00000000000011C2 83 F8 0F                      cmp     eax, 0Fh</span><br><span class="line">.text:00000000000011C5 77 1E                         ja      short loc_11E5                  ; Keypatch modified this from:</span><br><span class="line">.text:00000000000011C5                                                                       ;   jg short loc_11E5</span><br></pre></td></tr></table></figure>
+<p>此时伪代码变成：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">unsigned</span> __int64 <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  _DWORD nbytes[<span class="number">3</span>]; <span class="comment">// [rsp+4h] [rbp-Ch] BYREF</span></span><br><span class="line"></span><br><span class="line">  *(_QWORD *)&amp;nbytes[<span class="number">1</span>] = __readfsqword(<span class="number">0x28u</span>);</span><br><span class="line">  __isoc99_scanf(&amp;unk_2004, nbytes);</span><br><span class="line">  <span class="keyword">if</span> ( nbytes[<span class="number">0</span>] &lt;= <span class="number">0xFu</span> )</span><br><span class="line">    read(<span class="number">0</span>, &amp;buf, nbytes[<span class="number">0</span>]);</span><br><span class="line">  <span class="keyword">return</span> *(_QWORD *)&amp;nbytes[<span class="number">1</span>] - __readfsqword(<span class="number">0x28u</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见漏洞已经成功修复  </p>
+<h3 id="栈溢出漏洞"><a href="#栈溢出漏洞" class="headerlink" title="栈溢出漏洞"></a>栈溢出漏洞</h3><p>栈溢出的修复相对来说比较简单，漏洞代码如下：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> buf[<span class="number">0x10</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">vuln</span><span class="params">()</span>&#123;</span><br><span class="line">    read(<span class="number">0</span>, buf, <span class="number">0x100</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    vuln();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看 <code>vuln</code> 函数汇编代码：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001149                               ; ssize_t vuln()</span><br><span class="line">.text:0000000000001149                               public vuln</span><br><span class="line">.text:0000000000001149                               vuln proc near                          ; CODE XREF: main+D↓p</span><br><span class="line">.text:0000000000001149                               ; __unwind &#123;</span><br><span class="line">.text:0000000000001149 F3 0F 1E FA                   endbr64</span><br><span class="line">.text:000000000000114D 55                            push    rbp</span><br><span class="line">.text:000000000000114E 48 89 E5                      mov     rbp, rsp</span><br><span class="line">.text:0000000000001151 BA 00 01 00 00                mov     edx, 100h                       ; nbytes</span><br><span class="line">.text:0000000000001156 48 8D 05 C3 2E 00 00          lea     rax, buf</span><br><span class="line">.text:000000000000115D 48 89 C6                      mov     rsi, rax                        ; buf</span><br><span class="line">.text:0000000000001160 BF 00 00 00 00                mov     edi, 0                          ; fd</span><br><span class="line">.text:0000000000001165 B8 00 00 00 00                mov     eax, 0</span><br><span class="line">.text:000000000000116A E8 E1 FE FF FF                call    _read</span><br><span class="line">.text:000000000000116A</span><br><span class="line">.text:000000000000116F 90                            nop</span><br><span class="line">.text:0000000000001170 5D                            pop     rbp</span><br><span class="line">.text:0000000000001171 C3                            retn</span><br></pre></td></tr></table></figure>
+<p>可见 <code>read</code> 函数的第三个参数是由 <code>mov edx,100h</code>，这一句汇编决定的，我们可以将 <code>100h</code> 修改为 <code>10h</code>，如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001149 F3 0F 1E FA                   endbr64</span><br><span class="line">.text:000000000000114D 55                            push    rbp</span><br><span class="line">.text:000000000000114E 48 89 E5                      mov     rbp, rsp</span><br><span class="line">.text:0000000000001151 BA 10 00 00 00                mov     edx, 10h                        ; nbytes</span><br><span class="line">.text:0000000000001151                                                                       ; Keypatch modified this from:</span><br><span class="line">.text:0000000000001151                                                                       ;   mov edx, 100h</span><br><span class="line">.text:0000000000001156 48 8D 05 C3 2E 00 00          lea     rax, buf</span><br><span class="line">.text:000000000000115D 48 89 C6                      mov     rsi, rax                        ; buf</span><br><span class="line">.text:0000000000001160 BF 00 00 00 00                mov     edi, 0                          ; fd</span><br><span class="line">.text:0000000000001165 B8 00 00 00 00                mov     eax, 0</span><br><span class="line">.text:000000000000116A E8 E1 FE FF FF                call    _read</span><br><span class="line">.text:000000000000116A</span><br><span class="line">.text:000000000000116F 90                            nop</span><br><span class="line">.text:0000000000001170 5D                            pop     rbp</span><br><span class="line">.text:0000000000001171 C3                            retn</span><br></pre></td></tr></table></figure>
+<p>此时的伪代码为：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> read(<span class="number">0</span>, &amp;buf, <span class="number">0x10u</span>LL);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h3><p>相对来说格式化字符串漏洞比较难修，漏洞代码如下：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> buf[<span class="number">0x10</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">vuln</span><span class="params">()</span>&#123;</span><br><span class="line">    read(<span class="number">0</span>, buf, <span class="number">0x10</span>);</span><br><span class="line">    <span class="built_in">printf</span>(buf);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    vuln();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看漏洞出的汇编代码：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001169 F3 0F 1E FA                   endbr64</span><br><span class="line">.text:000000000000116D 55                            push    rbp</span><br><span class="line">.text:000000000000116E 48 89 E5                      mov     rbp, rsp</span><br><span class="line">.text:0000000000001171 BA 10 00 00 00                mov     edx, 10h                        ; nbytes</span><br><span class="line">.text:0000000000001176 48 8D 05 A3 2E 00 00          lea     rax, buf</span><br><span class="line">.text:000000000000117D 48 89 C6                      mov     rsi, rax                        ; buf</span><br><span class="line">.text:0000000000001180 BF 00 00 00 00                mov     edi, 0                          ; fd</span><br><span class="line">.text:0000000000001185 B8 00 00 00 00                mov     eax, 0</span><br><span class="line">.text:000000000000118A E8 E1 FE FF FF                call    _read</span><br><span class="line">.text:000000000000118A</span><br><span class="line">.text:000000000000118F 48 8D 05 8A 2E 00 00          lea     rax, buf</span><br><span class="line">.text:0000000000001196 48 89 C7                      mov     rdi, rax                        ; format</span><br><span class="line">.text:0000000000001199 B8 00 00 00 00                mov     eax, 0</span><br><span class="line">.text:000000000000119E E8 BD FE FF FF                call    _printf</span><br><span class="line">.text:000000000000119E</span><br><span class="line">.text:00000000000011A3 90                            nop</span><br><span class="line">.text:00000000000011A4 5D                            pop     rbp</span><br><span class="line">.text:00000000000011A5 C3                            retn</span><br></pre></td></tr></table></figure>
+<p>这里最简单的方法就是将 <code>call _read</code> 修改为 <code>call _puts</code>，但这种修改方法有很多局限性。<code>puts</code> 函数在输出时会自动换行，这有可能无法通过比赛方的检测，而且在这一个 <code>demo</code> 中并不存在 <code>_puts</code>。另外一种方法则是将 <code>printf(fmt)</code> 修改为 <code>printf(&quot;%s&quot;, fmt)</code>。由于在这个 <code>demo</code> 中不存在 <code>%s</code> 这一个字符串，所以我直接在 <code>.eh_frame</code> 段上写入 <code>%s</code>，效果如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.eh_frame_hdr:000000000000200B 00                            db    0</span><br><span class="line">.eh_frame_hdr:000000000000200C 06                            db    6</span><br><span class="line">.eh_frame_hdr:000000000000200D 25                            db  25h ; %</span><br><span class="line">.eh_frame_hdr:000000000000200E 73                            db  73h ; s</span><br><span class="line">.eh_frame_hdr:000000000000200F 00                            db    0</span><br></pre></td></tr></table></figure>
+<p>这里有一个小坑，不能直接用 <code>Keypatch</code> 来进行修改，可以使用 <code>patching</code> 插件来进行修改，通常绿色版本的 <code>ida pro</code> 破解版已经自带了这个插件，选中 <code>Edit-&gt;Patch program-&gt;Change bytes...</code><br><img data-src="/images/PWN/defense/awd基础/3.png" alt="  "><br>接下来就要修改 <code>printf</code> 前面的传参指令，效果如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001169 F3 0F 1E FA                   endbr64</span><br><span class="line">.text:000000000000116D 55                            push    rbp</span><br><span class="line">.text:000000000000116E 48 89 E5                      mov     rbp, rsp</span><br><span class="line">.text:0000000000001171 BA 10 00 00 00                mov     edx, 10h                        ; nbytes</span><br><span class="line">.text:0000000000001176 48 8D 05 A3 2E 00 00          lea     rax, buf</span><br><span class="line">.text:000000000000117D 48 89 C6                      mov     rsi, rax                        ; buf</span><br><span class="line">.text:0000000000001180 BF 00 00 00 00                mov     edi, 0                          ; format</span><br><span class="line">.text:0000000000001185 B8 00 00 00 00                mov     eax, 0</span><br><span class="line">.text:000000000000118A E8 E1 FE FF FF                call    _read</span><br><span class="line">.text:000000000000118A</span><br><span class="line">.text:000000000000118F 48 C7 C6 20 40 00 00          mov     rsi, offset buf                 ; Keypatch modified this from:</span><br><span class="line">.text:000000000000118F                                                                       ;   lea rax, buf</span><br><span class="line">.text:0000000000001196 48 C7 C7 0D 20 00 00          mov     rdi, offset format              ; format</span><br><span class="line">.text:0000000000001196                                                                       ; Keypatch modified this from:</span><br><span class="line">.text:0000000000001196                                                                       ;   mov rdi, rax</span><br><span class="line">.text:0000000000001196                                                                       ; Keypatch modified this from:</span><br><span class="line">.text:0000000000001196                                                                       ;   mov rsi, rax</span><br><span class="line">.text:0000000000001196                                                                       ;   mov eax, 0</span><br><span class="line">.text:0000000000001196                                                                       ; Keypatch padded NOP to next boundary: 1 bytes</span><br><span class="line">.text:000000000000119D 90                            nop</span><br><span class="line">.text:000000000000119E E8 BD FE FF FF                call    _printf</span><br><span class="line">.text:000000000000119E</span><br><span class="line">.text:00000000000011A3 90                            nop</span><br><span class="line">.text:00000000000011A4 5D                            pop     rbp</span><br><span class="line">.text:00000000000011A5 C3                            retn</span><br></pre></td></tr></table></figure>
+<p>此时伪代码为：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  read(<span class="number">0</span>, buf, <span class="number">0x10u</span>LL);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>, buf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="UAF漏洞"><a href="#UAF漏洞" class="headerlink" title="UAF漏洞"></a>UAF漏洞</h3><p>个人认为这种漏洞最难修，漏洞 <code>demo</code> 代码如下：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># <span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *ptr;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">vuln</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="built_in">free</span>(ptr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    ptr = (<span class="type">char</span> *)<span class="built_in">malloc</span>(<span class="number">0x20</span>);</span><br><span class="line">    vuln();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>漏洞汇编代码为：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001169 F3 0F 1E FA                   endbr64</span><br><span class="line">.text:000000000000116D 55                            push    rbp</span><br><span class="line">.text:000000000000116E 48 89 E5                      mov     rbp, rsp</span><br><span class="line">.text:0000000000001171 48 8B 05 A0 2E 00 00          mov     rax, cs:ptr</span><br><span class="line">.text:0000000000001178 48 89 C7                      mov     rdi, rax                        ; ptr</span><br><span class="line">.text:000000000000117B E8 E0 FE FF FF                call    _free</span><br><span class="line">.text:000000000000117B</span><br><span class="line">.text:0000000000001180 90                            nop</span><br><span class="line">.text:0000000000001181 5D                            pop     rbp</span><br><span class="line">.text:0000000000001182 C3                            retn</span><br></pre></td></tr></table></figure>
+<p>我问过很多师傅，几乎所有人都和我说直接将 <code>free</code> 给 <code>nop</code> 就行了，因为这个不好检测，可是我总是感觉这样做不太好，因为在某种层面上来说这个操作已经损坏了程序原有的功能，而且对于一些比较大型的比赛这种做法可能会过不了 <code>check</code>，所以我去学习了一下正常的做法。<br>由于空间有限，直接在原有的汇编代码上通过加几句汇编来实现令 <code>ptr</code> 为零不太现实，所以这里我是在 <code>.eh_frame</code> 段上写上令 <code>ptr</code> 为零的汇编代码，然后在 <code>0x117B</code> 地址处用 <code>jmp</code> 指令将 <code>rip</code> 跳转至我写入的汇编代码然后执行，最后再次利用 <code>jmp</code> 指令将 <code>rip</code> 跳转至 <code>0x1178</code> 地址处继续执行从而实现漏洞的修复，其修复后的汇编代码如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001169 F3 0F 1E FA                   endbr64</span><br><span class="line">.text:000000000000116D 55                            push    rbp</span><br><span class="line">.text:000000000000116E 48 89 E5                      mov     rbp, rsp</span><br><span class="line">.text:0000000000001171 48 8B 05 A0 2E 00 00          mov     rax, cs:ptr</span><br><span class="line">.text:0000000000001178 E9 C3 0E 00 00                jmp     sub_2040</span><br><span class="line">.text:0000000000001178</span><br><span class="line">.text:0000000000001178                               vuln endp</span><br><span class="line">.text:0000000000001178</span><br><span class="line">.text:0000000000001178                               ; ---------------------------------------------------------------------------</span><br><span class="line">.text:000000000000117D 90 90 90 90                   db 4 dup(90h)</span><br><span class="line">.text:0000000000001181                               ; ---------------------------------------------------------------------------</span><br><span class="line">.text:0000000000001181                               ; START OF FUNCTION CHUNK FOR sub_2040</span><br><span class="line">.text:0000000000001181</span><br><span class="line">.text:0000000000001181                               loc_1181:                               ; CODE XREF: sub_2040+13↓j</span><br><span class="line">.text:0000000000001181 5D                            pop     rbp</span><br><span class="line">.text:0000000000001182 C3                            retn</span><br><span class="line"></span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">.eh_frame:0000000000002040                               sub_2040 proc near                      ; CODE XREF: vuln+F↑j</span><br><span class="line">.eh_frame:0000000000002040</span><br><span class="line">.eh_frame:0000000000002040                               ; FUNCTION CHUNK AT .text:0000000000001181 SIZE 00000002 BYTES</span><br><span class="line">.eh_frame:0000000000002040</span><br><span class="line">.eh_frame:0000000000002040 48 89 C7                      mov     rdi, rax                        ; ptr</span><br><span class="line">.eh_frame:0000000000002043 E8 18 F0 FF FF                call    _free</span><br><span class="line">.eh_frame:0000000000002043</span><br><span class="line">.eh_frame:0000000000002048 48 C7 05 C5 1F 00 00 00 00 00+mov     cs:ptr, 0</span><br><span class="line">.eh_frame:0000000000002048 00</span><br><span class="line">.eh_frame:0000000000002053 E9 29 F1 FF FF                jmp     loc_1181</span><br><span class="line">.eh_frame:0000000000002053</span><br><span class="line">.eh_frame:0000000000002053                               sub_2040 endp ; sp-analysis failed</span><br></pre></td></tr></table></figure>
+<p>此时漏洞函数的伪代码为：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">__int64 <span class="title function_">vuln</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">return</span> sub_2040();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// positive sp value has been detected, the output may be wrong!</span></span><br><span class="line"><span class="type">void</span> __fastcall <span class="title function_">sub_2040</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">void</span> *v0; <span class="comment">// rax</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">free</span>(v0);</span><br><span class="line">  ptr = <span class="number">0LL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在进行 <code>patch</code> 时有几个需要注意的点：  </p>
+<ul>
+<li><code>call _free</code> 这一句汇编无法被 <code>keypatch</code> 识别，所以我们可以改成 <code>call 0x1060</code>，直接 <code>call</code> 一个地址  </li>
+<li><code>mov cs:ptr, 0</code> 这句汇编如果直接在 <code>keypatch</code> 中输入会给识别成别的指令，我这里输入的是 <code>mov qword ptr cs:0x4018,0</code>  </li>
+</ul>
+<p>接下来还有最后一个问题需要解决，那就是 <code>.eh_frame</code> 段并没有可执行权限，我们可以通过修改 <code>elf</code> 的头部来更改这里的权限，关键部分如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">LOAD:00000000000000B0 01 00 00 00                   dd 1                                    ; Type: LOAD</span><br><span class="line">LOAD:00000000000000B4 04 00 00 00                   dd 4                                    ; Flags</span><br><span class="line">LOAD:00000000000000B8 00 00 00 00 00 00 00 00       dq 0                                    ; File offset</span><br><span class="line">LOAD:00000000000000C0 00 00 00 00 00 00 00 00       dq 0                                    ; Virtual address</span><br><span class="line">LOAD:00000000000000C8 00 00 00 00 00 00 00 00       dq 0                                    ; Physical address</span><br><span class="line">LOAD:00000000000000D0 60 06 00 00 00 00 00 00       dq 660h                                 ; Size in file image</span><br><span class="line">LOAD:00000000000000D8 60 06 00 00 00 00 00 00       dq 660h                                 ; Size in memory image</span><br><span class="line">LOAD:00000000000000E0 00 10 00 00 00 00 00 00       dq 1000h                                ; Alignment</span><br><span class="line">LOAD:00000000000000E8                               ; PHT Entry 3</span><br><span class="line">LOAD:00000000000000E8 01 00 00 00                   dd 1                                    ; Type: LOAD</span><br><span class="line">LOAD:00000000000000EC 05 00 00 00                   dd 5                                    ; Flags</span><br><span class="line">LOAD:00000000000000F0 00 10 00 00 00 00 00 00       dq 1000h                                ; File offset</span><br><span class="line">LOAD:00000000000000F8 00 10 00 00 00 00 00 00       dq offset _init_proc                    ; Virtual address</span><br><span class="line">LOAD:0000000000000100 00 10 00 00 00 00 00 00       dq 1000h                                ; Physical address</span><br><span class="line">LOAD:0000000000000108 BD 01 00 00 00 00 00 00       dq 1BDh                                 ; Size in file image</span><br><span class="line">LOAD:0000000000000110 BD 01 00 00 00 00 00 00       dq 1BDh                                 ; Size in memory image</span><br><span class="line">LOAD:0000000000000118 00 10 00 00 00 00 00 00       dq 1000h                                ; Alignment</span><br><span class="line">LOAD:0000000000000120                               ; PHT Entry 4</span><br><span class="line">LOAD:0000000000000120 01 00 00 00                   dd 1                                    ; Type: LOAD</span><br><span class="line">LOAD:0000000000000124 07 00 00 00                   dd 7                                    ; Flags</span><br><span class="line">LOAD:0000000000000128 00 20 00 00 00 00 00 00       dq 2000h                                ; File offset</span><br><span class="line">LOAD:0000000000000130 00 20 00 00 00 00 00 00       dq offset _IO_stdin_used                ; Virtual address</span><br><span class="line">LOAD:0000000000000138 00 20 00 00 00 00 00 00       dq 2000h                                ; Physical address</span><br><span class="line">LOAD:0000000000000140 0C 01 00 00 00 00 00 00       dq 10Ch                                 ; Size in file image</span><br><span class="line">LOAD:0000000000000148 0C 01 00 00 00 00 00 00       dq 10Ch                                 ; Size in memory image</span><br><span class="line">LOAD:0000000000000150 00 10 00 00 00 00 00 00       dq 1000h                                ; Alignment</span><br><span class="line">LOAD:0000000000000158                               ; PHT Entry 5</span><br><span class="line">LOAD:0000000000000158 01 00 00 00                   dd 1                                    ; Type: LOAD</span><br><span class="line">LOAD:000000000000015C 06 00 00 00                   dd 6                                    ; Flags</span><br><span class="line">LOAD:0000000000000160 B0 2D 00 00 00 00 00 00       dq 2DB0h                                ; File offset</span><br><span class="line">LOAD:0000000000000168 B0 3D 00 00 00 00 00 00       dq offset __frame_dummy_init_array_entry ; Virtual address</span><br><span class="line">LOAD:0000000000000170 B0 3D 00 00 00 00 00 00       dq 3DB0h                                ; Physical address</span><br><span class="line">LOAD:0000000000000178 60 02 00 00 00 00 00 00       dq 260h                                 ; Size in file image</span><br><span class="line">LOAD:0000000000000180 70 02 00 00 00 00 00 00       dq 270h                                 ; Size in memory image</span><br><span class="line">LOAD:0000000000000188 00 10 00 00 00 00 00 00       dq 1000h                                ; Alignment</span><br></pre></td></tr></table></figure>
+<p>我们要修改的是 <code>Type</code> 为 <code>LOAD</code> 的部分，通过 <code>ida</code> 我们可以看到 <code>.eh_frame</code> 段的其实地址为 <code>0x2040</code>，也就是第三个 <code>LOAD</code> 所管理的区域（我是看 <code>File offset</code> 的，不知道对不对）。其中 <code>Flags</code> 标志位代表的是权限，我们将其改为 <code>7</code> （可读、可写、可执行），这里我已经进行修改，修改后我们对这个 <code>UAF</code> 漏洞的修复就正式结束拉！</p>
+<h3 id="使用的危险函数"><a href="#使用的危险函数" class="headerlink" title="使用的危险函数"></a>使用的危险函数</h3><p>有时候漏洞是开发者使用了危险函数，类似于 <code>gets</code> 这种，而此时程序并没有其他可以用于替换的函数，这时我们的做法和上面的 <code>UAF</code> 漏洞修复差不多，也是修改 <code>.eh_frame</code> 段的权限，并在上面利用 <code>syscall</code> 来调用其他的安全函数来代替原来的危险函数，让 <code>rip</code> 跳转至 <code>.eh_frame</code> 再跳转回去实现漏洞的修复，这里就不给出 <code>demo</code> 了，读者可以去自行编写 <code>demo</code> 并进行尝试，同时也可以加深读者们对修复这一块知识的印象  </p>
+<h3 id="awd小技巧"><a href="#awd小技巧" class="headerlink" title="awd小技巧"></a>awd小技巧</h3><p>我们可能会想，如果给程序上了个沙箱，那就能大大降低我们被获取 <code>flag</code> 的概率，这里就有一个工具能够帮助我们快速上沙箱<br><a target="_blank" rel="noopener" href="https://github.com/TTY-flag/evilPatcher">https://github.com/TTY-flag/evilPatcher</a><br>用法已经在链接中给出，我觉得可以在比赛一开始时就上一个沙箱，然后漏洞后面慢慢修，毕竟沙箱还是有各种绕过方法的<br><img data-src="/images/PWN/defense/awd基础/4.png" alt="  "></p>
+<h1 id="进攻技巧"><a href="#进攻技巧" class="headerlink" title="进攻技巧"></a>进攻技巧</h1><p>在 <code>awd</code> 中，题目的做法和平时解题赛差不多，但毕竟是 <code>awd</code>，和平时的解题还是有一点点不同  </p>
+<h2 id="自动化攻击"><a href="#自动化攻击" class="headerlink" title="自动化攻击"></a>自动化攻击</h2><p>在 <code>awd</code> 中我们要进攻的靶机课不止一个，同一到题目会有许多个靶机，如果我们一个一个的打肯定来不及，毕竟每一轮也就 <code>5~10</code> 分钟的样子，这时候就需要我们编写自动化攻击脚本<br>下面是几个我偷来的脚本：<br>用来攻击的 <code>shell</code> 脚本，每次执行会自动运行当前目录下所有的名字以 <code>exp</code> 开头并以 <code>py</code> 结尾的文件  </p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> file <span class="keyword">in</span> *; <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="variable">$file</span> =~ ^exp.*\.py$ ]]; <span class="keyword">then</span></span><br><span class="line">                <span class="built_in">echo</span> <span class="string">&quot;exec <span class="variable">$file</span>&quot;</span></span><br><span class="line">                python3 <span class="variable">$file</span> <span class="variable">$1</span> <span class="variable">$2</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>漏洞代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __fastcall <span class="title function_">rm</span><span class="params">(<span class="type">signed</span> <span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> ( (<span class="type">unsigned</span> <span class="type">int</span>)a1 &lt;= <span class="number">6</span> &amp;&amp; *((_QWORD *)&amp;unk_A080 + a1) )</span><br><span class="line">    <span class="built_in">free</span>(*((<span class="type">void</span> **)&amp;unk_A080 + a1));</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;The index is not within the range&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对应汇编：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">.text:0000000000001573 ; __unwind &#123;</span><br><span class="line">.text:0000000000001573                 endbr64</span><br><span class="line">.text:0000000000001577                 push    rbp</span><br><span class="line">.text:0000000000001578                 mov     rbp, rsp</span><br><span class="line">.text:000000000000157B                 sub     rsp, 10h</span><br><span class="line">.text:000000000000157F                 mov     [rbp+var_4], edi</span><br><span class="line">.text:0000000000001582                 cmp     [rbp+var_4], 0</span><br><span class="line">.text:0000000000001586                 js      short loc_15AB</span><br><span class="line">.text:0000000000001588                 cmp     [rbp+var_4], 6</span><br><span class="line">.text:000000000000158C                 jg      short loc_15AB</span><br><span class="line">.text:000000000000158E                 mov     eax, [rbp+var_4]</span><br><span class="line">.text:0000000000001591                 cdqe</span><br><span class="line">.text:0000000000001593                 lea     rdx, ds:0[rax*8]</span><br><span class="line">.text:000000000000159B                 lea     rax, unk_A080</span><br><span class="line">.text:00000000000015A2                 mov     rax, [rdx+rax]</span><br><span class="line">.text:00000000000015A6                 test    rax, rax</span><br><span class="line">.text:00000000000015A9                 jnz     short loc_15B9</span><br><span class="line">.text:00000000000015AB</span><br><span class="line">.text:00000000000015AB loc_15AB:                               ; CODE XREF: rm+13↑j</span><br><span class="line">.text:00000000000015AB                                         ; rm+19↑j</span><br><span class="line">.text:00000000000015AB                 lea     rdi, aTheIndexIsNotW ; &quot;The index is not within the range&quot;</span><br><span class="line">.text:00000000000015B2                 call    _puts</span><br><span class="line">.text:00000000000015B7                 jmp     short locret_15D9</span><br><span class="line">.text:00000000000015B9 ; ---------------------------------------------------------------------------</span><br><span class="line">.text:00000000000015B9</span><br><span class="line">.text:00000000000015B9 loc_15B9:                               ; CODE XREF: rm+36↑j</span><br><span class="line">.text:00000000000015B9                 mov     eax, [rbp+var_4]</span><br><span class="line">.text:00000000000015BC                 cdqe</span><br><span class="line">.text:00000000000015BE                 lea     rdx, ds:0[rax*8]</span><br><span class="line">.text:00000000000015C6                 lea     rax, unk_A080</span><br><span class="line">.text:00000000000015CD                 mov     rax, [rdx+rax]</span><br><span class="line">.text:00000000000015D1                 mov     rdi, rax        ; ptr</span><br><span class="line">.text:00000000000015D4                 call    _free</span><br><span class="line">.text:00000000000015D9</span><br><span class="line">.text:00000000000015D9 locret_15D9:                            ; CODE XREF: rm+44↑j</span><br><span class="line">.text:00000000000015D9                 leave</span><br><span class="line">.text:00000000000015DA                 retn</span><br><span class="line">.text:00000000000015DA ; &#125; // starts at 1573</span><br></pre></td></tr></table></figure>
+<p>修改后汇编：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mov rax, qword ptr [rbp_var_4]  ; 取idx</span><br><span class="line">shl eax, 3                      ; idx 乘以 8</span><br><span class="line">lea rdx, qword ptr [0xA080]     ; 取 heap_list 的地址</span><br><span class="line">add rdx, rax                    ; 计算索引的地址</span><br><span class="line">push rdx                        ; 将堆指针 压到stack 上</span><br><span class="line">mov rdi,[rdx]                   ; 取heap地址</span><br><span class="line">call _free                      ; free heap ;ret 后 rdi 寄存器是空的</span><br><span class="line">pop rdx                         ; 取出指向heap的指针</span><br><span class="line">mov [rdx], rdi                  ; 清空指针的内容</span><br></pre></td></tr></table></figure>
+<p>.text:00000000000015B9                 mov     eax, [rbp+var_4]<br>.text:00000000000015BC                 cdqe<br>.text:00000000000015BE                 shl     eax, 3<br>.text:00000000000015C1                 lea     rax, qword_A080<br>.text:00000000000015C8                 add     rax, rdx<br>.text:00000000000015CB                 push    rax<br>.text:00000000000015CC                 mov     rdi, [rax]      ; ptr<br>.text:00000000000015CF                 call    _free<br>.text:00000000000015D4                 pop     rcx<br>.text:00000000000015D5                 mov     [rcx], rdi  ;<br>.text:00000000000015D8                 nop</p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2025/05/14/PWN/pwn_defense/awd/awd/" title="AWD summary for pwn players">http://example.com/2025/05/14/PWN/pwn_defense/awd/awd/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2025/09/03/PWN/pwn_attack/format_string/r_every_mem/" rel="next" title="">
+       <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-number">1.</span> <span class="nav-text">漏洞修复</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="nav-number">1.1.</span> <span class="nav-text">基础知识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-number">1.2.</span> <span class="nav-text">常见漏洞修复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B4%E6%95%B0%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.2.1.</span> <span class="nav-text">整数溢出漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.2.2.</span> <span class="nav-text">栈溢出漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.2.3.</span> <span class="nav-text">格式化字符串漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UAF%E6%BC%8F%E6%B4%9E"><span class="nav-number">1.2.4.</span> <span class="nav-text">UAF漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E7%9A%84%E5%8D%B1%E9%99%A9%E5%87%BD%E6%95%B0"><span class="nav-number">1.2.5.</span> <span class="nav-text">使用的危险函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#awd%E5%B0%8F%E6%8A%80%E5%B7%A7"><span class="nav-number">1.2.6.</span> <span class="nav-text">awd小技巧</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%9B%E6%94%BB%E6%8A%80%E5%B7%A7"><span class="nav-number">2.</span> <span class="nav-text">进攻技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%8C%96%E6%94%BB%E5%87%BB"><span class="nav-number">2.1.</span> <span class="nav-text">自动化攻击</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

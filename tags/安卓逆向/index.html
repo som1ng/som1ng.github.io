@@ -203,7 +203,7 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/11/11/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%5B%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84%5Dbang/" itemprop="url">
+          <a class="post-title-link" href="/2025/11/11/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%5B%E7%BD%91%E9%BC%8E%E6%9D%AF%202020%20%E9%9D%92%E9%BE%99%E7%BB%84%5Dbang/" itemprop="url">
             <span itemprop="name">[网鼎杯 2020 青龙组]bang</span>
           </a>
       </div>
@@ -223,7 +223,7 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/11/10/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%5BSCTF2019%5DStrange%20apk/" itemprop="url">
+          <a class="post-title-link" href="/2025/11/10/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%5BSCTF2019%5DStrange%20apk/" itemprop="url">
             <span itemprop="name">[SCTF2019]Strange apk</span>
           </a>
       </div>
@@ -243,7 +243,7 @@
       </div>
 
       <div class="post-title">
-          <a class="post-title-link" href="/2025/10/08/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" itemprop="url">
+          <a class="post-title-link" href="/2025/10/08/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" itemprop="url">
             <span itemprop="name">安卓逆向环境配置</span>
           </a>
       </div>
@@ -324,17 +324,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -459,6 +459,48 @@
   
 
   
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
 
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
 </body>
 </html>

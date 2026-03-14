@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：线下赛一般都断网，这里总结一些会用到的知识 Linux 底层函数查阅指南如果忘记了某个系统调用或 C 库函数（比如 puts 是遇到 \x00 停还是 \n 停？read 的参数顺序是什么？） 用Linux 自带的查询命令：man (Manual) 手册。 核心命令速查查 C 语言标准库函数（第 3 章）：    man 3 puts     # 查 puts 的用法、返回值、截断机制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线下赛知识查询">
+<meta property="og:url" content="http://example.com/2026/03/15/PWN/pwn_attack/AWD/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：线下赛一般都断网，这里总结一些会用到的知识 Linux 底层函数查阅指南如果忘记了某个系统调用或 C 库函数（比如 puts 是遇到 \x00 停还是 \n 停？read 的参数顺序是什么？） 用Linux 自带的查询命令：man (Manual) 手册。 核心命令速查查 C 语言标准库函数（第 3 章）：    man 3 puts     # 查 puts 的用法、返回值、截断机制">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-13T13:48:56.919Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="pwn">
+<meta property="article:tag" content="pwntools">
+<meta property="article:tag" content="gdb">
+<meta property="article:tag" content="linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2026/03/15/PWN/pwn_attack/AWD/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>线下赛知识查询 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/15/PWN/pwn_attack/AWD/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          线下赛知识查询
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-03-15T00:00:00+08:00">2026-03-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-13 21:48:56" itemprop="dateModified" datetime="2026-03-13T21:48:56+08:00">2026-03-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/PWN/PWN-ATTACK/AWD/" itemprop="url" rel="index"><span itemprop="name">AWD</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>线下赛一般都断网，这里总结一些会用到的知识</p>
+<h1 id="Linux-底层函数查阅指南"><a href="#Linux-底层函数查阅指南" class="headerlink" title="Linux 底层函数查阅指南"></a>Linux 底层函数查阅指南</h1><p>如果忘记了某个系统调用或 C 库函数（比如 <code>puts</code> 是遇到 <code>\x00</code> 停还是 <code>\n</code> 停？<code>read</code> 的参数顺序是什么？）</p>
+<p>用Linux 自带的查询命令：<strong><code>man</code> (Manual) 手册</strong>。</p>
+<h2 id="核心命令速查"><a href="#核心命令速查" class="headerlink" title="核心命令速查"></a>核心命令速查</h2><p><strong>查 C 语言标准库函数（第 3 章）</strong>：<br>    man 3 puts     # 查 puts 的用法、返回值、截断机制<br>    man 3 printf   # 查格式化字符串</p>
+<p>关于函数到底怎么处理数据的核心逻辑，写在 man 手册最开头的 <strong><code>DESCRIPTION</code> (描述)</strong> 部分里。</p>
+<p><strong>查底层系统调用（第 2 章）</strong>：在手搓 Shellcode 或 Ret2syscall 时必用。<br>    man 2 read     # 查 read 系统调用<br>    man 2 execve   # 查启动 shell 的核心调用</p>
+<h2 id="Man-手册快捷键-Vim-逻辑"><a href="#Man-手册快捷键-Vim-逻辑" class="headerlink" title="Man 手册快捷键 (Vim 逻辑)"></a>Man 手册快捷键 (Vim 逻辑)</h2><ul>
+<li><p><code>j</code> / <code>k</code>：上下滚动一行</p>
+</li>
+<li><p><code>Space</code> (空格)：向下翻一页</p>
+</li>
+<li><p><code>/关键字</code>：全文搜索（例如 <code>/return value</code> 找返回值说明），按 <code>n</code> 找下一个，<code>N</code> 找上一个。</p>
+</li>
+<li><p><code>q</code>：退出手册。</p>
+</li>
+</ul>
+<h1 id="Pwntools"><a href="#Pwntools" class="headerlink" title="Pwntools"></a>Pwntools</h1><p>以下核心模板，能覆盖 90% 的常规题型。</p>
+<h2 id="环境与连接初始化"><a href="#环境与连接初始化" class="headerlink" title="环境与连接初始化"></a>环境与连接初始化</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="comment"># 极其重要：设置目标架构和操作系统，这会影响后续的汇编、打包解包操作！</span></span><br><span class="line">context(arch=<span class="string">&#x27;amd64&#x27;</span>, os=<span class="string">&#x27;linux&#x27;</span>, log_level=<span class="string">&#x27;debug&#x27;</span>) <span class="comment"># 开启 debug 可见所有收发细节</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 本地调试与远程连接</span></span><br><span class="line"><span class="comment"># io = process(&#x27;./vuln&#x27;)       # 启动本地进程</span></span><br><span class="line">io = remote(<span class="string">&#x27;127.0.0.1&#x27;</span>, <span class="number">8888</span>) <span class="comment"># 连接远程靶机</span></span><br><span class="line">elf = ELF(<span class="string">&#x27;./vuln&#x27;</span>)            <span class="comment"># 加载本地 ELF，用于获取 plt/got 和符号</span></span><br><span class="line">libc = ELF(<span class="string">&#x27;./libc.so.6&#x27;</span>)      <span class="comment"># 加载本地指定的 Libc</span></span><br></pre></td></tr></table></figure>
+<h2 id="交互与发包-极其容易踩坑"><a href="#交互与发包-极其容易踩坑" class="headerlink" title="交互与发包 (极其容易踩坑)"></a>交互与发包 (极其容易踩坑)</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># --- 发送 ---</span></span><br><span class="line">io.send(payload)       <span class="comment"># 纯净发送，不附加任何东西（泄露地址、覆盖 Canary 最低位时必用！）</span></span><br><span class="line">io.sendline(payload)   <span class="comment"># 发送并在末尾追加 \n (0x0a)</span></span><br><span class="line">io.sendafter(<span class="string">b&#x27;xxx&#x27;</span>, payload)     <span class="comment"># 接收到特定字符串后再发送</span></span><br><span class="line">io.sendlineafter(<span class="string">b&#x27;xxx&#x27;</span>, payload)</span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 接收 ---</span></span><br><span class="line">io.recv(n)             <span class="comment"># 严格接收 n 个字节</span></span><br><span class="line">io.recvuntil(<span class="string">b&#x27;xxx&#x27;</span>)   <span class="comment"># 一直接收并丢弃，直到遇到特定字符串为止（过滤垃圾数据神技！）</span></span><br><span class="line">io.recvall()           <span class="comment"># 接收直到连接关闭</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># --- 终极一跃 ---</span></span><br><span class="line">io.interactive()       <span class="comment"># 将控制权交还给用户，享受你的 Shell！</span></span><br></pre></td></tr></table></figure>
+<h2 id="数据转换与打包-大小端转换"><a href="#数据转换与打包-大小端转换" class="headerlink" title="数据转换与打包 (大小端转换)"></a>数据转换与打包 (大小端转换)</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将数字打包成字节流 (Little-Endian 小端序)</span></span><br><span class="line">p32(<span class="number">0xdeadbeef</span>)        <span class="comment"># 32 位打包：b&#x27;\xef\xbe\xad\xde&#x27;</span></span><br><span class="line">p64(<span class="number">0xdeadbeef</span>)        <span class="comment"># 64 位打包：b&#x27;\xef\xbe\xad\xde\x00\x00\x00\x00&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将字节流解包成数字 (泄露地址时必用)</span></span><br><span class="line"><span class="comment"># 注意：64位下泄露的地址通常只有 6 字节，需要用 \x00 在高位补齐 8 字节！</span></span><br><span class="line">leak_addr = u64(io.recvuntil(<span class="string">b&#x27;\x7f&#x27;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>, <span class="string">b&#x27;\x00&#x27;</span>))</span><br></pre></td></tr></table></figure>
+<h2 id="ELF-与-Libc-快捷搜索"><a href="#ELF-与-Libc-快捷搜索" class="headerlink" title="ELF 与 Libc 快捷搜索"></a>ELF 与 Libc 快捷搜索</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ELF 对象神器</span></span><br><span class="line">puts_plt = elf.plt[<span class="string">&#x27;puts&#x27;</span>]      <span class="comment"># 获取 puts 在 PLT 表的地址</span></span><br><span class="line">puts_got = elf.got[<span class="string">&#x27;puts&#x27;</span>]      <span class="comment"># 获取 puts 在 GOT 表的地址</span></span><br><span class="line">main_addr = elf.symbols[<span class="string">&#x27;main&#x27;</span>] <span class="comment"># 获取 main 函数真实地址</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Libc 对象神器 (需先计算出 libc_base)</span></span><br><span class="line">libc.address = libc_base        <span class="comment"># 给 libc 对象设置基址后，下面所有的 sym 都会自动加上基址！</span></span><br><span class="line">system_addr = libc.sym[<span class="string">&#x27;system&#x27;</span>] </span><br><span class="line">binsh_addr = <span class="built_in">next</span>(libc.search(<span class="string">b&#x27;/bin/sh&#x27;</span>)) <span class="comment"># 搜索字符串地址</span></span><br></pre></td></tr></table></figure>
+<h2 id="系统调用与-Shellcode-asm-amp-shellcraft"><a href="#系统调用与-Shellcode-asm-amp-shellcraft" class="headerlink" title="系统调用与 Shellcode (asm &amp; shellcraft)"></a>系统调用与 Shellcode (asm &amp; shellcraft)</h2><p>在打 <code>ret2syscall</code> 或需要手写系统调用时，不再需要死记硬背 <code>execve</code> 的调用号了，Pwntools 提供了一键生成与查询：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 获取系统调用号 (根据开头的 context.arch 自动适配 32位/64位)</span></span><br><span class="line">sys_execve_num = constants.SYS_execve</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;execve 的系统调用号是: <span class="subst">&#123;sys_execve_num&#125;</span>&quot;</span>) <span class="comment"># 32位是 11，64位是 59</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 手写汇编转机器码 (自动替换宏)</span></span><br><span class="line">assembly = <span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">    /* Pwntools 甚至支持直接在汇编里写系统调用名字 */</span></span><br><span class="line"><span class="string">    mov eax, SYS_execve </span></span><br><span class="line"><span class="string">    mov ebx, 0x0804a020 /* 假设这是 /bin/sh 的地址 */</span></span><br><span class="line"><span class="string">    mov ecx, 0</span></span><br><span class="line"><span class="string">    mov edx, 0</span></span><br><span class="line"><span class="string">    int 0x80</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line">machine_code = asm(assembly)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终极偷懒：一键生成 execve(&quot;/bin/sh&quot;, 0, 0) 的拿 Shell 机器码！</span></span><br><span class="line">shellcode = asm(shellcraft.sh())</span><br><span class="line"><span class="comment"># 或者更具体的生成：</span></span><br><span class="line"><span class="comment"># shellcode = asm(shellcraft.execve(&#x27;/bin/sh&#x27;, 0, 0))</span></span><br><span class="line"></span><br><span class="line">io.sendline(shellcode)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="GDB-Pwndbg-动态调试真经"><a href="#GDB-Pwndbg-动态调试真经" class="headerlink" title="GDB-Pwndbg 动态调试真经"></a>GDB-Pwndbg 动态调试真经</h1><h2 id="将-GDB-挂载到-Python-脚本中"><a href="#将-GDB-挂载到-Python-脚本中" class="headerlink" title="将 GDB 挂载到 Python 脚本中"></a>将 GDB 挂载到 Python 脚本中</h2><p>Pwntools 提供了两种极其方便的挂载方式：</p>
+<p><strong>方式一：<code>gdb.attach()</code> (中途挂载，最常用)</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">io = process(<span class="string">&#x27;./vuln&#x27;</span>)</span><br><span class="line"><span class="comment"># 先进行一些无关紧要的交互</span></span><br><span class="line">io.sendlineafter(<span class="string">b&#x27;name&#x27;</span>, <span class="string">b&#x27;admin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在发送致命 payload 前，把 GDB 挂载上去，并下断点</span></span><br><span class="line">gdb.attach(io, <span class="string">&#x27;b main\nb *0x401234&#x27;</span>) </span><br><span class="line">pause() <span class="comment"># 暂停脚本，此时终端会弹出 GDB 窗口。你在 GDB 里调试好后，在脚本按回车才会继续发包。</span></span><br><span class="line"></span><br><span class="line">io.sendline(payload)</span><br></pre></td></tr></table></figure>
+<p><strong>方式二：<code>gdb.debug()</code> (启动即挂载)</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 直接以 GDB 调试模式启动进程</span></span><br><span class="line">io = gdb.debug(<span class="string">&#x27;./vuln&#x27;</span>, <span class="string">&#x27;b main\nc&#x27;</span>) </span><br></pre></td></tr></table></figure>
+<h2 id="执行控制与断点配置"><a href="#执行控制与断点配置" class="headerlink" title="执行控制与断点配置"></a>执行控制与断点配置</h2><h3 id="基础步进"><a href="#基础步进" class="headerlink" title="基础步进"></a>基础步进</h3><p><code>c</code> (continue)：一直运行，直到遇到下一个断点或程序崩溃（SIGSEGV）。</p>
+<p><code>n</code> (next)：源码级单步步过（不进入子函数）。</p>
+<p><code>s</code> (step)：源码级单步步入（会跟进子函数）。</p>
+<p><code>ni</code> / <code>si</code>：<strong>汇编级</strong>单步步过 / 步入（次执行一条汇编指令，不漏过任何寄存器变化）。</p>
+<p><code>fin</code> (finish)：直接执行完当前函数并返回。</p>
+<h3 id="断点管理"><a href="#断点管理" class="headerlink" title="断点管理"></a>断点管理</h3><p><code>b main</code>：给特定函数名下断点。</p>
+<p><code>b *0x401234</code>：给绝对内存地址下断点（注意前面的星号 <code>*</code> 绝对不能漏！）。</p>
+<p><code>b *$rebase(0x1234)</code>：<strong>PIE 开启时的神技！</strong> 给相对偏移下断点，Pwndbg 会自动帮你加上本次运行的随机化基址。</p>
+<p><code>info b</code>：查看当前所有断点状态。</p>
+<p><code>del 1</code>：删除编号为 1 的断点。</p>
+<p><code>watch *0x404040</code>：内存硬件断点（极其好用），只要这个内存地址里的值被修改，程序立刻断下！</p>
+<h2 id="内存观测与数据修改"><a href="#内存观测与数据修改" class="headerlink" title="内存观测与数据修改"></a>内存观测与数据修改</h2><p><strong>万能的 <code>x</code> 命令 (Examine)</strong> 格式：<code>x/&lt;数量&gt;&lt;格式&gt;&lt;大小&gt; &lt;地址/寄存器&gt;</code></p>
+<ul>
+<li><p><code>x/10gx $rsp</code>：以十六进制 (<code>x</code>)、8字节 (<code>g</code>) 为单位，打印栈顶 (<code>$rsp</code>) 往下的 10 个数据。</p>
+</li>
+<li><p><code>x/10wx $ebp-0x10</code>：以十六进制 (<code>x</code>)、4字节 (<code>w</code>) 为单位，打印指定地址数据。</p>
+</li>
+<li><p><code>x/s 0x402000</code>：把该地址的数据当作<strong>字符串</strong>打印出来（检查 <code>/bin/sh</code> 是否写入成功）。</p>
+</li>
+<li><p><code>x/20i $rip</code>：把当前指令指针往后的 20 个字节当作<strong>汇编指令</strong>反汇编出来。</p>
+</li>
+</ul>
+<p><strong>修改寄存器/内存</strong></p>
+<ul>
+<li><p><code>set $rax = 0</code>：强行把 rax 寄存器的值改为 0（常用于绕过条件判断）。</p>
+</li>
+<li><p><code>set *0x404040 = 0x1234</code>：强行向内存地址写入指定值。</p>
+</li>
+</ul>
+<h2 id="Pwndbg-实战专属技巧"><a href="#Pwndbg-实战专属技巧" class="headerlink" title="Pwndbg 实战专属技巧"></a>Pwndbg 实战专属技巧</h2><ul>
+<li><p><strong>全景视角：<code>context</code></strong> 如果你清屏了或者界面乱了，直接输入 <code>context</code> 可以立刻重新唤出 Pwndbg 的四大面板（寄存器区、反汇编区、源码区、栈区）。</p>
+</li>
+<li><p><strong>内存权限雷达：<code>vmmap</code></strong> 查看当前所有内存段（代码段、栈、堆、libc）的基址和权限。遇到段错误崩溃时，<strong>第一反应打 <code>vmmap</code></strong>，看目标地址到底是不是 <code>rwx</code>（往往是因为想执行 shellcode 却跳到了 <code>rw-</code> 的不可执行段）。</p>
+</li>
+<li><p><strong>超级栈透视：<code>telescope</code> (简写 <code>tele</code>)</strong></p>
+<ul>
+<li><p><code>tele 20</code> 或者 <code>tele $rsp 20</code>：以极度优雅的格式打印栈顶往下的 20 个单位。</p>
+</li>
+<li><p><strong>神级特性</strong>：它不仅印出数值，还会递归解析指针！如果栈上有一个地址指向 libc，它会直接在一旁标出 <code>-&gt; libc_system_addr</code>，找链子极其方便。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>大海捞针：<code>search</code></strong></p>
+<ul>
+<li><p><code>search &quot;/bin/sh&quot;</code>：在整个内存空间里搜索目标字符串。</p>
+</li>
+<li><p><code>search -p 0xdeadbeef</code>：在内存里寻找有没有哪个指针刚好指向了这个特定的地址。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>计算溢出长度：<code>cyclic</code></strong> 如果在 IDA 里看不出数组距离返回地址多远：</p>
+<ol>
+<li><p>终端运行 <code>cyclic 200</code> 生成 200 个规律乱码字符（如 <code>aaaabaaacaaa...</code>）。</p>
+</li>
+<li><p>把乱码当作 payload 发送，程序崩溃报错，此时 <code>rip</code> 或 <code>ebp</code> 会被某个乱码（比如 <code>0x61616164</code>）覆盖。</p>
+</li>
+<li><p>回到 GDB 终端运行 <code>cyclic -l 0x61616164</code>，直接光速算出精确的 Padding 长度！</p>
+</li>
+</ol>
+</li>
+<li><p><strong>追踪执行流：<code>retaddr</code> 和 <code>got</code></strong></p>
+<ul>
+<li><p><code>retaddr</code>：瞬间打印出当前栈上所有的返回地址链（相当于增强版的 Backtrace）。</p>
+</li>
+<li><p><code>got</code>：打印程序当前的 GOT 表状况，直观看到哪个函数被我们劫持了。</p>
+</li>
+<li><p><code>libc</code>：直接打印出当前加载的 libc 基地址，方便你做本地偏移计算验证。</p>
+</li>
+</ul>
+</li>
+</ul>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/15/PWN/pwn_attack/AWD/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/" title="线下赛知识查询">http://example.com/2026/03/15/PWN/pwn_attack/AWD/断网后相关知识查询/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/pwn/" rel="tag"><i class="fa fa-tag"></i> pwn</a>
+              <a href="/tags/pwntools/" rel="tag"><i class="fa fa-tag"></i> pwntools</a>
+              <a href="/tags/gdb/" rel="tag"><i class="fa fa-tag"></i> gdb</a>
+              <a href="/tags/linux/" rel="tag"><i class="fa fa-tag"></i> linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/14/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7/" rel="prev" title="栈溢出进阶技巧">
+      <i class="fa fa-chevron-left"></i> 栈溢出进阶技巧
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Linux-%E5%BA%95%E5%B1%82%E5%87%BD%E6%95%B0%E6%9F%A5%E9%98%85%E6%8C%87%E5%8D%97"><span class="nav-number">2.</span> <span class="nav-text">Linux 底层函数查阅指南</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="nav-number">2.1.</span> <span class="nav-text">核心命令速查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Man-%E6%89%8B%E5%86%8C%E5%BF%AB%E6%8D%B7%E9%94%AE-Vim-%E9%80%BB%E8%BE%91"><span class="nav-number">2.2.</span> <span class="nav-text">Man 手册快捷键 (Vim 逻辑)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pwntools"><span class="nav-number">3.</span> <span class="nav-text">Pwntools</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%9E%E6%8E%A5%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.1.</span> <span class="nav-text">环境与连接初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E4%BA%92%E4%B8%8E%E5%8F%91%E5%8C%85-%E6%9E%81%E5%85%B6%E5%AE%B9%E6%98%93%E8%B8%A9%E5%9D%91"><span class="nav-number">3.2.</span> <span class="nav-text">交互与发包 (极其容易踩坑)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E4%B8%8E%E6%89%93%E5%8C%85-%E5%A4%A7%E5%B0%8F%E7%AB%AF%E8%BD%AC%E6%8D%A2"><span class="nav-number">3.3.</span> <span class="nav-text">数据转换与打包 (大小端转换)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ELF-%E4%B8%8E-Libc-%E5%BF%AB%E6%8D%B7%E6%90%9C%E7%B4%A2"><span class="nav-number">3.4.</span> <span class="nav-text">ELF 与 Libc 快捷搜索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E4%B8%8E-Shellcode-asm-amp-shellcraft"><span class="nav-number">3.5.</span> <span class="nav-text">系统调用与 Shellcode (asm &amp; shellcraft)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GDB-Pwndbg-%E5%8A%A8%E6%80%81%E8%B0%83%E8%AF%95%E7%9C%9F%E7%BB%8F"><span class="nav-number">4.</span> <span class="nav-text">GDB-Pwndbg 动态调试真经</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%86-GDB-%E6%8C%82%E8%BD%BD%E5%88%B0-Python-%E8%84%9A%E6%9C%AC%E4%B8%AD"><span class="nav-number">4.1.</span> <span class="nav-text">将 GDB 挂载到 Python 脚本中</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E6%8E%A7%E5%88%B6%E4%B8%8E%E6%96%AD%E7%82%B9%E9%85%8D%E7%BD%AE"><span class="nav-number">4.2.</span> <span class="nav-text">执行控制与断点配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%AD%A5%E8%BF%9B"><span class="nav-number">4.2.1.</span> <span class="nav-text">基础步进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%AD%E7%82%B9%E7%AE%A1%E7%90%86"><span class="nav-number">4.2.2.</span> <span class="nav-text">断点管理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E8%A7%82%E6%B5%8B%E4%B8%8E%E6%95%B0%E6%8D%AE%E4%BF%AE%E6%94%B9"><span class="nav-number">4.3.</span> <span class="nav-text">内存观测与数据修改</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pwndbg-%E5%AE%9E%E6%88%98%E4%B8%93%E5%B1%9E%E6%8A%80%E5%B7%A7"><span class="nav-number">4.4.</span> <span class="nav-text">Pwndbg 实战专属技巧</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>
