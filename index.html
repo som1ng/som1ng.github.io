@@ -178,6 +178,629 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%839_sudo%E9%A3%8E%E6%9A%B4_%E4%B8%8A/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%839_sudo%E9%A3%8E%E6%9A%B4_%E4%B8%8A/" class="post-title-link" itemprop="url">Linux提权9：sudo风暴_上 (红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 14:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T14:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 20:00:02" itemprop="dateModified" datetime="2026-03-18T20:00:02+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>用sudo -l 看哪些命令可以不输入密码就可以用sudo</p><br><p>之后去GTFOBins 一个个查现成的payload就行了，不过这里的内容是打提权基础不可或缺的部分，如果以后想成为提权大师这里的payload是有必要好好学习一下的</p><br><......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%839_sudo%E9%A3%8E%E6%9A%B4_%E4%B8%8A/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/" class="post-title-link" itemprop="url">Linux提权8：系统服务与底层内核漏洞 (红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 11:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T11:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 18:49:37" itemprop="dateModified" datetime="2026-03-18T18:49:37+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>这是红队笔记提权精讲中的第六部分，也是最后一部分</p><br><p>本章进入提权的“深水区”。我们将探讨如何利用系统底层服务的配置失误，以及如何使用公开的 CVE 漏洞代码直接攻击 Linux 内核。</p><br><h1 id="实战："><a href="#......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%837_%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%B8%8E%E6%95%8F%E6%84%9F%E5%87%AD%E6%8D%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%837_%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%B8%8E%E6%95%8F%E6%84%9F%E5%87%AD%E6%8D%AE/" class="post-title-link" itemprop="url">Linux提权7：信息泄露与敏感凭据 (红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 10:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T10:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 20:03:03" itemprop="dateModified" datetime="2026-03-18T20:03:03+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>这是红队笔记第五部分：信息泄露与敏感凭据</p><br><p><strong>核心逻辑</strong>：系统本身可能固若金汤，但“人”是会犯错的。管理员可能会为了方便而直接在命令行输密码，或者把备份文件随手乱扔。</p><br><p>这一章我们专注于如何通过“枚......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%837_%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%B8%8E%E6%95%8F%E6%84%9F%E5%87%AD%E6%8D%AE/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%836_%E7%89%B9%E6%9D%83%E5%A7%94%E6%B4%BE%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%836_%E7%89%B9%E6%9D%83%E5%A7%94%E6%B4%BE%E6%BC%8F%E6%B4%9E/" class="post-title-link" itemprop="url">Linux提权6：特权委派漏洞sudo/Doas (红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 09:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T09:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 19:01:16" itemprop="dateModified" datetime="2026-03-18T19:01:16+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>本篇讲的是第四类 ：特权委派漏洞sudo/Doas</p><br><p>在 Linux 系统中，<code>root</code> 权限不能随便给别人。为了方便管理，系统管理员通常会使用特权委派工具（如 <code>sudo</code> 或 <code>d......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%836_%E7%89%B9%E6%9D%83%E5%A7%94%E6%B4%BE%E6%BC%8F%E6%B4%9E/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%835_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%20(Cron)%20%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%835_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%20(Cron)%20%E6%BC%8F%E6%B4%9E/" class="post-title-link" itemprop="url">Linux提权5：计划任务漏洞 (红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 08:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T08:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 16:07:46" itemprop="dateModified" datetime="2026-03-18T16:07:46+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>本篇讲的是第三类：计划任务漏洞提权方法</p><br><h1 id="基础知识及提权原理："><a href="#基础知识及提权原理：" class="headerlink" title="基础知识及提权原理："></a>基础知识及提权原理：</h1><p>......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%835_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%20(Cron)%20%E6%BC%8F%E6%B4%9E/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%834_SUID%20%E6%9C%BA%E5%88%B6%E6%BB%A5%E7%94%A8%20(%E6%8F%90%E6%9D%83%E9%87%8D%E7%82%B9%E5%8C%BA)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%834_SUID%20%E6%9C%BA%E5%88%B6%E6%BB%A5%E7%94%A8%20(%E6%8F%90%E6%9D%83%E9%87%8D%E7%82%B9%E5%8C%BA)/" class="post-title-link" itemprop="url">Linux提权4：SUID 机制滥用 (红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 07:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T07:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 16:53:16" itemprop="dateModified" datetime="2026-03-18T16:53:16+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>本篇讲的是第二类：SUID 机制滥用提权方法</p><br><h1 id="基础知识："><a href="#基础知识：" class="headerlink" title="基础知识："></a>基础知识：</h1><p>在 Linux 提权体系中，SUI......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%834_SUID%20%E6%9C%BA%E5%88%B6%E6%BB%A5%E7%94%A8%20(%E6%8F%90%E6%9D%83%E9%87%8D%E7%82%B9%E5%8C%BA)/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%833_%E7%B3%BB%E7%BB%9F%E6%95%8F%E6%84%9F%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E9%85%8D%E7%BD%AE%E7%BC%BA%E9%99%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%833_%E7%B3%BB%E7%BB%9F%E6%95%8F%E6%84%9F%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E9%85%8D%E7%BD%AE%E7%BC%BA%E9%99%B7/" class="post-title-link" itemprop="url">Linux提权3：系统敏感文件权限配置缺陷提权方法(红队笔记)</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 06:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T06:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 14:38:48" itemprop="dateModified" datetime="2026-03-18T14:38:48+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>b站学习完红队笔记linux提权视频做个总结和适当的补充</p><br><p>视频连接放在最下面了</p><br><p>视频里演示的提权方法可分为<strong>六大类</strong></p><br><p>本篇讲的是第一类：系统敏感文件权限配置缺陷提权方法</p><br><......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%833_%E7%B3%BB%E7%BB%9F%E6%95%8F%E6%84%9F%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E9%85%8D%E7%BD%AE%E7%BC%BA%E9%99%B7/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -249,6 +872,89 @@
   </div>
     <div class="post-button">
       <a class="btn" href="/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/">
+        阅读全文 &raquo;
+      </a>
+    </div>
+
+
+
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/" class="post-title-link" itemprop="url">Linux提权2：基于mysql提权</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-18 00:00:00 / 修改时间：12:12:10" itemprop="dateCreated datePublished" datetime="2026-03-18T00:00:00+08:00">2026-03-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  
+
+  
+  <div class="post-summary">
+    <h1 id="mysql提权概念和背景"><a href="#mysql提权概念和背景" class="headerlink" title="mysql提权概念和背景"></a>mysql提权概念和背景</h1><h2 id="MySQL-概念"><a href="#MySQL-概念" class="headerlink" title="MySQL 概念"></a>MySQL 概念</h2><p......
+  </div>
+    <div class="post-button">
+      <a class="btn" href="/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/">
         阅读全文 &raquo;
       </a>
     </div>
@@ -360,714 +1066,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/15/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/15/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/" class="post-title-link" itemprop="url">线下赛知识查询</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2026-03-15 00:00:00" itemprop="dateCreated datePublished" datetime="2026-03-15T00:00:00+08:00">2026-03-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-14 21:47:58" itemprop="dateModified" datetime="2026-03-14T21:47:58+08:00">2026-03-14</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">PWN通用问题</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>线下赛一般都断网，这里总结一些会用到的知识</p><br><h1 id="Linux-底层函数查阅指南"><a href="#Linux-底层函数查阅指南" class="headerlink" title="Linux 底层函数查阅指南"></a>Linu......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/15/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E6%96%AD%E7%BD%91%E5%90%8E%E7%9B%B8%E5%85%B3%E7%9F%A5%E8%AF%86%E6%9F%A5%E8%AF%A2/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E5%BC%BA%E5%88%B6%E8%AE%A9elf%E9%93%BE%E6%8E%A5%E6%8C%87%E5%AE%9A%E7%9A%84libc/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E5%BC%BA%E5%88%B6%E8%AE%A9elf%E9%93%BE%E6%8E%A5%E6%8C%87%E5%AE%9A%E7%9A%84libc/" class="post-title-link" itemprop="url">PWN环境配置：强制ELF加载指定libc</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2026-03-14 21:45:00" itemprop="dateCreated datePublished" datetime="2026-03-14T21:45:00+08:00">2026-03-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-15 00:47:26" itemprop="dateModified" datetime="2026-03-15T00:47:26+08:00">2026-03-15</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">PWN通用问题</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="如何强制-ELF-优先调用同一目录下的-libc？"><a href="#如何强制-ELF-优先调用同一目录下的-libc？" class="headerlink" title="如何强制 ELF 优先调用同一目录下的 libc？"></a>如何强制 ELF 优先调用同一目录下的 libc？</h1><p>在本地调试 Pwn 题目时，为了和远程服务器环境保持一致，我们必须强迫本地的......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E5%BC%BA%E5%88%B6%E8%AE%A9elf%E9%93%BE%E6%8E%A5%E6%8C%87%E5%AE%9A%E7%9A%84libc/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F/" class="post-title-link" itemprop="url">PWN输出机制与泄露接收指南</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2026-03-14 21:30:00 / 修改时间：21:53:35" itemprop="dateCreated datePublished" datetime="2026-03-14T21:30:00+08:00">2026-03-14</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">PWN通用问题</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="PWN-泄露输出与接收总结"><a href="#PWN-泄露输出与接收总结" class="headerlink" title="PWN 泄露输出与接收总结"></a>PWN 泄露输出与接收总结</h1><p>在 Pwn 实战中，拿到 Shell 的前提通常是完美地“泄露 (Leak)”出内存中的地址（如 Libc 基址、Canary、PIE 基址）。</p><br><p>然而，C 语......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/14/PWN/pwn_attack/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/%E8%BE%93%E5%87%BA%E6%A0%BC%E5%BC%8F/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/14/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/14/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7/" class="post-title-link" itemprop="url">栈溢出进阶技巧</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2026-03-14 10:00:00" itemprop="dateCreated datePublished" datetime="2026-03-14T10:00:00+08:00">2026-03-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-13 21:09:27" itemprop="dateModified" datetime="2026-03-13T21:09:27+08:00">2026-03-13</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/stack-overflow/" itemprop="url" rel="index"><span itemprop="name">stack_overflow</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="目录："><a href="#目录：" class="headerlink" title="目录："></a>目录：</h1><p>进阶技巧里包括</p><br><ul><br><li><p>[x] <strong>栈迁移 (Stack Pivoting)</strong></p><br></li><br><li><p>[ ] <strong>Ret2csu (通用 Gadget 利用)</strong>......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/14/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/13/PWN/pwn_attack/stack_overflow/%E5%AE%89%E5%85%A8%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6%E4%B8%8E%E7%BB%95%E8%BF%87%E7%AD%96%E7%95%A5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/13/PWN/pwn_attack/stack_overflow/%E5%AE%89%E5%85%A8%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6%E4%B8%8E%E7%BB%95%E8%BF%87%E7%AD%96%E7%95%A5/" class="post-title-link" itemprop="url">栈溢出攻击：安全保护机制与绕过策略</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2026-03-13 10:00:00 / 修改时间：20:26:18" itemprop="dateCreated datePublished" datetime="2026-03-13T10:00:00+08:00">2026-03-13</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/stack-overflow/" itemprop="url" rel="index"><span itemprop="name">stack_overflow</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>在现代操作系统中，单纯的栈溢出已经很难直接奏效。编译器和系统引入了多种保护机制，其中最与栈溢出相关的就是 <strong>Canary</strong> 和 <strong>PIE/ASLR</strong></p><br><p>对于一个elf文件我们可以 ......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/13/PWN/pwn_attack/stack_overflow/%E5%AE%89%E5%85%A8%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6%E4%B8%8E%E7%BB%95%E8%BF%87%E7%AD%96%E7%95%A5/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/12/REVERSE/js%E9%80%86%E5%90%91/js%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/12/REVERSE/js%E9%80%86%E5%90%91/js%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8/" class="post-title-link" itemprop="url">未命名</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2026-03-12 19:42:54" itemprop="dateCreated datePublished" datetime="2026-03-12T19:42:54+08:00">2026-03-12</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/12/REVERSE/js%E9%80%86%E5%90%91/js%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/js%E9%80%86%E5%90%91%E5%85%A5%E9%97%A8/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/12/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E5%9F%BA%E7%A1%80/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/03/12/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">栈溢出基础总结</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2026-03-12 10:00:00" itemprop="dateCreated datePublished" datetime="2026-03-12T10:00:00+08:00">2026-03-12</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-14 21:23:58" itemprop="dateModified" datetime="2026-03-14T21:23:58+08:00">2026-03-14</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/" itemprop="url" rel="index"><span itemprop="name">PWN</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/" itemprop="url" rel="index"><span itemprop="name">PWN_ATTACK</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/PWN/PWN-ATTACK/stack-overflow/" itemprop="url" rel="index"><span itemprop="name">stack_overflow</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>之前pwn写到别的地方没往github搬，后面慢慢搬吧</p><br><h1 id="栈溢出基础知识："><a href="#栈溢出基础知识：" class="headerlink" title="栈溢出基础知识："></a>栈溢出基础知识：</h1><h2......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/03/12/PWN/pwn_attack/stack_overflow/%E6%A0%88%E6%BA%A2%E5%87%BA%E5%9F%BA%E7%A1%80/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/01/27/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/Unity%E4%B8%8E.NET%E9%80%86%E5%90%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="学习逆向贵在坚持">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2026/01/27/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/Unity%E4%B8%8E.NET%E9%80%86%E5%90%91/" class="post-title-link" itemprop="url">Unity与.NET逆向</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2026-01-27 00:00:00" itemprop="dateCreated datePublished" datetime="2026-01-27T00:00:00+08:00">2026-01-27</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" itemprop="url" rel="index"><span itemprop="name">ctf逆向中的misc</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  
-
-  
-  <div class="post-summary">
-    <h1 id="NET逆向处理："><a href="#NET逆向处理：" class="headerlink" title=".NET逆向处理："></a>.NET逆向处理：</h1><p>拿到exe文件，先拖进dnspy，不识别就拖进ida分析</p><br><p>.NET编译可以是JIT和AOT两种类型</p><br><h2 id="JIT-Just-in-Time-——-即时编译"><a href="......
-  </div>
-    <div class="post-button">
-      <a class="btn" href="/2026/01/27/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/Unity%E4%B8%8E.NET%E9%80%86%E5%90%91/">
-        阅读全文 &raquo;
-      </a>
-    </div>
-
-
-
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -1135,17 +1137,17 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-count">44</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">36</span>
+        <span class="site-state-item-count">50</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

