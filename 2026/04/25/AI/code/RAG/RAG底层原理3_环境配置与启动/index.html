@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：本节学习windows全环境RAG项目学习配置，配置完后就可以开始正式学习了 大模型 API 配置AIHubmix API 申请AIHubmix 是一个美国平台，公司注册在美国的特拉华州，一站式聚合了全球主流的 AI 模型，最新的模型通常能在发布当天最晚不超过 1 周就会支持。完全对接相关模型的云厂商（OpenAI 对接的是 Azure 云，Gemini 对接的 Google 官方，Clau">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG底层原理3:环境配置与启动">
+<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：本节学习windows全环境RAG项目学习配置，配置完后就可以开始正式学习了 大模型 API 配置AIHubmix API 申请AIHubmix 是一个美国平台，公司注册在美国的特拉华州，一站式聚合了全球主流的 AI 模型，最新的模型通常能在发布当天最晚不超过 1 周就会支持。完全对接相关模型的云厂商（OpenAI 对接的是 Azure 云，Gemini 对接的 Google 官方，Clau">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter1/images/2.png">
+<meta property="og:image" content="http://example.com/images/AI/code/RAG/3/codespace.png">
+<meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter1/images/1_2_8.webp">
+<meta property="og:image" content="http://example.com/images/AI/code/RAG/3/Q2.png">
+<meta property="article:published_time" content="2026-04-25T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-27T10:58:16.004Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="AI开发">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="环境配置">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://datawhalechina.github.io/all-in-rag/chapter1/images/2.png">
+
+<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RAG底层原理3:环境配置与启动 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG底层原理3:环境配置与启动
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-04-25 12:00:00" itemprop="dateCreated datePublished" datetime="2026-04-25T12:00:00+08:00">2026-04-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-04-27 18:58:16" itemprop="dateModified" datetime="2026-04-27T18:58:16+08:00">2026-04-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/" itemprop="url" rel="index"><span itemprop="name">AI</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">开发</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" itemprop="url" rel="index"><span itemprop="name">RAG</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>本节学习windows全环境RAG项目学习配置，配置完后就可以开始正式学习了</p>
+<h1 id="大模型-API-配置"><a href="#大模型-API-配置" class="headerlink" title="大模型 API 配置"></a>大模型 API 配置</h1><h2 id="AIHubmix-API-申请"><a href="#AIHubmix-API-申请" class="headerlink" title="AIHubmix API 申请"></a>AIHubmix API 申请</h2><p>AIHubmix 是一个美国平台，公司注册在美国的特拉华州，一站式聚合了全球主流的 AI 模型，最新的模型通常能在发布当天最晚不超过 1 周就会支持。完全对接相关模型的云厂商（OpenAI 对接的是 Azure 云，Gemini 对接的 Google 官方，Claude 对接的是 AWS，其他开源等模型是对接到各大知名云厂商或者推理公司）。AIHubmix 的服务器是在美国谷歌云上采用集群部署，同时因为完全对接云厂商，所以稳定性非常好，有多端点路由机制，可以达到比直连官方更稳定的效果。</p>
+<blockquote>
+<p>AIHubmix 提供的免费模型足够我们完成项目的学习。</p>
+</blockquote>
+<p><strong>1.访问 AIHubmix 平台</strong></p>
+<p>打开浏览器，访问 <a target="_blank" rel="noopener" href="https://aihubmix.com/?aff=anNj">AIHubmix</a>。</p>
+<p><strong>2.登录或注册账号</strong></p>
+<p>如果已有账号，可以直接登录。如果没有，请点击页面右上角的注册按钮，使用邮箱或手机号完成注册。</p>
+<p><strong>3.模型筛选</strong></p>
+<p>可以看到有很多模型的api我们可以免费白嫖，选好一个想要白嫖的api模型就可以到下一步了</p>
+<p><img data-src="https://datawhalechina.github.io/all-in-rag/chapter1/images/2.png" alt="模型页面"></p>
+<p><strong>4.管理 API 密钥</strong>接着进入<a target="_blank" rel="noopener" href="https://console.aihubmix.com/token">密钥管理页面</a>，可以点击 <code>创建 Key</code> 填写名称后创建一个自己的api key。</p>
+<h1 id="GitHub-Codespaces-环境配置"><a href="#GitHub-Codespaces-环境配置" class="headerlink" title="GitHub Codespaces 环境配置"></a>GitHub Codespaces 环境配置</h1><p>GitHub Codespaces 是 GitHub 提供的一项服务，允许开发者在云端创建、编辑和运行代码。它提供了一个预配置的开发环境，包括代码编辑器、终端、调试工具等，可以直接在浏览器中使用。</p>
+<h2 id="创建Codespaces"><a href="#创建Codespaces" class="headerlink" title="创建Codespaces"></a>创建Codespaces</h2><ol>
+<li><p><strong>访问项目地址</strong><br>打开浏览器，访问 <a target="_blank" rel="noopener" href="https://github.com/datawhalechina/all-in-rag">all-in-rag</a></p>
+</li>
+<li><p><strong>创建新分支</strong> 在项目页面的右上角，点击 <code>Fork</code> 按钮，创建一个新的分支。稍等一会儿即可创建成功。</p>
+</li>
+<li><p><strong>创建Codespaces</strong> 在项目页面的右上角，点击 <code>Code</code> 按钮，然后选择 <code>Codespaces</code> 选项卡。点击 <code>New codespace</code> 按钮，等待新的 Codespaces 环境创建成功。<br><img data-src="/images/AI/code/RAG/3/codespace.png" alt="codespace"></p>
+</li>
+<li><p>点击create codespace后会打开一个云端编辑器，然后我们就可以在对应项目文件夹里随意开工了</p>
+</li>
+<li><p>如果我们退出后想再回到这个编辑器页面，我们可以按照上图同样的位置打开，点击对应项目就能打开了</p>
+</li>
+<li><p><strong>额度设置</strong> 找到 GitHub 的账户设置中的 codespace 设置，挂起时间建议根据自己情况调整（时间过长会浪费额度，免费账号提供了单核120小时的额度）<br><img data-src="https://datawhalechina.github.io/all-in-rag/chapter1/images/1_2_8.webp" alt="额度设置"></p>
+</li>
+</ol>
+<h1 id="python环境配置："><a href="#python环境配置：" class="headerlink" title="python环境配置："></a>python环境配置：</h1><p>有了云端代码编辑器后我们直接在对应服务器内下载就好了，我们先回到上面配置的codespace代码编辑器</p>
+<p>然后点击一下下面的终端</p>
+<ol>
+<li><p><strong>更新系统软件包</strong><br>在终端输入下面指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update </span><br><span class="line"><span class="built_in">sudo</span> apt upgrade -y</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>安装Miniconda</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh </span><br><span class="line">bash ~/miniconda.sh</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>按 Enter 阅读许可协议</p>
+</li>
+<li><p>输入 <code>yes</code> 同意协议</p>
+</li>
+<li><p>安装路径提示时直接按 Enter（使用默认路径 /home/ubuntu/miniconda3）</p>
+</li>
+<li><p>是否初始化Miniconda：输入 <code>yes</code> 将Miniconda添加到您的PATH环境变量中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.bashrc conda --version</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>如果显示版本号，说明安装成功。</p>
+</li>
+</ol>
+<h1 id="API配置"><a href="#API配置" class="headerlink" title="API配置"></a>API配置</h1><p>使用 <code>vim</code> 编辑器打开你的 shell 配置文件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim ~/.bashrc</span><br></pre></td></tr></table></figure>
+<p>输入 <code>i</code> 进入编辑模式，在文件末尾添加以下行，将 <code>你的大模型 API 密钥</code> 替换为你自己的密钥：</p>
+<p>我这里用的是<a target="_blank" rel="noopener" href="https://api.aihubmix.com/v1的接口，如果用的是其他厂家的api需要把openai_api_base字段改一下">https://api.aihubmix.com/v1的接口，如果用的是其他厂家的api需要把openai_api_base字段改一下</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> OPENAI_API_KEY=你的大模型密钥</span><br><span class="line"><span class="built_in">export</span> OPENAI_API_BASE=<span class="string">&quot;https://api.aihubmix.com/v1&quot;</span></span><br></pre></td></tr></table></figure>
+<p>保存并退出 在 vim 中，按 Esc 键进入命令模式，然后输入 <code>:wq</code> 并按 Enter 键保存文件并退出。</p>
+<p>使配置生效 执行以下命令来立即加载更新后的配置，让环境变量生效：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
+<h1 id="创建并激活虚拟环境"><a href="#创建并激活虚拟环境" class="headerlink" title="创建并激活虚拟环境"></a>创建并激活虚拟环境</h1><ol>
+<li><p><strong>创建虚拟环境</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda create --name all-in-rag python=3.12.7</span><br></pre></td></tr></table></figure>
+<p>出现选项直接回车即可。</p>
+</li>
+<li><p><strong>激活虚拟环境</strong><br>使用以下命令激活虚拟环境：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate all-in-rag</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>依赖安装</strong> 如果严格安装上述流程当前应该在项目根目录，进入code目录安装依赖库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> code pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果出现关于grpcio的版本错误无需在意。</p>
+</blockquote>
+</li>
+</ol>
+<h1 id="运行RAG示例代码"><a href="#运行RAG示例代码" class="headerlink" title="运行RAG示例代码"></a>运行RAG示例代码</h1><ol>
+<li><p>激活环境（已经激活的不用激活）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda activate all-in-rag</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>切换到项目目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 假设当前在 all-in-rag 项目的根目录下</span></span><br><span class="line"><span class="built_in">cd</span> code/C1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>完成上述所有设置后，就可以运行RAG示例了。<br>打开终端，确保虚拟环境已激活，然后执行以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python 01_langchain_example.py</span><br></pre></td></tr></table></figure>
+<p>这里要注意，如果<strong>跟着之前官方文档配置这里可能会报错</strong>，因为代码写死了是openai的api，具体怎么配置看我上面的<a href="#API配置">API配置</a></p>
+</li>
+<li><p>代码运行后，可以看到类似下面的输出（格式化后）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">Downloading Model from https://www.modelscope.cn to directory: Path\to\all-in-rag\models\bge-small-zh-v1.5</span><br><span class="line">2025-06-08 02:36:19,318 - modelscope - INFO - Target directory already exists, skipping creation.</span><br><span class="line">content=<span class="string">&#x27;</span></span><br><span class="line"><span class="string">基于提供的上下文，文中列举了以下例子：</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">1.  **Atar 游戏 Breakout（打砖块）**：用于说明强化学习与监督学习的区别，以及数据非独立同分布、延迟反馈和延迟奖励等问题。</span></span><br><span class="line"><span class="string">2.  **Pong 游戏**：用于说明强化学习智能体的决策过程以及策略网络（输出动作概率）。</span></span><br><span class="line"><span class="string">3.  **自然界中的羚羊**：用于说明生物通过试错（通过不断探索站立和奔跑）来适应环境。</span></span><br><span class="line"><span class="string">4.  **股票交易**：用于说明在金融市场中如何通过买卖股票并根据市场反馈来学习最大化奖励。</span></span><br><span class="line"><span class="string">5.  **电子游戏**：用于说明通过不断试错来学会如何通关。</span></span><br><span class="line"><span class="string">6.  **MountainCar-v0**：用于具体演示如何使用 Gym 库，包括观测空间、动作空间的定义以及代码实现。</span></span><br><span class="line"><span class="string">7.  **Atar 游戏 Space Invaders**：用于说明免模型强化学习需要大量样本（如约两亿帧）才能取得理想效果。</span></span><br><span class="line"><span class="string">8.  **选择餐馆**：用于类比“利用”（去熟悉的餐馆）和“探索”（尝试新餐馆）。</span></span><br><span class="line"><span class="string">9.  **做广告**：用于类比“利用”（采取最优广告策略）和“探索”（尝试新的广告策略）。</span></span><br><span class="line"><span class="string">10. **挖油**：用于类比“利用”（在已知的地方挖油）和“探索”（在新的地方挖油）。</span></span><br><span class="line"><span class="string">11. **玩《街头霸王》游戏**：用于类比“利用”（采取某种固定策略）和“探索”（尝试新招式）。</span></span><br><span class="line"><span class="string">&#x27;</span></span><br><span class="line">additional_kwargs=&#123;<span class="string">&#x27;refusal&#x27;</span>: None&#125;</span><br><span class="line">response_metadata=&#123;</span><br><span class="line">    <span class="string">&#x27;token_usage&#x27;</span>: &#123;</span><br><span class="line">        <span class="string">&#x27;completion_tokens&#x27;</span>: 209,</span><br><span class="line">        <span class="string">&#x27;prompt_tokens&#x27;</span>: 5576,</span><br><span class="line">        <span class="string">&#x27;total_tokens&#x27;</span>: 5785,</span><br><span class="line">        <span class="string">&#x27;completion_tokens_details&#x27;</span>: None,</span><br><span class="line">        <span class="string">&#x27;prompt_tokens_details&#x27;</span>: &#123;<span class="string">&#x27;audio_tokens&#x27;</span>: None, <span class="string">&#x27;cached_tokens&#x27;</span>: 5568&#125;,</span><br><span class="line">        <span class="string">&#x27;prompt_cache_hit_tokens&#x27;</span>: 5568,</span><br><span class="line">        <span class="string">&#x27;prompt_cache_miss_tokens&#x27;</span>: 8</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&#x27;model_name&#x27;</span>: <span class="string">&#x27;deepseek-chat&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;system_fingerprint&#x27;</span>: <span class="string">&#x27;fp_8802369eaa_prod0425fp8&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;id&#x27;</span>: <span class="string">&#x27;67a0580d-78b1-44d6-bccf-f654ae0e9bba&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;service_tier&#x27;</span>: None,</span><br><span class="line">    <span class="string">&#x27;finish_reason&#x27;</span>: <span class="string">&#x27;stop&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;logprobs&#x27;</span>: None</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">id</span>=<span class="string">&#x27;run--919cedcd-771e-4aed-8dfd-cf436795792e-0&#x27;</span></span><br><span class="line">usage_metadata=&#123;</span><br><span class="line">    <span class="string">&#x27;input_tokens&#x27;</span>: 5576,</span><br><span class="line">    <span class="string">&#x27;output_tokens&#x27;</span>: 209,</span><br><span class="line">    <span class="string">&#x27;total_tokens&#x27;</span>: 5785,</span><br><span class="line">    <span class="string">&#x27;input_token_details&#x27;</span>: &#123;<span class="string">&#x27;cache_read&#x27;</span>: 5568&#125;,</span><br><span class="line">    <span class="string">&#x27;output_token_details&#x27;</span>: &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出参数解析：</p>
+<ul>
+<li><strong><code>content</code></strong>: 这是最核心的部分，即大型语言模型（LLM）根据你的问题和提供的上下文生成的具体回答。</li>
+<li><strong><code>additional_kwargs</code></strong>: 包含一些额外的参数，在这个例子中是 <code>&#123;&#39;refusal&#39;: None&#125;</code>，表示模型没有拒绝回答。</li>
+<li><strong><code>response_metadata</code></strong>: 包含了关于LLM响应的元数据。<ul>
+<li><code>token_usage</code>: 显示了本次调用消耗的token数量，包括完成（completion_tokens）、提示（prompt_tokens）和总量（total_tokens）。</li>
+<li><code>model_name</code>: 使用的LLM模型名称，当前是 <code>deepseek-chat</code>。</li>
+<li><code>system_fingerprint</code>, <code>id</code>, <code>service_tier</code>, <code>finish_reason</code>, <code>logprobs</code>: 这些是更详细的API响应信息，例如 <code>finish_reason: &#39;stop&#39;</code> 表示模型正常完成了生成。</li>
+</ul>
+</li>
+<li><strong><code>id</code></strong>: 本次运行的唯一标识符。</li>
+<li><strong><code>usage_metadata</code></strong>: 与 <code>response_metadata</code> 中的 <code>token_usage</code> 类似，提供了输入和输出token的统计。</li>
+</ul>
+</li>
+</ol>
+<h1 id="详解代码逻辑："><a href="#详解代码逻辑：" class="headerlink" title="详解代码逻辑："></a>详解代码逻辑：</h1><p>原教程是把langchain和LlamaIndex的代码都拉出来对比了一下，我认为初学就掌握好langchain就够用了，而且时间可以最大化利用，所以这里只给出langchain的代码逻辑</p>
+<p>在第一节中，我们知道四步构建最小可行系统分别是<strong>数据准备、索引构建、检索优化和生成集成</strong>。我们刚才运行的示例代码也正是基于这四步的逻辑构建的一个<strong>MVP(Minimum Viable Product（最小可行性产品）)</strong></p>
+<h2 id="第一步：数据准备与清洗-Data-Prep-amp-Chunking"><a href="#第一步：数据准备与清洗-Data-Prep-amp-Chunking" class="headerlink" title="第一步：数据准备与清洗 (Data Prep &amp; Chunking)"></a>第一步：数据准备与清洗 (Data Prep &amp; Chunking)</h2><p>这一步的核心任务是：把本地人类能看懂的文件，切成一块块大小合适、语义完整的碎片，准备喂给机器。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> dotenv <span class="keyword">import</span> load_dotenv</span><br><span class="line"><span class="keyword">from</span> langchain_community.document_loaders <span class="keyword">import</span> UnstructuredMarkdownLoader</span><br><span class="line"><span class="keyword">from</span> langchain_text_splitters <span class="keyword">import</span> RecursiveCharacterTextSplitter</span><br><span class="line"></span><br><span class="line">load_dotenv() <span class="comment"># 加载 .env 文件中的隐藏环境变量（如 API Key）</span></span><br><span class="line"></span><br><span class="line">markdown_path = <span class="string">&quot;../../data/C1/markdown/easy-rl-chapter1.md&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 加载本地文件</span></span><br><span class="line"><span class="comment"># 【AI 术语】：Loader（加载器）。它的作用是把各种奇奇怪怪的格式（PDF, MD, HTML）</span></span><br><span class="line"><span class="comment"># 统统扒掉格式外衣，变成纯文本（Plain Text）字符串。</span></span><br><span class="line">loader = UnstructuredMarkdownLoader(markdown_path)</span><br><span class="line">docs = loader.load()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 文本分块</span></span><br><span class="line"><span class="comment"># 【AI 术语】：Chunking（切块）。大模型记性有限（Token 窗口限制），整本书喂不进去。</span></span><br><span class="line"><span class="comment"># 这里的 Recursive (递归) 意思是：它会聪明地先尝试按段落切，不行再按句子切，</span></span><br><span class="line"><span class="comment"># 最大程度保证每一句话的意思不被从中间生生劈断。</span></span><br><span class="line">text_splitter = RecursiveCharacterTextSplitter() </span><br><span class="line">chunks = text_splitter.split_documents(docs) <span class="comment"># 此时，一整篇文章变成了很多个小 Chunk</span></span><br></pre></td></tr></table></figure>
+<h2 id="第二步：索引构建-Indexing-amp-Vectorization"><a href="#第二步：索引构建-Indexing-amp-Vectorization" class="headerlink" title="第二步：索引构建 (Indexing &amp; Vectorization)"></a>第二步：索引构建 (Indexing &amp; Vectorization)</h2><p>这一步是 RAG 最具魔法感的一环：把纯文字变成高维数学数组，并存入数据库。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_huggingface <span class="keyword">import</span> HuggingFaceEmbeddings</span><br><span class="line"><span class="keyword">from</span> langchain_core.vectorstores <span class="keyword">import</span> InMemoryVectorStore</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 实例化中文嵌入模型</span></span><br><span class="line"><span class="comment"># 【AI 术语】：Embedding（嵌入/向量化）。这是大模型理解世界的底层语言。</span></span><br><span class="line"><span class="comment"># 它能把“苹果”变成 [0.1, 0.5, -0.2...] 这样的浮点数数组。</span></span><br><span class="line"><span class="comment"># 这里我们用的是 BAAI（北京智源人工智能研究院）开源的 bge-small 模型。</span></span><br><span class="line">embeddings = HuggingFaceEmbeddings(</span><br><span class="line">    model_name=<span class="string">&quot;BAAI/bge-small-zh-v1.5&quot;</span>, </span><br><span class="line">    model_kwargs=&#123;<span class="string">&#x27;device&#x27;</span>: <span class="string">&#x27;cpu&#x27;</span>&#125;, <span class="comment"># 强制用电脑 CPU 跑这个小模型，不挑显卡</span></span><br><span class="line">    encode_kwargs=&#123;<span class="string">&#x27;normalize_embeddings&#x27;</span>: <span class="literal">True</span>&#125; <span class="comment"># 归一化：让算相似度（查距离）变得更准更快</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 构建向量数据库并存入</span></span><br><span class="line"><span class="comment"># 【AI 术语】：Vector Store（向量库）。传统数据库搜关键词，向量库搜“意思相近”。</span></span><br><span class="line"><span class="comment"># InMemory 表示存放在电脑运行内存里，程序一关数据就没。只适合做极简 Demo。</span></span><br><span class="line">vectorstore = InMemoryVectorStore(embeddings) </span><br><span class="line"></span><br><span class="line"><span class="comment"># 把第一步切好的 chunks，经过 embeddings 变成一堆数字，存进数据库里！</span></span><br><span class="line">vectorstore.add_documents(chunks)</span><br></pre></td></tr></table></figure>
+<h2 id="第三步：检索优化与召回-Retrieval"><a href="#第三步：检索优化与召回-Retrieval" class="headerlink" title="第三步：检索优化与召回 (Retrieval)"></a>第三步：检索优化与召回 (Retrieval)</h2><p>当用户提出问题时，如何从数据库里把最相关的几块文本“捞”出来。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 用户查询</span></span><br><span class="line">question = <span class="string">&quot;文中举了哪些例子？&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 在向量存储中查询相关文档</span></span><br><span class="line"><span class="comment"># 【AI 术语】：Similarity Search（相似度搜索）与 Top-K。</span></span><br><span class="line"><span class="comment"># 内部逻辑：先把 question 也 Embedding 成向量，然后去库里算距离（通常是余弦距离）。</span></span><br><span class="line"><span class="comment"># k=3 表示只把距离最近、最相关的 3 个 Chunk 捞出来，多了大模型看不过来，少了信息不够。</span></span><br><span class="line">retrieved_docs = vectorstore.similarity_search(question, k=<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 把捞出来的 3 块碎片，用双换行符(\n\n)缝合拼接成一段长字符串</span></span><br><span class="line">docs_content = <span class="string">&quot;\n\n&quot;</span>.join(doc.page_content <span class="keyword">for</span> doc <span class="keyword">in</span> retrieved_docs)</span><br></pre></td></tr></table></figure>
+<h2 id="第四步：生成与提示工程-Generation-amp-Prompting"><a href="#第四步：生成与提示工程-Generation-amp-Prompting" class="headerlink" title="第四步：生成与提示工程 (Generation &amp; Prompting)"></a>第四步：生成与提示工程 (Generation &amp; Prompting)</h2><p>将捞出来的知识与用户的问题打包在一起，用一种“命令”的口吻发给生成式大模型。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">from langchain_core.prompts import ChatPromptTemplate</span><br><span class="line">from langchain_openai import ChatOpenAI</span><br><span class="line"></span><br><span class="line"><span class="comment"># 7. 提示词模板设定</span></span><br><span class="line"><span class="comment"># 【AI 术语】：Prompt Engineering（提示工程）与 Grounding（信息挂载）。</span></span><br><span class="line"><span class="comment"># 大模型爱胡说八道（幻觉）。所以我们必须在模板里用强硬的语气要求它：</span></span><br><span class="line"><span class="comment"># “必须完全基于上下文！”、“找不到就说不知道！”</span></span><br><span class="line">prompt = ChatPromptTemplate.from_template(<span class="string">&quot;&quot;</span><span class="string">&quot;请根据下面提供的上下文信息来回答问题。</span></span><br><span class="line"><span class="string">请确保你的回答完全基于这些上下文。</span></span><br><span class="line"><span class="string">如果上下文中没有足够的信息来回答问题，请直接告知：“抱歉，我无法根据提供的上下文找到相关信息来回答此问题。”</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">上下文:</span></span><br><span class="line"><span class="string">&#123;context&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">问题: &#123;question&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">回答:&quot;</span><span class="string">&quot;&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 8. 配置大语言模型 (生成器)</span></span><br><span class="line"><span class="comment"># 【AI 术语】：LLM（大型语言模型）。负责最后的阅读理解和归纳总结。</span></span><br><span class="line">llm = ChatOpenAI(</span><br><span class="line">    model=<span class="string">&quot;glm-4.7-flash-free&quot;</span>, <span class="comment"># 指定用哪家公司的哪个版本的模型脑子</span></span><br><span class="line">    temperature=0.7, <span class="comment"># 【重要参数】温度值。0.0 最严谨保守，1.0 脑洞最大。RAG 场景通常设得低一点以求严谨。</span></span><br><span class="line">    max_tokens=4096, <span class="comment"># 允许模型一口气最多吐出多少字，防账单爆炸。</span></span><br><span class="line">    api_key=os.getenv(<span class="string">&quot;OPENAI_API_KEY&quot;</span>), <span class="comment"># 从环境中偷拿刚才我们设置好的大门钥匙</span></span><br><span class="line">    base_url=<span class="string">&quot;[https://api.aihubmix.com/v1](https://api.aihubmix.com/v1)&quot;</span> <span class="comment"># 告诉它别连美国，去连中转代理服务器</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 9. 最终调用与输出</span></span><br><span class="line"><span class="comment"># 将第 3 步拼接好的上下文(docs_content) 和问题(question) 填入模板，发给 LLM。</span></span><br><span class="line">answer = llm.invoke(prompt.format(question=question, context=docs_content))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只打印模型吐出的纯净文本，剥离 Token 消耗等杂乱的元数据。</span></span><br><span class="line"><span class="built_in">print</span>(answer.content)</span><br></pre></td></tr></table></figure>
+<h1 id="练习（可利用大模型辅助完成）"><a href="#练习（可利用大模型辅助完成）" class="headerlink" title="练习（可利用大模型辅助完成）"></a>练习（可利用大模型辅助完成）</h1><h2 id="Q1"><a href="#Q1" class="headerlink" title="Q1:"></a>Q1:</h2><blockquote>
+<p>LangChain代码最终得到的输出携带了各种参数，查询相关资料尝试把这些参数过滤掉得到<code>content</code>里的具体回答。</p>
+</blockquote>
+<p>很简单，把最后的<code>print(answer)</code>改为<code>print(answer.content)</code>即可，这样输出结果只有大模型的输出内容</p>
+<h2 id="Q2"><a href="#Q2" class="headerlink" title="Q2:"></a>Q2:</h2><blockquote>
+<p>修改Langchain代码中<code>RecursiveCharacterTextSplitter()</code>的参数<code>chunk_size</code>和<code>chunk_overlap</code>，观察输出结果有什么变化。</p>
+</blockquote>
+<p>LangChain 默认的 <code>chunk_size</code> 通常是 4000，<code>chunk_overlap</code> 是 200。如果你不在括号里写，它就按默认的来。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 文本分块</span></span><br><span class="line">text_splitter = RecursiveCharacterTextSplitter()</span><br></pre></td></tr></table></figure>
+<p><strong>修改后：</strong></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 文本分块：明确指定参数</span></span><br><span class="line">text_splitter = RecursiveCharacterTextSplitter(</span><br><span class="line">    chunk_size=<span class="number">100</span>,      <span class="comment"># 【改动1】：限制每个“块”最多只能有 100 个字符</span></span><br><span class="line">    chunk_overlap=<span class="number">20</span>     <span class="comment"># 【改动2】：让相邻的两个“块”之间保留 20 个字的重叠</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">chunks = text_splitter.split_documents(docs)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 【附加代码】：为了观察变化，我们可以打印前 3 个切块出来看看</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;\n--- 观察切块结果 ---&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">min</span>(<span class="number">3</span>, <span class="built_in">len</span>(chunks))):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;第 <span class="subst">&#123;i+<span class="number">1</span>&#125;</span> 块 (长度: <span class="subst">&#123;<span class="built_in">len</span>(chunks[i].page_content)&#125;</span>字):&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(chunks[i].page_content)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;-&quot;</span> * <span class="number">20</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;--------------------\n&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="这两个参数是什么意思"><a href="#这两个参数是什么意思" class="headerlink" title="这两个参数是什么意思"></a>这两个参数是什么意思</h3><ul>
+<li><p><strong><code>chunk_size</code> (切块大小)</strong>：也就是“你的框有多大”。</p>
+<ul>
+<li><p><strong>如果设得太大（比如 2000）</strong>：大模型一次性吃进太多文字，容易犯迷糊（专业术语叫“注意力涣散”），找不到重点。</p>
+</li>
+<li><p><strong>如果设得太小（比如 50）</strong>：一句话还没说完就被切断了。比如上一块写了“孙悟空”，下一块只切到了“打妖怪”，大模型就不知道是谁在打妖怪了（专业术语叫“上下文语义丢失”）。</p>
+</li>
+</ul>
+</li>
+<li><p><strong><code>chunk_overlap</code> (重叠大小)</strong>：也就是“承上启下的胶水”。</p>
+<ul>
+<li><p>就像你翻页看书，通常会扫一眼上一页的最后半句话，才能连贯起来。</p>
+</li>
+<li><p>设置 Overlap 就是为了防止一刀切在关键句子的中间。这 20 个字的重叠，能让前后两个 Chunk 保持语义的连贯。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="输出结果："><a href="#输出结果：" class="headerlink" title="输出结果："></a>输出结果：</h3><p><img data-src="/images/AI/code/RAG/3/Q2.png" alt="Q2"></p>
+<p>我们很明显看到输出不全，而且只输出了“街头霸王这一个例子”，下面我们分析一下：</p>
+<h3 id="为什么会这样？（RAG-漏斗原理解析）"><a href="#为什么会这样？（RAG-漏斗原理解析）" class="headerlink" title="为什么会这样？（RAG 漏斗原理解析）"></a>为什么会这样？（RAG 漏斗原理解析）</h3><p>还记得我们代码里的【第三步：检索优化与召回】吗？有这样一行极其关键的代码： <code>retrieved_docs = vectorstore.similarity_search(question, k=3)</code></p>
+<p>这里的 <strong><code>k=3</code></strong> 就是导致“只剩街头霸王”的罪魁祸首！你的 RAG 系统经历了一个漏斗：</p>
+<ol>
+<li><p><strong>第一步（切得太碎）</strong>：你把一整篇文章，用 <code>chunk_size=100</code> 切成了几百个极其细小的碎纸片。</p>
+</li>
+<li><p><strong>第二步（只捞 3 块）</strong>：系统拿着你的问题“文中举了哪些例子？”，去这几百个碎纸片里找最相关的。因为它规定了 <strong><code>k=3</code></strong>，所以它<strong>只拿出了得分最高的前 3 张小纸片</strong>。</p>
+</li>
+<li><p><strong>第三步（喂给模型）</strong>：这 3 张小纸片加起来一共也就不到 300 个字。恰好，这 3 张纸片上写的是“选餐馆”和“街头霸王”。那些写着“羚羊”、“股票”的纸片虽然也是例子，但没挤进前 3 名，直接被扔在了数据库里</p>
+</li>
+<li><p><strong>第四步（模型作答）</strong>：我们在 Prompt 里严厉警告过大模型：“_请确保你的回答完全基于这些上下文_”。大模型很听话，它看了看这 3 张纸片，发现只有两个例子，于是就只回答了这两个。</p>
+</li>
+</ol>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/" title="RAG底层原理3:环境配置与启动">http://example.com/2026/04/25/AI/code/RAG/RAG底层原理3_环境配置与启动/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/AI%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> AI开发</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag"><i class="fa fa-tag"></i> 环境配置</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/" rel="prev" title="RAG底层原理2:RAG 理论基石">
+      <i class="fa fa-chevron-left"></i> RAG底层原理2:RAG 理论基石
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%864_%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B/" rel="next" title="RAG底层原理4:数据加载过程">
+      RAG底层原理4:数据加载过程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%A7%E6%A8%A1%E5%9E%8B-API-%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">大模型 API 配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AIHubmix-API-%E7%94%B3%E8%AF%B7"><span class="nav-number">2.1.</span> <span class="nav-text">AIHubmix API 申请</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GitHub-Codespaces-%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">GitHub Codespaces 环境配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BACodespaces"><span class="nav-number">3.1.</span> <span class="nav-text">创建Codespaces</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#python%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%EF%BC%9A"><span class="nav-number">4.</span> <span class="nav-text">python环境配置：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#API%E9%85%8D%E7%BD%AE"><span class="nav-number">5.</span> <span class="nav-text">API配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%B9%B6%E6%BF%80%E6%B4%BB%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="nav-number">6.</span> <span class="nav-text">创建并激活虚拟环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%90%E8%A1%8CRAG%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">7.</span> <span class="nav-text">运行RAG示例代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%A6%E8%A7%A3%E4%BB%A3%E7%A0%81%E9%80%BB%E8%BE%91%EF%BC%9A"><span class="nav-number">8.</span> <span class="nav-text">详解代码逻辑：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87%E4%B8%8E%E6%B8%85%E6%B4%97-Data-Prep-amp-Chunking"><span class="nav-number">8.1.</span> <span class="nav-text">第一步：数据准备与清洗 (Data Prep &amp; Chunking)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA-Indexing-amp-Vectorization"><span class="nav-number">8.2.</span> <span class="nav-text">第二步：索引构建 (Indexing &amp; Vectorization)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96%E4%B8%8E%E5%8F%AC%E5%9B%9E-Retrieval"><span class="nav-number">8.3.</span> <span class="nav-text">第三步：检索优化与召回 (Retrieval)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E7%94%9F%E6%88%90%E4%B8%8E%E6%8F%90%E7%A4%BA%E5%B7%A5%E7%A8%8B-Generation-amp-Prompting"><span class="nav-number">8.4.</span> <span class="nav-text">第四步：生成与提示工程 (Generation &amp; Prompting)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%83%E4%B9%A0%EF%BC%88%E5%8F%AF%E5%88%A9%E7%94%A8%E5%A4%A7%E6%A8%A1%E5%9E%8B%E8%BE%85%E5%8A%A9%E5%AE%8C%E6%88%90%EF%BC%89"><span class="nav-number">9.</span> <span class="nav-text">练习（可利用大模型辅助完成）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Q1"><span class="nav-number">9.1.</span> <span class="nav-text">Q1:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Q2"><span class="nav-number">9.2.</span> <span class="nav-text">Q2:</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%99%E4%B8%A4%E4%B8%AA%E5%8F%82%E6%95%B0%E6%98%AF%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D"><span class="nav-number">9.2.1.</span> <span class="nav-text">这两个参数是什么意思</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E7%BB%93%E6%9E%9C%EF%BC%9A"><span class="nav-number">9.2.2.</span> <span class="nav-text">输出结果：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E8%BF%99%E6%A0%B7%EF%BC%9F%EF%BC%88RAG-%E6%BC%8F%E6%96%97%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90%EF%BC%89"><span class="nav-number">9.2.3.</span> <span class="nav-text">为什么会这样？（RAG 漏斗原理解析）</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

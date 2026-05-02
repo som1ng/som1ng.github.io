@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="基础概念：什么是内网横向移动？当你通过 Web 漏洞（比如传了个 WebShell，然后通过计划任务提权到了 SYSTEM）拿下了一台边界服务器，你会发现：  这台机器上根本没有你要找的 flag 或核心业务数据。  这台机器除了能连外网，它还有一张内网网卡（比如 192.168.50.10），连着几百台你原本访问不到的内部机器。   横向移动（Lateral Movement），就是以这台已经沦">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内网横向0：基础概念及总体框架">
+<meta property="og:url" content="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%910_%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%8F%8A%E6%80%BB%E4%BD%93%E6%A1%86%E6%9E%B6/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="基础概念：什么是内网横向移动？当你通过 Web 漏洞（比如传了个 WebShell，然后通过计划任务提权到了 SYSTEM）拿下了一台边界服务器，你会发现：  这台机器上根本没有你要找的 flag 或核心业务数据。  这台机器除了能连外网，它还有一张内网网卡（比如 192.168.50.10），连着几百台你原本访问不到的内部机器。   横向移动（Lateral Movement），就是以这台已经沦">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-21T05:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-21T10:26:54.485Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="横向移动">
+<meta property="article:tag" content="域控">
+<meta property="article:tag" content="内网横向基础">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%910_%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%8F%8A%E6%80%BB%E4%BD%93%E6%A1%86%E6%9E%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>内网横向0：基础概念及总体框架 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%910_%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%8F%8A%E6%80%BB%E4%BD%93%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内网横向0：基础概念及总体框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-21 13:00:00 / 修改时间：18:26:54" itemprop="dateCreated datePublished" datetime="2026-03-21T13:00:00+08:00">2026-03-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">内网横向</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="基础概念："><a href="#基础概念：" class="headerlink" title="基础概念："></a>基础概念：</h1><h2 id="什么是内网横向移动？"><a href="#什么是内网横向移动？" class="headerlink" title="什么是内网横向移动？"></a>什么是内网横向移动？</h2><p>当你通过 Web 漏洞（比如传了个 WebShell，然后通过计划任务提权到了 SYSTEM）拿下了一台边界服务器，你会发现：</p>
+<ol>
+<li><p>这台机器上根本没有你要找的 flag 或核心业务数据。</p>
+</li>
+<li><p>这台机器除了能连外网，它还有一张<strong>内网网卡</strong>（比如 <code>192.168.50.10</code>），连着几百台你原本访问不到的内部机器。</p>
+</li>
+</ol>
+<p><strong>横向移动（Lateral Movement）</strong>，就是以这台已经沦陷的边界机为跳板，通过窃取密码、搭建代理隧道、利用内网漏洞等手段，向内网深处的其他机器发起攻击，最终拿下整个网络的核心控制权（通常是<strong>域控制器 Domain Controller</strong>）。</p>
+<h2 id="横向前准备工作："><a href="#横向前准备工作：" class="headerlink" title="横向前准备工作："></a>横向前准备工作：</h2><p>在进行横向移动前，先判断当前内网处于哪种架构中，这决定了你的打法：</p>
+<h3 id="工作组环境-Workgroup"><a href="#工作组环境-Workgroup" class="headerlink" title="工作组环境 (Workgroup)"></a>工作组环境 (Workgroup)</h3><ul>
+<li><p><strong>概念</strong>：机器之间是“平级”的，互不隶属。A 机器的管理员账号只能管 A，管不了 B。</p>
+</li>
+<li><p><strong>特点</strong>：密码各自独立。</p>
+</li>
+</ul>
+<h3 id="域环境-Domain-AD"><a href="#域环境-Domain-AD" class="headerlink" title="域环境 (Domain / AD)"></a>域环境 (Domain / AD)</h3><ul>
+<li><p><strong>概念</strong>：企业内网的标配。所有机器都归一个“中央大脑”管，这个大脑叫<strong>域控制器 (DC)</strong>。</p>
+</li>
+<li><p><strong>特点</strong>：存在<strong>域账号</strong>。比如 <code>Admin@ISW.local</code> 这个账号，如果权限够大，登录内网里的任何一台机器都不需要重新建号。身份验证全部由域控（DC）负责颁发“票据（Ticket）”。</p>
+</li>
+</ul>
+<h3 id="确定架构方法："><a href="#确定架构方法：" class="headerlink" title="确定架构方法："></a>确定架构方法：</h3><h4 id="Win"><a href="#Win" class="headerlink" title="Win"></a>Win</h4><p><strong>1. 查询系统域配置 (通用)</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systeminfo | findstr /i <span class="string">&quot;Domain&quot;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>解析</strong>：过滤系统基本配置中的域字段。</p>
+</li>
+<li><p><strong>结果</strong>：</p>
+<ul>
+<li><p>输出 <code>Domain: WORKGROUP</code> ➡️ 工作组环境。战术转向：收集本地凭据，探测同网段独立主机。</p>
+</li>
+<li><p>输出 <code>Domain: &lt;特定域名&gt;</code> (如 isw.local) ➡️ 域环境。战术转向：寻找域控 IP，窃取域账户凭据。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>2. 查询工作站网络配置</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">net config workstation</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>解析</strong>：输出当前计算机作为网络客户端的配置信息，提取 <code>工作站域</code> 字段。速度优于 <code>systeminfo</code>。</li>
+</ul>
+<h4 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h4><p><strong>1. 查看 Kerberos 认证配置 (通用)</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/krb5.conf</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>结果</strong>：检索 <code>[realms]</code> 标签块。若存在具体的域名及 <code>kdc = &lt;IP&gt;</code> 配置，表明主机参与域认证，该 IP 极大概率为域控 IP。</li>
+</ul>
+<p><strong>2. 查询 AD 成员状态</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">realm list</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>结果</strong>：输出 <code>configured: kerberos-member</code> 即为加域状态，可进一步搜寻 <code>/etc/krb5.keytab</code> 文件。</li>
+</ul>
+<h1 id="横向移动的标准流程："><a href="#横向移动的标准流程：" class="headerlink" title="横向移动的标准流程："></a>横向移动的标准流程：</h1><ol>
+<li><p>域环境下流程：<br>拿下跳板机 SYSTEM $\rightarrow$ <strong>搭隧道（把ubuntu攻击机送进内网）</strong> $\rightarrow$ <strong>抓密码/扫内网（查明架构）</strong> $\rightarrow$ <strong>横向移动（打域控）</strong>。</p>
+</li>
+<li><p>工作组环境：<br>拿下跳板机 SYSTEM $\rightarrow$ <strong>搭隧道（把ubuntu攻击机送进内网）</strong> $\rightarrow$ <strong>抓密码/扫内网（查明架构）</strong> $\rightarrow$ <strong>密码复用或者靠漏洞硬打</strong></p>
+</li>
+</ol>
+<p>前三点是一样的，我们统一来说，只有最后一步有一点不一样</p>
+<h2 id="一、拿system"><a href="#一、拿system" class="headerlink" title="一、拿system"></a>一、拿system</h2><p>这个不说了，这个是属于linux/win提权章节的内容</p>
+<h2 id="二、隧道与代理概念-Pivoting-Tunneling"><a href="#二、隧道与代理概念-Pivoting-Tunneling" class="headerlink" title="二、隧道与代理概念 (Pivoting / Tunneling)"></a>二、隧道与代理概念 (Pivoting / Tunneling)</h2><p><strong>解决的问题：“把攻击机 (Ubuntu/Kali) 送进内网”</strong> </p>
+<p>你打下的跳板机只有命令行，没法运行 Nmap、BurpSuite 这种大型工具。我们需要在跳板机上搭一个“路由器”，把我们攻击机的流量<strong>转发</strong>进内网。</p>
+<h2 id="三、内网信息收集-Reconnaissance"><a href="#三、内网信息收集-Reconnaissance" class="headerlink" title="三、内网信息收集 (Reconnaissance)"></a>三、内网信息收集 (Reconnaissance)</h2><p><strong>解决的问题：“我是谁？我在哪？周围有谁？域控在哪？”</strong> </p>
+<p>进去内网第一件事是按流程化扫描，操作不当可能留下犯罪信息被抓</p>
+<h2 id="三、凭证窃取-Credential-Harvesting"><a href="#三、凭证窃取-Credential-Harvesting" class="headerlink" title="三、凭证窃取 (Credential Harvesting)"></a>三、凭证窃取 (Credential Harvesting)</h2><p><strong>解决的问题：“我需要合法的密钥去连接下一台机器。”</strong> </p>
+<p>在 Windows 体系里，管理员只要登录过这台机器，他的密码/哈希/票据就会残留在内存（LSASS）里。在<strong>SYSTEM 权限</strong>下能把它们全抓出来。</p>
+<h2 id="域环境四：横向击杀与执行-Lateral-Execution"><a href="#域环境四：横向击杀与执行-Lateral-Execution" class="headerlink" title="域环境四：横向击杀与执行 (Lateral Execution)"></a>域环境四：横向击杀与执行 (Lateral Execution)</h2><p><strong>解决的问题：“拿到密码/漏洞了，怎么远程控制下一台机器？”</strong> </p>
+<p>不要总想着弹 Shell，在内网里，用 Windows 自带的合法远程管理协议去执行命令，才是最免杀、最高级的打法。</p>
+<p>这种情况我们的目标就是拿下<strong>域控</strong> ，一旦拿下域控，导出所有人的密码哈希（ntds.dit），你就是这个内网的上帝，想登哪台登哪台。打法通常围绕着“票据伪造”、“哈希传递 (PtH)”、“委派攻击”展开。</p>
+<h2 id="工作组四：密码复用或打内核洞"><a href="#工作组四：密码复用或打内核洞" class="headerlink" title="工作组四：密码复用或打内核洞"></a>工作组四：密码复用或打内核洞</h2><p>通常靠<strong>密码复用</strong>（可能所有机器的 Administrator 密码都一样），或者利用 MS17-010（永恒之蓝）等通杀漏洞一台一台打过去。</p>
+<h1 id="总结渗透流程"><a href="#总结渗透流程" class="headerlink" title="总结渗透流程"></a>总结渗透流程</h1><ol>
+<li><p><strong>环境探针</strong>：敲 <code>systeminfo | findstr /i &quot;Domain&quot;</code> 看看有没有域后缀（判断在不在域内）。</p>
+</li>
+<li><p><strong>抓取密码</strong>：提权到 SYSTEM，立刻抓取本机的 NTLM Hash 和明文密码（因为这里面可能包含了刚刚登录过的域管密码，这叫“凭证提权”）。</p>
+</li>
+<li><p><strong>建立据点</strong>：传一个 <code>chisel</code> 或 <code>frp</code>，打通你的 Ubuntu 到内网的 Socks5 隧道。</p>
+</li>
+<li><p><strong>轻量刺探</strong>：挂上代理，用 <code>fscan</code> 轻量级扫描内网 B 段或 C 段，找 MS17-010 漏洞、找 Weblogic 弱口令、找域控 IP。</p>
+</li>
+<li><p><strong>滚雪球</strong>：用抓到的密码去撞库（CrackMapExec），拿下一台新机器 -&gt; 抓密码 -&gt; 再撞库，直到拿到域管权限。</p>
+</li>
+<li><p><strong>终局之战</strong>：导出域控上所有的密码（DCSync），完成清场。</p>
+</li>
+</ol>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%910_%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%E5%8F%8A%E6%80%BB%E4%BD%93%E6%A1%86%E6%9E%B6/" title="内网横向0：基础概念及总体框架">http://example.com/2026/03/21/ISW/内网渗透与横向移动/内网横向0_基础概念及总体框架/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/" rel="tag"><i class="fa fa-tag"></i> 横向移动</a>
+              <a href="/tags/%E5%9F%9F%E6%8E%A7/" rel="tag"><i class="fa fa-tag"></i> 域控</a>
+              <a href="/tags/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91%E5%9F%BA%E7%A1%80/" rel="tag"><i class="fa fa-tag"></i> 内网横向基础</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/21/ISW/Win%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83/Win%E6%8F%90%E6%9D%836_%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E4%B8%8E%E5%90%AF%E5%8A%A8%E9%A1%B9/" rel="prev" title="Windows提权6：计划任务与启动项">
+      <i class="fa fa-chevron-left"></i> Windows提权6：计划任务与启动项
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%911_%E9%9A%A7%E9%81%93%E7%A9%BF%E9%80%8F%E4%B8%8E%E4%BB%A3%E7%90%86%E6%8A%80%E6%9C%AF/" rel="next" title="内网横向1：隧道穿透与代理技术">
+      内网横向1：隧道穿透与代理技术 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">基础概念：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">什么是内网横向移动？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E5%89%8D%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">横向前准备工作：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E7%BB%84%E7%8E%AF%E5%A2%83-Workgroup"><span class="nav-number">1.2.1.</span> <span class="nav-text">工作组环境 (Workgroup)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%9F%E7%8E%AF%E5%A2%83-Domain-AD"><span class="nav-number">1.2.2.</span> <span class="nav-text">域环境 (Domain &#x2F; AD)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AE%E5%AE%9A%E6%9E%B6%E6%9E%84%E6%96%B9%E6%B3%95%EF%BC%9A"><span class="nav-number">1.2.3.</span> <span class="nav-text">确定架构方法：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Win"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">Win</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">Linux</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8%E7%9A%84%E6%A0%87%E5%87%86%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">横向移动的标准流程：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%8B%BFsystem"><span class="nav-number">2.1.</span> <span class="nav-text">一、拿system</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E9%9A%A7%E9%81%93%E4%B8%8E%E4%BB%A3%E7%90%86%E6%A6%82%E5%BF%B5-Pivoting-Tunneling"><span class="nav-number">2.2.</span> <span class="nav-text">二、隧道与代理概念 (Pivoting &#x2F; Tunneling)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%86%85%E7%BD%91%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86-Reconnaissance"><span class="nav-number">2.3.</span> <span class="nav-text">三、内网信息收集 (Reconnaissance)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%87%AD%E8%AF%81%E7%AA%83%E5%8F%96-Credential-Harvesting"><span class="nav-number">2.4.</span> <span class="nav-text">三、凭证窃取 (Credential Harvesting)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%9F%E7%8E%AF%E5%A2%83%E5%9B%9B%EF%BC%9A%E6%A8%AA%E5%90%91%E5%87%BB%E6%9D%80%E4%B8%8E%E6%89%A7%E8%A1%8C-Lateral-Execution"><span class="nav-number">2.5.</span> <span class="nav-text">域环境四：横向击杀与执行 (Lateral Execution)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E7%BB%84%E5%9B%9B%EF%BC%9A%E5%AF%86%E7%A0%81%E5%A4%8D%E7%94%A8%E6%88%96%E6%89%93%E5%86%85%E6%A0%B8%E6%B4%9E"><span class="nav-number">2.6.</span> <span class="nav-text">工作组四：密码复用或打内核洞</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%E6%B8%97%E9%80%8F%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">总结渗透流程</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

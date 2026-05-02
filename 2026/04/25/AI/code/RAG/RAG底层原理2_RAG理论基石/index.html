@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言： 本节讲述了RAG基本的框架，以及基本原理  RAG（检索增强生成）工作原理那么，RAG 系统是如何实现“参数化知识”与“非参数化知识”的结合呢？如下图所示，其架构主要通过两个阶段来完成这一过程： （1）检索阶段：寻找“非参数化知识”  知识向量化：嵌入模型（Embedding Model） 充当了“连接器”的角色。它将外部知识库编码为向量索引（Index），存入向量数据库。 语义召回：当用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG底层原理2:RAG 理论基石">
+<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言： 本节讲述了RAG基本的框架，以及基本原理  RAG（检索增强生成）工作原理那么，RAG 系统是如何实现“参数化知识”与“非参数化知识”的结合呢？如下图所示，其架构主要通过两个阶段来完成这一过程： （1）检索阶段：寻找“非参数化知识”  知识向量化：嵌入模型（Embedding Model） 充当了“连接器”的角色。它将外部知识库编码为向量索引（Index），存入向量数据库。 语义召回：当用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter1/images/1_1_1.svg">
+<meta property="article:published_time" content="2026-04-25T03:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-26T14:01:53.170Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="基础知识">
+<meta property="article:tag" content="AI开发">
+<meta property="article:tag" content="RAG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://datawhalechina.github.io/all-in-rag/chapter1/images/1_1_1.svg">
+
+<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RAG底层原理2:RAG 理论基石 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG底层原理2:RAG 理论基石
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-04-25 11:00:00" itemprop="dateCreated datePublished" datetime="2026-04-25T11:00:00+08:00">2026-04-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-04-26 22:01:53" itemprop="dateModified" datetime="2026-04-26T22:01:53+08:00">2026-04-26</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/" itemprop="url" rel="index"><span itemprop="name">AI</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">开发</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" itemprop="url" rel="index"><span itemprop="name">RAG</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><blockquote>
+<p>本节讲述了RAG基本的框架，以及基本原理</p>
+</blockquote>
+<h1 id="RAG（检索增强生成）工作原理"><a href="#RAG（检索增强生成）工作原理" class="headerlink" title="RAG（检索增强生成）工作原理"></a>RAG（检索增强生成）工作原理</h1><p>那么，RAG 系统是如何实现“参数化知识”与“非参数化知识”的结合呢？如下图所示，其架构主要通过两个阶段来完成这一过程：</p>
+<p>（1）<strong>检索阶段：寻找“非参数化知识”</strong></p>
+<ul>
+<li><strong>知识向量化</strong>：<strong>嵌入模型（Embedding Model）</strong> 充当了“连接器”的角色。它将外部知识库编码为向量索引（Index），存入<strong>向量数据库</strong>。</li>
+<li><strong>语义召回</strong>：当用户发起查询时，检索模块利用同样的嵌入模型将问题向量化，并通过<strong>相似度搜索（Similarity Search）</strong>，从海量数据中精准锁定与问题最相关的文档片段。</li>
+</ul>
+<p>（2）<strong>生成阶段：融合两种知识</strong></p>
+<ul>
+<li><strong>上下文整合</strong>：<strong>生成模块</strong>接收检索阶段送来的相关文档片段以及用户的原始问题。</li>
+<li><strong>指令引导生成</strong>：该模块会遵循预设的 <strong>Prompt</strong> 指令，将上下文与问题有效整合，并引导 LLM（如 DeepSeek）进行可控的、有理有据的文本生成。</li>
+</ul>
+<p><img data-src="https://datawhalechina.github.io/all-in-rag/chapter1/images/1_1_1.svg" alt="RAG 双阶段架构示意图"></p>
+<h1 id="为什么要使用-RAG？"><a href="#为什么要使用-RAG？" class="headerlink" title="为什么要使用 RAG？"></a>为什么要使用 RAG？</h1><p>在选择具体的技术路径时，一个重要的考量是成本与效益的平衡。通常，我们应优先选择对模型改动最小、成本最低的方案，所以技术选型路径往往遵循的顺序是<strong>提示词工程（Prompt Engineering） -&gt; 检索增强生成（RAG） -&gt; 微调（Fine-tuning）</strong>。</p>
+<p>下面对这三个技术选型做一个<strong>通俗解释</strong>：</p>
+<ol>
+<li><p><strong>提示词工程</strong></p>
+<ul>
+<li><p><strong>做法</strong>：不改变模型本身，只是通过精心设计输入给模型的指令（提示词），比如把问题写更清楚、提供几个例子（Few-shot），引导模型直接输出想要的结果。</p>
+</li>
+<li><p><strong>优点</strong>：零成本、即时生效、无需技术资源。</p>
+</li>
+<li><p><strong>适用</strong>：简单任务、快速验证、模型已具备基础能力的情况。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>检索增强生成</strong></p>
+<ul>
+<li><p><strong>做法</strong>：在让模型生成答案前，先从外部知识库（比如公司内部文档、数据库）里快速搜索相关信息，把这些信息“塞进”提示词里，让模型基于这些资料来回答。</p>
+</li>
+<li><p><strong>优点</strong>：比微调成本低、知识可更新、能解决“幻觉”（胡编乱造）问题。</p>
+</li>
+<li><p><strong>适用</strong>：问答系统、需要引用最新或私有知识、模型本身不擅长该领域但只需“查资料”就能解决的任务。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>微调</strong></p>
+<ul>
+<li><p><strong>做法</strong>：用一批针对特定任务的“问题-答案”数据，对模型进行额外的训练，调整模型内部的参数，让它“学会”新的行为模式或风格。</p>
+</li>
+<li><p><strong>优点</strong>：效果最深、模型能真正改变行为逻辑、提升成功率最高。</p>
+</li>
+<li><p><strong>缺点</strong>：成本高（需要GPU算力）、需要准备高质量数据集、时间较长。</p>
+</li>
+<li><p><strong>适用</strong>：任务有特定格式、语调或复杂规则，且前两种方法都达不到效果要求时。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>基于此，我们的选择路径就清晰了：</p>
+<ul>
+<li><strong>先尝试提示工程</strong>：通过精心设计提示词来引导模型，适用于任务简单、模型已有相关知识的场景。</li>
+<li><strong>再选择 RAG</strong>：如果模型缺乏特定或实时知识而无法回答，则使用 RAG，通过外挂知识库为其提供上下文信息。</li>
+<li><strong>最后考虑微调</strong>：当目标是改变模型“如何做”（行为/风格/格式）而不是“知道什么”（知识）时，微调是最终且最合适的选择。例如，让模型学会严格遵循某种独特的输出格式、模仿特定人物的对话风格，或者将极其复杂的指令“蒸馏”进模型权重中。</li>
+</ul>
+<p>RAG 的出现填补了<strong>通用模型与专业领域之间的鸿沟</strong>，它在解决如表 1-2 所示 LLM 局限时尤其有效：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>RAG的解决方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>静态知识局限</strong></td>
+<td>实时检索外部知识库，支持动态更新</td>
+</tr>
+<tr>
+<td><strong>幻觉（Hallucination）</strong></td>
+<td>基于检索内容生成，错误率降低</td>
+</tr>
+<tr>
+<td><strong>领域专业性不足</strong></td>
+<td>引入领域特定知识库（如医疗/法律）</td>
+</tr>
+<tr>
+<td><strong>数据隐私风险</strong></td>
+<td>本地化部署知识库，避免敏感数据泄露</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="如何上手-RAG？"><a href="#如何上手-RAG？" class="headerlink" title="如何上手 RAG？"></a>如何上手 RAG？</h1><p>我这里需求是</p>
+<ol>
+<li><p>部署方便快捷</p>
+</li>
+<li><p>了解底层原理，后续要进行底层优化，所以需要编写代码</p>
+</li>
+</ol>
+<p>所以我选择的部署方案是：</p>
+<h2 id="核心技术栈选型表"><a href="#核心技术栈选型表" class="headerlink" title="核心技术栈选型表"></a>核心技术栈选型表</h2><p>为了兼顾“学习底层原理”和“部署极其方便”，本项目的技术栈如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>选型决定</th>
+<th>为什么这么选？（决策逻辑）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>开发框架</strong></td>
+<td><strong>原生 Python 控制流</strong> + 辅以基础 LangChain</td>
+<td><strong>不使用</strong> LangChain 的高级封装链（如 <code>RetrievalQA</code>）。我们将自己写 <code>for</code> 循环拼接 Prompt，自己调用 LLM，以此彻底搞懂上下文是如何被喂给大模型的。LangChain 只用来做苦力活（如文档读取和分块）。</td>
+</tr>
+<tr>
+<td><strong>向量数据库</strong></td>
+<td><strong>ChromaDB</strong> 或 <strong>FAISS</strong> (本地化方案)</td>
+<td><strong>极其轻量</strong> 它们不需要像 MySQL 或 Redis 那样单独启动一个数据库服务进程。只需 <code>pip install chromadb</code>，向量数据会直接以 SQLite 文件形式保存在你的项目文件夹里。迁移和部署只需打包整个文件夹即可。</td>
+</tr>
+<tr>
+<td><strong>模型接入</strong></td>
+<td><strong>云端 API</strong> (推荐 DeepSeek / 智谱 / 阿里)</td>
+<td>放弃本地部署开源大模型（如 Llama3），因为那需要极其昂贵的 GPU 算力，且部署极不方便。调用国产大模型 API 速度快、成本低（几乎免费），让你的应用可以部署在任何一台便宜的 1 核 2G 轻量云服务器上。</td>
+</tr>
+<tr>
+<td><strong>后端服务</strong></td>
+<td><strong>FastAPI</strong></td>
+<td>Python 生态中最快、最现代的 Web 框架，几行代码就能把你的 RAG 核心逻辑包装成流式输出 (SSE) 的 API 提供给前端。</td>
+</tr>
+<tr>
+<td><strong>评估工具</strong></td>
+<td><strong>Ragas</strong> (后期引入)</td>
+<td>纯代码框架，方便我们在本地用脚本批量跑测试，量化调整 Chunk Size 和 Top-K 带来的影响。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>具体环境配置留到下一节再统一讲述</p>
+<p>如果只想快速部署项目的可以选择一个<strong>开源架构dify</strong>等等来快速落地项目</p>
+<h1 id="RAG技术前景"><a href="#RAG技术前景" class="headerlink" title="RAG技术前景"></a>RAG技术前景</h1><p>虽然随着模型上下文的暴涨，显得rag技术好像不如提示词一样简单快捷，但是 <strong>RAG 已死</strong>是一个伪命题。</p>
+<p>相反，<strong>RAG 作为一个概念活得很好</strong>，它正在像 Transformer 一样，成为一个不断吸收新技术、不断进化的基础架构范式。它的生命力，正在于它的“面目全非”和“包罗万象”。而<strong>本教程的目标，就是绘制出这张描绘 RAG 全貌的清晰地图，当我们可以解构它的每一个模块、理解它的每一种可能性时，RAG 也好，LKE 也罢，这些都无关紧要</strong>。我们要做的就是通过 RAG 这道经典例题来学习和拓展（将 LLM 的内在参数化知识与外部非参数化知识相结合）这类题型的解题思路。</p>
+<p>下一节我们将讲述具体的环境配置过程，从电脑上配置一个rag基础环境</p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/" title="RAG底层原理2:RAG 理论基石">http://example.com/2026/04/25/AI/code/RAG/RAG底层原理2_RAG理论基石/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" rel="tag"><i class="fa fa-tag"></i> 基础知识</a>
+              <a href="/tags/AI%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> AI开发</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%861_%E6%80%BB%E4%BD%93%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/" rel="prev" title="RAG底层原理1:总体学习框架">
+      <i class="fa fa-chevron-left"></i> RAG底层原理1:总体学习框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/" rel="next" title="RAG底层原理3:环境配置与启动">
+      RAG底层原理3:环境配置与启动 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RAG%EF%BC%88%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90%EF%BC%89%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">RAG（检索增强生成）工作原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8-RAG%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">为什么要使用 RAG？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%B8%8A%E6%89%8B-RAG%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">如何上手 RAG？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E6%A0%88%E9%80%89%E5%9E%8B%E8%A1%A8"><span class="nav-number">4.1.</span> <span class="nav-text">核心技术栈选型表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RAG%E6%8A%80%E6%9C%AF%E5%89%8D%E6%99%AF"><span class="nav-number">5.</span> <span class="nav-text">RAG技术前景</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

