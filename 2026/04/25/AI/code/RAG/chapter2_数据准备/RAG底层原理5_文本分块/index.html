@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：文本分块（Text Chunking）是构建 RAG 流程的关键步骤。它的原理是将加载后的长篇文档，切分成更小、更易于处理的单元。这些被切分出的文本块，是后续向量检索和模型处理的基本单位。 它的角色：它是数据加载之后的二次加工，属于模块二：数据清洗与分块策略 (Data Processing) 阶段的第二步 它要解决的问题（容量与精度）：  容量受限：大模型（LLM）和向量提取模型（Embe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG底层原理5:文本分块">
+<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/chapter2_%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%865_%E6%96%87%E6%9C%AC%E5%88%86%E5%9D%97/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：文本分块（Text Chunking）是构建 RAG 流程的关键步骤。它的原理是将加载后的长篇文档，切分成更小、更易于处理的单元。这些被切分出的文本块，是后续向量检索和模型处理的基本单位。 它的角色：它是数据加载之后的二次加工，属于模块二：数据清洗与分块策略 (Data Processing) 阶段的第二步 它要解决的问题（容量与精度）：  容量受限：大模型（LLM）和向量提取模型（Embe">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-25T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-07T13:43:20.103Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="AI开发">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="文本分块">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/chapter2_%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%865_%E6%96%87%E6%9C%AC%E5%88%86%E5%9D%97/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RAG底层原理5:文本分块 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/chapter2_%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%865_%E6%96%87%E6%9C%AC%E5%88%86%E5%9D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG底层原理5:文本分块
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-04-25 14:00:00" itemprop="dateCreated datePublished" datetime="2026-04-25T14:00:00+08:00">2026-04-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-06-07 21:43:20" itemprop="dateModified" datetime="2026-06-07T21:43:20+08:00">2026-06-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/" itemprop="url" rel="index"><span itemprop="name">AI</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">开发</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" itemprop="url" rel="index"><span itemprop="name">RAG</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>文本分块（Text Chunking）是构建 RAG 流程的关键步骤。它的原理是将加载后的长篇文档，切分成更小、更易于处理的单元。这些被切分出的文本块，是后续向量检索和模型处理的<strong>基本单位</strong>。</p>
+<p><strong>它的角色</strong>：它是数据加载之后的二次加工，属于<strong>模块二：数据清洗与分块策略 (Data Processing)</strong> 阶段的第二步</p>
+<p><strong>它要解决的问题（容量与精度）</strong>：</p>
+<ol>
+<li><p><strong>容量受限</strong>：大模型（LLM）和向量提取模型（Embedding）都有严格的字数限制（Token 限制）。如果你把一整本 10 万字的书直接扔进去，模型会被直接“撑死”报错。</p>
+</li>
+<li><p><strong>检索稀释</strong>：如果你不切块，把一整篇文章当成一个目标去检索，里面的关键信息就全被稀释了。系统很难判断这篇文章到底是在讲历史、讲科技还是讲菜谱。</p>
+</li>
+</ol>
+<p><strong>它的动作</strong>：分块器（Splitter）会按照你设定的规则（比如每 500 字一刀，且保留 50 字的上下文重叠），把加载进来的超长文本切成一小段、一小段的“文本块”（Chunk）。</p>
+<h1 id="分块原则："><a href="#分块原则：" class="headerlink" title="分块原则："></a>分块原则：</h1><p>首先块不能太大，也不能太小<br>一：为什么块不能“太大”？</p>
+<hr>
+<p>如果为了省事，把一整页纸甚至一整章切成一个大块（比如一次性切 3000 字），会引发致命的灾难：</p>
+<ol>
+<li><p><strong>撑爆模型的“胃口”（Token 限制）：</strong> 把文本变成向量的 Embedding 模型（比如 <code>bge-m3</code> 或 OpenAI 的 <code>text-embedding-3</code>）都有严格的输入长度限制（通常是 512 到 8192 个 Token）。如果文本块超长，超出的部分会被模型直接无情截断，信息当场丢失。</p>
+</li>
+<li><p><strong>“语义稀释”导致检索失灵（大海捞针）：</strong> 假设一个大文本块里同时讲了“苹果公司的财报”、“苹果手机的销量”和“种苹果树的技术”。当用户搜索“如何种水果”时，这个块虽然包含了正确答案，但由于“噪音”太多，它的整体向量语义会被拉偏。在计算相似度时，它反而竞争不过那些短小精悍、只讲种树的文本。</p>
+</li>
+<li><p><strong>增加大模型的“幻觉”和成本：</strong> 就算检索到了这个巨大的块并喂给大模型，大模型要在茫茫字海中找出一句关键的话，不仅消耗极其昂贵的 Token 费用，还极其容易产生“注意力偏移”（Attention 丢失），从而胡言乱语。</p>
+</li>
+</ol>
+<h2 id="二：为什么块不能“太小”？"><a href="#二：为什么块不能“太小”？" class="headerlink" title="二：为什么块不能“太小”？"></a>二：为什么块不能“太小”？</h2><p>既然太大不好，那我一句话（甚至几个词）切一块（比如 20 个字）行不行？同样也是灾难：</p>
+<ol>
+<li><p><strong>致命的“上下文丢失”（指代不明）：</strong> 如果切块太小，很容易把一句话劈成两半。比如检索库里有一块的内容仅仅是：_“它在 2024 年第一季度的净利润暴涨了 50%。”_ 大模型拿到这句话会彻底抓狂——“它”是谁？！由于失去了上一段的上下文，这块数据成了毫无价值的“废料”。</p>
+</li>
+<li><p><strong>检索碎片化与错位：</strong> 太小的块语义极其单一。用户提问一个稍微复杂的问题（例如需要结合起因和结果的复合问题），系统可能只能搜到零碎的片段，无法为 LLM 提供支撑完整逻辑链的素材。</p>
+</li>
+</ol>
+<h2 id="文本分块的“黄金三大原则”"><a href="#文本分块的“黄金三大原则”" class="headerlink" title="文本分块的“黄金三大原则”"></a>文本分块的“黄金三大原则”</h2><p>基于上述的两个极端，架构师在设计 RAG 分块策略时，必须死守以下三大原则：</p>
+<h3 id="原则一：语义完整性第一"><a href="#原则一：语义完整性第一" class="headerlink" title="原则一：语义完整性第一"></a>原则一：语义完整性第一</h3><p>永远不要生硬地“按字数一刀切”。优秀的切块策略必须尊重人类语言的自然结构，<strong>优先按段落切分，其次按句子切分</strong>，最后才考虑按字符切分。要尽量保证每一个切出来的块，人类单独抽出来阅读时，也能看懂它在表达什么。</p>
+<h3 id="原则二：保持上下文重叠"><a href="#原则二：保持上下文重叠" class="headerlink" title="原则二：保持上下文重叠"></a>原则二：保持上下文重叠</h3><p>为了防止“切断骨头连着筋”的信息被割裂，相邻的两个文本块之间<strong>必须要有重叠区域</strong>（Chunk Overlap）。 _就像拍全景照片一样，两张照片之间必须有重合部分，才能拼接出完整的风景。上一块的结尾 50 个字，必须是下一块的开头 50 个字，以此来强行保留上下文。_</p>
+<h3 id="原则三：因地制宜，任务导向"><a href="#原则三：因地制宜，任务导向" class="headerlink" title="原则三：因地制宜，任务导向"></a>原则三：因地制宜，任务导向</h3><p>没有绝对完美的块大小，只有最适合当前任务的大小：</p>
+<ul>
+<li><p><strong>如果是做百科问答、名词解释：</strong> 用户提问很精准，适合<strong>较小的块</strong>（如 200-500 Token），提高检索命中率。</p>
+</li>
+<li><p><strong>如果是做总结摘要、长逻辑推理：</strong> LLM 需要宏观信息，适合<strong>较大的块</strong>（如 1000-2000 Token），保证上下文的充沛。</p>
+</li>
+</ul>
+<h1 id="具体分块策略代码部分（基于langchain）"><a href="#具体分块策略代码部分（基于langchain）" class="headerlink" title="具体分块策略代码部分（基于langchain）"></a>具体分块策略代码部分（基于langchain）</h1><h2 id="固定大小分块策略："><a href="#固定大小分块策略：" class="headerlink" title="固定大小分块策略："></a>固定大小分块策略：</h2><blockquote>
+<p>这里先补充一个chunk_size的知识，chunk_size底层默认情况下，<code>chunk_size</code> 的单位是 <strong>字符数（Characters）</strong>，<strong>不是字节</strong>，因为它底层默认使用的是 Python 自带的 <code>len()</code> 函数。对于 Python 字符串来说，<code>len(&quot;你好&quot;)</code> 算作 2 个字符，而不是 UTF-8 编码下的 6 个字节。</p>
+</blockquote>
+<p><strong>💡 进阶避坑：</strong> 在工业级 RAG 项目中，为了精准对齐大模型的输入限制，架构师通常会把单位换成 <strong>Token</strong>。做法是把默认的 <code>len</code> 换成分词器（比如 OpenAI 的 <code>tiktoken</code>），这样 <code>chunk_size=500</code> 就代表严格的 500 个 Token。</p>
+<p>其实这里的固定大小，并不是真的我们设置chunk_size = 500，他就严格按照500字符切一刀，那样可能我们的语义会被切的七零八落</p>
+<p>这种方法的工作原理其实分为两个主要阶段：</p>
+<ol>
+<li><p><strong>按段落分割 (拆碎)</strong>：它首先认准你设定的 <code>separator</code>（默认是 <code>\n\n</code>），用正则表达式把整篇文章劈成一个个独立的自然段。</p>
+</li>
+<li><p><strong>智能合并 (拼装)</strong>：调用底层的 <code>_merge_splits</code> 方法，把刚切好的段落一段段往里拼。只要累积长度没超过 <code>chunk_size</code>，它就继续拼。一旦加上下一段会超标，它就把当前拼好的内容打包成一个新 Chunk，并通过 <code>chunk_overlap</code> 留一点尾巴给下一个 Chunk 保持连贯。</p>
+</li>
+</ol>
+<h3 id="实例代码："><a href="#实例代码：" class="headerlink" title="实例代码："></a>实例代码：</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain.text_splitter <span class="keyword">import</span> CharacterTextSplitter</span><br><span class="line"><span class="keyword">from</span> langchain_community.document_loaders <span class="keyword">import</span> TextLoader</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 文档加载</span></span><br><span class="line">loader = TextLoader(<span class="string">&quot;../../data/C2/txt/蜂医.txt&quot;</span>, encoding=<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line">docs = loader.load()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 初始化固定大小分块器</span></span><br><span class="line">text_splitter = CharacterTextSplitter(</span><br><span class="line">    chunk_size=<span class="number">200</span>,    <span class="comment"># 每个块的大小</span></span><br><span class="line">    chunk_overlap=<span class="number">10</span>   <span class="comment"># 块之间的重叠大小</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 执行分块</span></span><br><span class="line">chunks = text_splitter.split_documents(docs)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 打印结果</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;文本被切分为 <span class="subst">&#123;<span class="built_in">len</span>(chunks)&#125;</span> 个块。\n&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;--- 前5个块内容示例 ---&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> i, chunk <span class="keyword">in</span> <span class="built_in">enumerate</span>(chunks[:<span class="number">5</span>]):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="comment"># chunk 是一个 Document 对象，需要访问它的 .page_content 属性来获取文本</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;块 <span class="subst">&#123;i+<span class="number">1</span>&#125;</span> (长度: <span class="subst">&#123;<span class="built_in">len</span>(chunk.page_content)&#125;</span>): &quot;<span class="subst">&#123;chunk.page_content&#125;</span>&quot;&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>实例代码运行结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">(all-in-rag) @som1ng ➜ /workspaces/all-in-rag/code/C2 (main) $ python 02_character_splitter.py</span><br><span class="line">Created a chunk of size 201, <span class="built_in">which</span> is longer than the specified 200</span><br><span class="line">Created a chunk of size 277, <span class="built_in">which</span> is longer than the specified 200</span><br><span class="line">Created a chunk of size 296, <span class="built_in">which</span> is longer than the specified 200</span><br><span class="line">文本被切分为 14 个块。</span><br><span class="line"></span><br><span class="line">--- 前5个块内容示例 ---</span><br><span class="line">============================================================</span><br><span class="line">块 1 (长度: 72): <span class="string">&quot;# 蜂医</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">游戏《三角洲行动》中的支援型干员</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">蜂医是2024年琳琅天上发行的《三角洲行动》中的支援型干员之一，在早期版本是唯一一个支援型干员。&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 2 (长度: 201): <span class="string">&quot;蜂医在游戏中能够使用战术装备“激素枪”：远程治疗队友或&#x27;自我治疗&#x27;，还可以使用兵种道具“烟幕无人机”：释放长烟幕，和“蜂巢科技烟雾弹”：产生一团白色烟雾（使用激素枪对烟雾射击换变成绿色烟雾，可起到治疗作用），干员特长为“高效救援”：救援倒地队友时速度更快，在全面战场模式中约1.4秒就能救起队友，且被救起的队友能恢复更多生命值。在烽火地带中，还能够移除队友血量上限减少的负面效果。 \[1-2]****&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 3 (长度: 189): <span class="string">&quot;* 中文名</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  罗伊•斯米</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">* 外文名</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  Roy smee \[2]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">* 别    名</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  罗伊、蜂医</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">* 性    别</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  男</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 登场作品</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  [三角洲行动](/item/%E4%B8%89%E8%A7%92%E6%B4%B2%E8%A1%8C%E5%8A%A8/63251542?fromModule=lemma_inlink)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 生    日&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 4 (长度: 133): <span class="string">&quot;- 生    日</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  2008年2月23日 \[3]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 身    高</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  176 cm \[3]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 体    重</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  75 kg \[3]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 目录</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">1. 1[角色设定](#1)</span></span><br><span class="line"><span class="string">2. 2[角色定位](#2)</span></span><br><span class="line"><span class="string">3. 3[技能](#3)&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 5 (长度: 189): <span class="string">&quot;1) ▪[战术装备 - 激素枪](#3-1)</span></span><br><span class="line"><span class="string">2) ▪[战术道具 - 烟幕无人机](#3-2)</span></span><br><span class="line"><span class="string">3) ▪[战术道具 - 蜂巢科技烟雾弹](#3-3)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">1. ▪[干员特长 - 高效救援](#3-4)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 角色设定</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">三角洲行动：医疗角色蜂医！让你不再为血量担忧</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">蜂医是游戏中的一名战地医生，拥有丰富的参军履历。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">蜂医在干员档案中标明他有一个妻子和女儿。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 角色定位&quot;</span></span><br></pre></td></tr></table></figure>
+<p>基于 <code>_merge_splits</code> 源码逻辑，你会发现它有三个合并原则</p>
+<ul>
+<li><p><strong>段落完整性 &gt; 强制字数</strong>：它绝对优先保证段落不被破坏。只有当“再塞一个完整的新段落就会撑爆大小”时，才会结束当前块。</p>
+</li>
+<li><p><strong>超长段落免疫（警告但不切）</strong>：如果你的文档里有一个长达 2000 字的超级大段落（中间没有双换行），而你设置的 <code>chunk_size</code> 是 200。它<strong>不会</strong>把这个段落从中间生生截断，系统会<strong>发出一条超长的警告（Warning）</strong>，但依然会将这 2000 字作为一整个完好的 Chunk 保留下来。</p>
+</li>
+<li><p><strong>适用场景</strong>：实现简单、计算开销极小。非常适合处理<strong>日志文件、代码库、数据预处理</strong>或者<strong>格式极其规整（段落均匀）</strong>的文本。但在处理普通的长篇无排版文章时，可能不太灵活。</p>
+</li>
+</ul>
+<h2 id="递归字符文本分割器-RecursiveCharacterTextSplitter"><a href="#递归字符文本分割器-RecursiveCharacterTextSplitter" class="headerlink" title="递归字符文本分割器 (RecursiveCharacterTextSplitter)"></a>递归字符文本分割器 (RecursiveCharacterTextSplitter)</h2><p>这是 RAG 系统中<strong>最通用、最推荐、也是最聪明</strong>的基础切分器。第一把刀遇到超长段落会“直接摆烂报警”，而这第二把刀则是专门为了对付超长段落而生的：<strong>遇到长段落，它会换更细的刀继续切。</strong></p>
+<h3 id="实例代码"><a href="#实例代码" class="headerlink" title="实例代码"></a>实例代码</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_text_splitters <span class="keyword">import</span> RecursiveCharacterTextSplitter, Language</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 针对【中文长文本】的优化分隔符配置</span></span><br><span class="line"><span class="comment"># 默认的 [&quot;\n\n&quot;, &quot;\n&quot;, &quot; &quot;, &quot;&quot;] 对英文友好，但中文没有空格边界，所以必须加上中文标点！</span></span><br><span class="line">text_splitter_zh = RecursiveCharacterTextSplitter(</span><br><span class="line">    separators=[</span><br><span class="line">        <span class="string">&quot;\n\n&quot;</span>, <span class="string">&quot;\n&quot;</span>, <span class="string">&quot; &quot;</span>, </span><br><span class="line">        <span class="string">&quot;。&quot;</span>, <span class="string">&quot;，&quot;</span>,          <span class="comment"># 强力补充：中文全角句号、逗号</span></span><br><span class="line">        <span class="string">&quot;\uff0e&quot;</span>, <span class="string">&quot;\u3001&quot;</span>,  <span class="comment"># 补充：全角点号、顿号</span></span><br><span class="line">        <span class="string">&quot;&quot;</span>                   <span class="comment"># 终极杀招：按单字符强切</span></span><br><span class="line">    ],</span><br><span class="line">    chunk_size=<span class="number">200</span>,</span><br><span class="line">    chunk_overlap=<span class="number">10</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 针对【编程代码】的降维打击</span></span><br><span class="line"><span class="comment"># 它可以感知代码的 AST（抽象语法树），不会把一个完整的 Python 函数劈成两半！</span></span><br><span class="line">splitter_code = RecursiveCharacterTextSplitter.from_language(</span><br><span class="line">    language=Language.PYTHON, </span><br><span class="line">    chunk_size=<span class="number">500</span>,</span><br><span class="line">    chunk_overlap=<span class="number">50</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>递归切法的同一个文本结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">(all-in-rag) @som1ng ➜ /workspaces/all-in-rag/code/C2 (main) $ python 03_recursive_character_splitter.py</span><br><span class="line">文本被切分为 22 个块。</span><br><span class="line"></span><br><span class="line">--- 前5个块内容示例 ---</span><br><span class="line">============================================================</span><br><span class="line">块 1 (长度: 72): <span class="string">&quot;# 蜂医</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">游戏《三角洲行动》中的支援型干员</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">蜂医是2024年琳琅天上发行的《三角洲行动》中的支援型干员之一，在早期版本是唯一一个支援型干员。&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 2 (长度: 189): <span class="string">&quot;蜂医在游戏中能够使用战术装备“激素枪”：远程治疗队友或&#x27;自我治疗&#x27;，还可以使用兵种道具“烟幕无人机”：释放长烟幕，和“蜂巢科技烟雾弹”：产生一团白色烟雾（使用激素枪对烟雾射击换变成绿色烟雾，可起到治疗作用），干员特长为“高效救援”：救援倒地队友时速度更快，在全面战场模式中约1.4秒就能救起队友，且被救起的队友能恢复更多生命值。在烽火地带中，还能够移除队友血量上限减少的负面效果&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 3 (长度: 12): <span class="string">&quot;。 \[1-2]****&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 4 (长度: 189): <span class="string">&quot;* 中文名</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  罗伊•斯米</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">* 外文名</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  Roy smee \[2]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">* 别    名</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  罗伊、蜂医</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">* 性    别</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  男</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 登场作品</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  [三角洲行动](/item/%E4%B8%89%E8%A7%92%E6%B4%B2%E8%A1%8C%E5%8A%A8/63251542?fromModule=lemma_inlink)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 生    日&quot;</span></span><br><span class="line">============================================================</span><br><span class="line">块 5 (长度: 133): <span class="string">&quot;- 生    日</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  2008年2月23日 \[3]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 身    高</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  176 cm \[3]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">- 体    重</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  75 kg \[3]**</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">## 目录</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">1. 1[角色设定](#1)</span></span><br><span class="line"><span class="string">2. 2[角色定位](#2)</span></span><br><span class="line"><span class="string">3. 3[技能](#3)&quot;</span></span><br></pre></td></tr></table></figure>
+<p>简单来说，第一种切块方法是按自然段切，第二种方法是自然段太大，还会在separators列表接着找分隔符去切</p>
+<p><strong>具体逻辑：</strong></p>
+<ol>
+<li><p><strong>找分隔符</strong>：从你配置的 <code>separators</code> 列表中，从左到右找第一个在文本中存在的分隔符（比如先找 <code>\n\n</code>）。</p>
+</li>
+<li><p><strong>切分与暂存</strong>：把文本切碎。然后遍历这些碎片：</p>
+<ul>
+<li><p><strong>如果碎片 &lt;= <code>chunk_size</code></strong>：说明切得很好，把它暂时放进一个叫 <code>_good_splits</code>（合格暂存池）的地方，等待后续合并，<strong>而不是立刻输出</strong>。</p>
+</li>
+<li><p><strong>如果碎片 &gt; <code>chunk_size</code></strong>：遇到“硬骨头”了！此时触发两连击：</p>
+<ul>
+<li><p>先强制把 <code>_good_splits</code> 里之前暂存的合格碎片打包成一个 Chunk 输出。</p>
+</li>
+<li><p>然后，<strong>更换更细的刀</strong>（拿列表中剩下的分隔符，如句号 <code>。</code>），对这个超长硬骨头进行<strong>递归调用 (<code>_split_text</code>)</strong> 继续往下切</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>递归的底线</strong>：当所有的分隔符全试完了（<code>new_separators</code> 为空，连 <code>&quot;&quot;</code> 单字符切分都用过了），如果这块文本依然超长（极其罕见），它才会停止递归，被迫将其作为超长块保留。</p>
+</li>
+</ol>
+<h2 id="语义分块"><a href="#语义分块" class="headerlink" title="语义分块"></a>语义分块</h2><p>传统的固定长度和递归分块，虽然好用，但本质上还是在“靠数标点符号”来盲猜语义。而 <code>SemanticChunker</code> 则是真正让 AI 去“读懂”文章，在话题发生转移（语义跳跃）的地方精准切上一刀。LangChain 提供了 <code>langchain_experimental.text_splitter.SemanticChunker</code> 来实现这一功能。</p>
+<h3 id="核心算法流程-五步"><a href="#核心算法流程-五步" class="headerlink" title="核心算法流程 (五步)"></a>核心算法流程 (五步)</h3><ol>
+<li><p><strong>句子分割</strong>：先按句号、问号等把文章拆成一句句话。</p>
+</li>
+<li><p><strong>上下文感知嵌入[天才设计]</strong>：</p>
+<ul>
+<li><p>传统的做法是对每一句孤立的话算 Embedding。</p>
+</li>
+<li><p>这里用到了 <code>buffer_size</code> 参数（滑动窗口）。它会把当前句子和它前后的句子打包在一起计算 Embedding 向量。这样算出来的向量，<strong>完美融合了上下文的语境</strong>，防止了单句歧义。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>计算语义距离</strong>：计算相邻两个句子向量的余弦距离。距离越大，说明这两句话聊的内容跳跃越大（比如上一句聊李白，下一句突然聊火箭）。</p>
+</li>
+<li><p><strong>识别断点</strong>：利用统计学方法算出一个“阈值”（具体看下文）。只要两句话的距离超过这个阈值，这里就是一个“断点”。</p>
+</li>
+<li><p><strong>合并成块</strong>：沿着识别出来的断点手起刀落，把断点中间的所有句子融合成一个高度语义连贯的 Chunk。</p>
+</li>
+</ol>
+<h3 id="四大“断点阈值”计算方法"><a href="#四大“断点阈值”计算方法" class="headerlink" title="四大“断点阈值”计算方法"></a>四大“断点阈值”计算方法</h3><p>如何定义“多大的跳跃才算跳跃”？它内置了四种统计学方法：</p>
+<ol>
+<li><p><code>percentile</code> <strong>(百分位法，默认推荐)</strong>：把所有距离排个序，取前 5% 最陡峭的跳跃点作为切分点（<code>amount=95</code>）。</p>
+</li>
+<li><p><code>standard_deviation</code> <strong>(标准差法)</strong>：超过“平均距离 + N倍标准差”的算作异常跳跃点。</p>
+</li>
+<li><p><code>interquartile</code> <strong>(四分位距法)</strong>：统计学中的 IQR，超过 <code>Q3 + N*IQR</code> 视为断点。</p>
+</li>
+<li><p><code>gradient</code> <strong>(梯度法)</strong>：计算距离的“变化率”（二阶导数思想），对那些行文极其枯燥连贯的文档（如法律、医疗说明书）有奇效，能敏锐捕捉微小的语义拐点。</p>
+</li>
+</ol>
+<h3 id="示例代码："><a href="#示例代码：" class="headerlink" title="示例代码："></a>示例代码：</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_experimental.text_splitter <span class="keyword">import</span> SemanticChunker</span><br><span class="line"><span class="keyword">from</span> langchain_community.embeddings <span class="keyword">import</span> HuggingFaceEmbeddings</span><br><span class="line"><span class="keyword">from</span> langchain_community.document_loaders <span class="keyword">import</span> TextLoader</span><br><span class="line"></span><br><span class="line">embeddings = HuggingFaceEmbeddings(</span><br><span class="line">    model_name=<span class="string">&quot;BAAI/bge-small-zh-v1.5&quot;</span>,</span><br><span class="line">    model_kwargs=&#123;<span class="string">&#x27;device&#x27;</span>: <span class="string">&#x27;cpu&#x27;</span>&#125;,</span><br><span class="line">    encode_kwargs=&#123;<span class="string">&#x27;normalize_embeddings&#x27;</span>: <span class="literal">True</span>&#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化 SemanticChunker</span></span><br><span class="line">text_splitter = SemanticChunker(</span><br><span class="line">    embeddings,</span><br><span class="line">    breakpoint_threshold_type=<span class="string">&quot;percentile&quot;</span> <span class="comment"># 也可以是 &quot;standard_deviation&quot;, &quot;interquartile&quot;, &quot;gradient&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">loader = TextLoader(<span class="string">&quot;../../data/C2/txt/蜂医.txt&quot;</span>, encoding=<span class="string">&quot;utf-8&quot;</span>)</span><br><span class="line">documents = loader.load()</span><br><span class="line"></span><br><span class="line">docs = text_splitter.split_documents(documents)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;文本被切分为 <span class="subst">&#123;<span class="built_in">len</span>(docs)&#125;</span> 个块。\n&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;--- 前2个块内容示例 ---&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> i, chunk <span class="keyword">in</span> <span class="built_in">enumerate</span>(docs[:<span class="number">2</span>]):</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;=&quot;</span> * <span class="number">60</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&#x27;块 <span class="subst">&#123;i+<span class="number">1</span>&#125;</span> (长度: <span class="subst">&#123;<span class="built_in">len</span>(chunk.page_content)&#125;</span>):\n&quot;<span class="subst">&#123;chunk.page_content&#125;</span>&quot;&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>我们可以看到这个代码在huggingface调用了个embedding模型来做这个语义的识别</p>
+<p>运行结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">文本被切分为 2 个块。</span><br><span class="line">块 1 (长度: 566): <span class="string">&quot;# 蜂医... [基础人物设定与资料卡片]&quot;</span></span><br><span class="line">块 2 (长度: 1776): <span class="string">&quot;2[角色定位]... [极度详细的技能与战术全解] ...参考资料&quot;</span></span><br></pre></td></tr></table></figure>
+<p>通过这组运行结果，我们可以得出语义分块的三个核心结论（绝对优势）：</p>
+<ol>
+<li><p><strong>无视物理字数，只看“化学反应”</strong>：它根本没有配置 <code>chunk_size</code>。块 1 是 566 字，块 2 高达 1776 字。它完全打破了传统分块强求“大小均匀”的执念，证明了：<strong>只要内容在讲同一件事，哪怕 2000 字也应该放在一块</strong></p>
+</li>
+<li><p><strong>超凡的“知识连贯性”</strong>：在块 2 中，足足 1776 个字符，完美地将【角色定位】、【战术装备 - 激素枪】、【战术道具 - 无人机】、【干员特长】等核心战斗机制<strong>全部包裹在了一起</strong>。</p>
+<ul>
+<li><strong>实战意义</strong>：如果用户提问“蜂医的所有技能是什么？”，前两种切分器可能会把四个技能切散在不同的 Chunk 里，导致大模型只能检索到 1 个技能；而语义分块直接把“一整套完整技能卡”喂给大模型，彻底消灭了 RAG 检索不全的幻觉问题。</li>
+</ul>
+</li>
+<li><p><strong>精准捕捉“话题转移点”</strong>：仔细看它的切分刀落在了哪里——它在文档从“基础履历/身高体重等元数据”过渡到“具体的游戏实战机制（技能与定位）”的转折处，精准地切下了一刀。它用 Embedding 向量算出来了：前文在聊“人设”，后文在聊“打法”，这里就是语义的跳跃点</p>
+</li>
+</ol>
+<h2 id="结构化分块器"><a href="#结构化分块器" class="headerlink" title="结构化分块器"></a>结构化分块器</h2><p>如果我们要处理的文档本身就是结构极其严谨的 Markdown、HTML 或 LaTeX，我们完全没必要用算法去“盲猜”断点。<strong>结构化分块</strong>的核心逻辑是：“既然作者已经用 <code>#</code> 和 <code>##</code> 把章节画好了，我们就直接按作者的骨架来切</p>
+<h3 id="核心逻辑：元数据注入"><a href="#核心逻辑：元数据注入" class="headerlink" title="核心逻辑：元数据注入"></a>核心逻辑：元数据注入</h3><p>普通的切分器切出来的块，就像是一张张散落的卡片，大模型拿到一张卡片时，完全不知道它属于哪一章。而 <code>MarkdownHeaderTextSplitter</code> 是一台会给卡片打 <strong>“GPS 定位标签”</strong> 的机器。</p>
+<ul>
+<li><p><strong>内容聚合</strong>：它会把 <code>#</code> 到下一个 <code>#</code> 之间的所有内容打包。</p>
+</li>
+<li><p><strong>地址标记</strong>：比如一句话位于“第三章”下的“3.2节”。切出来的块会自动带上这样一个隐形标签：<code>&#123;&quot;Header 1&quot;: &quot;第三章&quot;, &quot;Header 2&quot;: &quot;3.2节&quot;&#125;</code>。</p>
+</li>
+<li><p><strong>RAG 实战优势</strong>：大模型收到这段话时，不仅看到了文字，还能通过元数据立刻明白它的宏观背景。这就彻底解决了“只见树木，不见森林”的上下文丢失问题。</p>
+</li>
+</ul>
+<h3 id="局限性："><a href="#局限性：" class="headerlink" title="局限性："></a><strong>局限性</strong>：</h3><p>如果一篇文章的“3.2节”长达一万字，单纯按标题切分依然会撑爆大模型。 </p>
+<p>为了解决这个问题，<code>MarkdownHeaderTextSplitter</code> 可以与其它分块器（如 <code>RecursiveCharacterTextSplitter</code>）<strong>组合使用</strong>。具体流程是：</p>
+<ul>
+<li>第一步，使用 <code>MarkdownHeaderTextSplitter</code> 将文档按标题分割成若干个大的、带有元数据的逻辑块。</li>
+<li>第二步，对这些逻辑块再应用 <code>RecursiveCharacterTextSplitter</code>，将其进一步切分为符合 <code>chunk_size</code> 要求的小块。由于这个过程是在第一步之后进行的，所有最终生成的小块都会<strong>继承</strong>来自第一步的标题元数据。</li>
+</ul>
+<p><strong>RAG应用优势</strong>: 这种两阶段的分块方法，既保留了文档的宏观逻辑结构（通过元数据），又确保了每个块的大小适中，是处理结构化文档进行RAG的理想方案。</p>
+<h1 id="ChunkViz：简易的可视化分块工具"><a href="#ChunkViz：简易的可视化分块工具" class="headerlink" title="ChunkViz：简易的可视化分块工具"></a>ChunkViz：简易的可视化分块工具</h1><p>最后安利一个网站，可以直观看到具体分片底层是如何分的</p>
+<p><a target="_blank" rel="noopener" href="https://chunkviz.up.railway.app/">https://chunkviz.up.railway.app/</a></p>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/04/25/AI/code/RAG/chapter2_%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%865_%E6%96%87%E6%9C%AC%E5%88%86%E5%9D%97/" title="RAG底层原理5:文本分块">http://example.com/2026/04/25/AI/code/RAG/chapter2_数据准备/RAG底层原理5_文本分块/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/AI%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> AI开发</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/%E6%96%87%E6%9C%AC%E5%88%86%E5%9D%97/" rel="tag"><i class="fa fa-tag"></i> 文本分块</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/chapter2_%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%864_%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B/" rel="prev" title="RAG底层原理4:数据加载过程">
+      <i class="fa fa-chevron-left"></i> RAG底层原理4:数据加载过程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/chapter3_%E7%B4%A2%E5%BC%95%E6%9E%84%E5%BB%BA/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%866_%E5%90%91%E9%87%8F%E5%B5%8C%E5%85%A5%E5%9F%BA%E7%A1%80/" rel="next" title="RAG底层原理6:向量嵌入">
+      RAG底层原理6:向量嵌入 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E5%9D%97%E5%8E%9F%E5%88%99%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">分块原则：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9D%97%E4%B8%8D%E8%83%BD%E2%80%9C%E5%A4%AA%E5%B0%8F%E2%80%9D%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">二：为什么块不能“太小”？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E6%9C%AC%E5%88%86%E5%9D%97%E7%9A%84%E2%80%9C%E9%BB%84%E9%87%91%E4%B8%89%E5%A4%A7%E5%8E%9F%E5%88%99%E2%80%9D"><span class="nav-number">2.2.</span> <span class="nav-text">文本分块的“黄金三大原则”</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%88%99%E4%B8%80%EF%BC%9A%E8%AF%AD%E4%B9%89%E5%AE%8C%E6%95%B4%E6%80%A7%E7%AC%AC%E4%B8%80"><span class="nav-number">2.2.1.</span> <span class="nav-text">原则一：语义完整性第一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%88%99%E4%BA%8C%EF%BC%9A%E4%BF%9D%E6%8C%81%E4%B8%8A%E4%B8%8B%E6%96%87%E9%87%8D%E5%8F%A0"><span class="nav-number">2.2.2.</span> <span class="nav-text">原则二：保持上下文重叠</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%88%99%E4%B8%89%EF%BC%9A%E5%9B%A0%E5%9C%B0%E5%88%B6%E5%AE%9C%EF%BC%8C%E4%BB%BB%E5%8A%A1%E5%AF%BC%E5%90%91"><span class="nav-number">2.2.3.</span> <span class="nav-text">原则三：因地制宜，任务导向</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%88%86%E5%9D%97%E7%AD%96%E7%95%A5%E4%BB%A3%E7%A0%81%E9%83%A8%E5%88%86%EF%BC%88%E5%9F%BA%E4%BA%8Elangchain%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">具体分块策略代码部分（基于langchain）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E5%A4%A7%E5%B0%8F%E5%88%86%E5%9D%97%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">固定大小分块策略：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="nav-number">3.1.1.</span> <span class="nav-text">实例代码：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%92%E5%BD%92%E5%AD%97%E7%AC%A6%E6%96%87%E6%9C%AC%E5%88%86%E5%89%B2%E5%99%A8-RecursiveCharacterTextSplitter"><span class="nav-number">3.2.</span> <span class="nav-text">递归字符文本分割器 (RecursiveCharacterTextSplitter)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">3.2.1.</span> <span class="nav-text">实例代码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89%E5%88%86%E5%9D%97"><span class="nav-number">3.3.</span> <span class="nav-text">语义分块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B-%E4%BA%94%E6%AD%A5"><span class="nav-number">3.3.1.</span> <span class="nav-text">核心算法流程 (五步)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E5%A4%A7%E2%80%9C%E6%96%AD%E7%82%B9%E9%98%88%E5%80%BC%E2%80%9D%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95"><span class="nav-number">3.3.2.</span> <span class="nav-text">四大“断点阈值”计算方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="nav-number">3.3.3.</span> <span class="nav-text">示例代码：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E6%9E%84%E5%8C%96%E5%88%86%E5%9D%97%E5%99%A8"><span class="nav-number">3.4.</span> <span class="nav-text">结构化分块器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91%EF%BC%9A%E5%85%83%E6%95%B0%E6%8D%AE%E6%B3%A8%E5%85%A5"><span class="nav-number">3.4.1.</span> <span class="nav-text">核心逻辑：元数据注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%99%90%E6%80%A7%EF%BC%9A"><span class="nav-number">3.4.2.</span> <span class="nav-text">局限性：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ChunkViz%EF%BC%9A%E7%AE%80%E6%98%93%E7%9A%84%E5%8F%AF%E8%A7%86%E5%8C%96%E5%88%86%E5%9D%97%E5%B7%A5%E5%85%B7"><span class="nav-number">4.</span> <span class="nav-text">ChunkViz：简易的可视化分块工具</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">71</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">85</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言上一节的 Self-Query Retriever 是把自然语言翻译成向量数据库的元数据过滤条件。 这一节换了一个场景——把自然语言翻译成能够在关系型数据库（MySQL、PostgreSQL、SQLite 等）上执行的 SQL 语句。 本质上，两者做的是同一件事： 利用 LLM 将自然语言转换为结构化查询语言，再交由数据库完成检索。 不同的是，Self-Query 面向向量数据库的元数据过滤，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG底层原理13:Text2SQL">
+<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8613_Text2SQL/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言上一节的 Self-Query Retriever 是把自然语言翻译成向量数据库的元数据过滤条件。 这一节换了一个场景——把自然语言翻译成能够在关系型数据库（MySQL、PostgreSQL、SQLite 等）上执行的 SQL 语句。 本质上，两者做的是同一件事： 利用 LLM 将自然语言转换为结构化查询语言，再交由数据库完成检索。 不同的是，Self-Query 面向向量数据库的元数据过滤，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_3_1.webp">
+<meta property="article:published_time" content="2026-04-25T14:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-20T09:58:08.224Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="AI开发">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="Text2SQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_3_1.webp">
+
+<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8613_Text2SQL/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RAG底层原理13:Text2SQL | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8613_Text2SQL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG底层原理13:Text2SQL
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-04-25 22:00:00" itemprop="dateCreated datePublished" datetime="2026-04-25T22:00:00+08:00">2026-04-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-06-20 17:58:08" itemprop="dateModified" datetime="2026-06-20T17:58:08+08:00">2026-06-20</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/" itemprop="url" rel="index"><span itemprop="name">AI</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">开发</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" itemprop="url" rel="index"><span itemprop="name">RAG</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>上一节的 Self-Query Retriever 是把自然语言翻译成向量数据库的元数据过滤条件。</p>
+<p>这一节换了一个场景——把自然语言翻译成能够在关系型数据库（MySQL、PostgreSQL、SQLite 等）上执行的 SQL 语句。</p>
+<p>本质上，两者做的是同一件事：</p>
+<p><strong>利用 LLM 将自然语言转换为结构化查询语言，再交由数据库完成检索。</strong></p>
+<p>不同的是，Self-Query 面向向量数据库的元数据过滤，而 Text2SQL 面向关系型数据库的 SQL 查询。</p>
+<p>在 Text2SQL 场景中，向量库中存储的通常不是业务数据本身，而是数据库的结构化描述信息，例如表结构（DDL）、字段含义、表之间的关联关系以及示例 SQL 等。<strong>RAG 的作用是帮助模型理解“数据库长什么样”，从而生成正确的 SQL，而不是直接返回问题的答案。</strong></p>
+<p>因此，一个典型的 Text2SQL 流程如下：<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户问题 → RAG 检索数据库 Schema 信息 → LLM 生成 SQL → SQL 执行器查询数据库 → 返回查询结果 → LLM 组织最终答案</span><br></pre></td></tr></table></figure></p>
+<p>其中，真正的业务数据仍然保存在关系型数据库中。SQL 可以由人工执行，也可以由后端程序、Agent、Function Calling 或 MCP Tool 等自动执行。本节重点关注如何利用 RAG 帮助模型理解数据库结构并生成正确的 SQL，至于 Agent 的自动查询流程将在其他模块中介绍。<br><img data-src="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_3_1.webp" alt=""></p>
+<hr>
+<h1 id="一、核心挑战："><a href="#一、核心挑战：" class="headerlink" title="一、核心挑战："></a>一、核心挑战：</h1><p>Text2SQL 看起来直觉上很简单，但实际落地有三个主要问题：</p>
+<p><strong>幻觉</strong>：LLM 可能”脑补”出数据库里根本不存在的表名或字段名，生成的 SQL 执行直接报错。</p>
+<p><strong>Schema 理解不足</strong>：要生成带 <code>JOIN</code> 和 <code>WHERE</code> 的正确 SQL，LLM 必须理解表结构、字段含义、表间关系。没有这些信息就是蒙。</p>
+<p><strong>输入模糊</strong>：用户的提问会有拼写错误、业务术语（比如”花费”对应数据库里的 <code>cost</code> 字段），需要额外的容错和语义映射。</p>
+<hr>
+<h1 id="二、优化策略："><a href="#二、优化策略：" class="headerlink" title="二、优化策略："></a>二、优化策略：</h1><h2 id="1-提供精确的-Schema："><a href="#1-提供精确的-Schema：" class="headerlink" title="1. 提供精确的 Schema："></a>1. 提供精确的 Schema：</h2><p>最基础的一步。</p>
+<p>把相关表的 <code>CREATE TABLE</code> 语句塞进 Prompt，相当于给 LLM 一张地图，让它知道有哪些表、字段叫什么、类型是什么。</p>
+<p>没有这个，后面什么优化都没用。</p>
+<h2 id="2-Few-shot-示例："><a href="#2-Few-shot-示例：" class="headerlink" title="2. Few-shot 示例："></a>2. Few-shot 示例：</h2><p>在 Prompt 里加几个”问题 → SQL”的示例对。</p>
+<p>LLM 看了范例就能学到构建查询的模式，准确率提升明显。</p>
+<h2 id="3-RAG-增强上下文："><a href="#3-RAG-增强上下文：" class="headerlink" title="3. RAG 增强上下文："></a>3. RAG 增强上下文：</h2><p>这是 RAGFlow 的方案，更进一步。</p>
+<p>单独为数据库建一个知识库，存三类知识：</p>
+<ul>
+<li><strong>DDL</strong>：表结构定义（<code>CREATE TABLE</code> 语句）</li>
+<li><strong>Q-SQL 示例</strong>：历史问答对，”问题 → SQL”</li>
+<li><strong>描述信息</strong>：每个表、每个字段的业务含义，以及同义词映射（比如”花费” → <code>cost</code>）</li>
+</ul>
+<p>用户提问时，先从知识库检索最相关的上下文，再拼进 Prompt 送给 LLM。</p>
+<p>比直接把全库 Schema 塞进去要精准，Token 消耗也少。</p>
+<h2 id="4-错误修正（Reflection）："><a href="#4-错误修正（Reflection）：" class="headerlink" title="4. 错误修正（Reflection）："></a>4. 错误修正（Reflection）：</h2><p>SQL 生成后立即执行，如果数据库返回报错，把错误信息反馈给 LLM，让它修正 SQL 再重试。</p>
+<p>最多重试 N 次。</p>
+<p>这个机制能显著提高成功率，特别是处理复杂查询的时候。</p>
+<hr>
+<h1 id="三、框架实现（RAGFlow-方案）："><a href="#三、框架实现（RAGFlow-方案）：" class="headerlink" title="三、框架实现（RAGFlow 方案）："></a>三、框架实现（RAGFlow 方案）：</h1><p>技术栈：Milvus + BGE-M3 + DeepSeek + SQLite。</p>
+<p>三个模块：知识库、SQL生成器、Agent。</p>
+<h2 id="3-1-知识库模块（knowledge-base-py）："><a href="#3-1-知识库模块（knowledge-base-py）：" class="headerlink" title="3.1 知识库模块（knowledge_base.py）："></a>3.1 知识库模块（<code>knowledge_base.py</code>）：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SimpleKnowledgeBase</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, milvus_uri: <span class="built_in">str</span> = <span class="string">&quot;http://localhost:19530&quot;</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.client = MilvusClient(uri=milvus_uri)</span><br><span class="line">        <span class="variable language_">self</span>.embedding_function = BGEM3EmbeddingFunction(use_fp16=<span class="literal">False</span>, device=<span class="string">&quot;cpu&quot;</span>)</span><br><span class="line">        <span class="variable language_">self</span>.collection_name = <span class="string">&quot;text2sql_kb&quot;</span></span><br></pre></td></tr></table></figure>
+<p>Collection 里只有一张表，用 <code>type</code> 字段区分三种知识：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FieldSchema(name=<span class="string">&quot;type&quot;</span>, dtype=DataType.VARCHAR, max_length=<span class="number">32</span>)</span><br><span class="line"><span class="comment"># type 取值：ddl / qsql / description</span></span><br></pre></td></tr></table></figure>
+<p>这样 DDL、示例、描述全存在一起，检索时统一语义搜索，不需要维护多个集合。</p>
+<p>检索用内积相似度：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">search_params=&#123;<span class="string">&quot;metric_type&quot;</span>: <span class="string">&quot;IP&quot;</span>&#125;,  <span class="comment"># 内积相似度</span></span><br></pre></td></tr></table></figure>
+<h2 id="3-2-SQL-生成模块（sql-generator-py）："><a href="#3-2-SQL-生成模块（sql-generator-py）：" class="headerlink" title="3.2 SQL 生成模块（sql_generator.py）："></a>3.2 SQL 生成模块（<code>sql_generator.py</code>）：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.llm = ChatDeepSeek(</span><br><span class="line">    model=<span class="string">&quot;deepseek-chat&quot;</span>,</span><br><span class="line">    temperature=<span class="number">0</span>,  <span class="comment"># 确定性输出，相同输入相同结果</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>Prompt 结构固定，分三层：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">prompt = <span class="string">f&quot;&quot;&quot;你是一个SQL专家。请根据以下信息将用户问题转换为SQL查询语句。</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">数据库信息：</span></span><br><span class="line"><span class="string"><span class="subst">&#123;context&#125;</span>    # 从知识库检索来的上下文，按 DDL→描述→示例 的顺序组织</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">用户问题：<span class="subst">&#123;user_query&#125;</span></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">要求：</span></span><br><span class="line"><span class="string">1. 只返回SQL语句，不要包含任何解释</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string">SQL语句：&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<p>上下文按类型分层组织：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_build_context</span>(<span class="params">self, knowledge_results</span>):</span><br><span class="line">    <span class="comment"># 分组</span></span><br><span class="line">    ddl_info = [r <span class="keyword">for</span> r <span class="keyword">in</span> results <span class="keyword">if</span> r[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;ddl&#x27;</span>]</span><br><span class="line">    qsql_examples = [r <span class="keyword">for</span> r <span class="keyword">in</span> results <span class="keyword">if</span> r[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;qsql&#x27;</span>]</span><br><span class="line">    descriptions = [r <span class="keyword">for</span> r <span class="keyword">in</span> results <span class="keyword">if</span> r[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;description&#x27;</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 顺序：结构 → 描述 → 示例</span></span><br><span class="line">    context += <span class="string">&quot;=== 表结构信息 ===\n&quot;</span></span><br><span class="line">    context += <span class="string">&quot;=== 表和字段描述 ===\n&quot;</span></span><br><span class="line">    context += <span class="string">&quot;=== 查询示例 ===\n&quot;</span></span><br></pre></td></tr></table></figure>
+<p>错误修复时用同一个知识库上下文，把原始 SQL 和报错一起喂给 LLM：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">fix_sql</span>(<span class="params">self, original_sql, error_message, knowledge_results</span>):</span><br><span class="line">    prompt = <span class="string">f&quot;&quot;&quot;请修复以下SQL语句的错误。</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string">原始SQL：<span class="subst">&#123;original_sql&#125;</span></span></span><br><span class="line"><span class="string">错误信息：<span class="subst">&#123;error_message&#125;</span></span></span><br><span class="line"><span class="string">请返回修复后的SQL语句（只返回SQL，不要解释）：&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="3-3-Agent（text2sql-agent-py）："><a href="#3-3-Agent（text2sql-agent-py）：" class="headerlink" title="3.3 Agent（text2sql_agent.py）："></a>3.3 Agent（<code>text2sql_agent.py</code>）：</h2><p>控制整个流程，核心参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable language_">self</span>.max_retry_count = <span class="number">3</span>    <span class="comment"># 最大重试次数</span></span><br><span class="line"><span class="variable language_">self</span>.top_k_retrieval = <span class="number">5</span>    <span class="comment"># 知识库检索数量</span></span><br><span class="line"><span class="variable language_">self</span>.max_result_rows = <span class="number">100</span>  <span class="comment"># 结果行数上限</span></span><br></pre></td></tr></table></figure>
+<p>主流程：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">query</span>(<span class="params">self, user_question: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="comment"># 1. 知识库检索</span></span><br><span class="line">    knowledge_results = <span class="variable language_">self</span>.knowledge_base.search(user_question, <span class="variable language_">self</span>.top_k_retrieval)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 生成 SQL</span></span><br><span class="line">    sql = <span class="variable language_">self</span>.sql_generator.generate_sql(user_question, knowledge_results)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 执行 + 重试</span></span><br><span class="line">    retry_count = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> retry_count &lt; <span class="variable language_">self</span>.max_retry_count:</span><br><span class="line">        success, result = <span class="variable language_">self</span>._execute_sql(sql)</span><br><span class="line">        <span class="keyword">if</span> success:</span><br><span class="line">            <span class="keyword">return</span> &#123;<span class="string">&quot;success&quot;</span>: <span class="literal">True</span>, <span class="string">&quot;sql&quot;</span>: sql, <span class="string">&quot;results&quot;</span>: result&#125;</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            sql = <span class="variable language_">self</span>.sql_generator.fix_sql(sql, result, knowledge_results)  <span class="comment"># 出错则修复</span></span><br><span class="line">            retry_count += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>执行时自动加 <code>LIMIT</code>，防止全表扫描把结果炸出来：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_execute_sql</span>(<span class="params">self, sql: <span class="built_in">str</span></span>):</span><br><span class="line">    <span class="keyword">if</span> sql.strip().upper().startswith(<span class="string">&#x27;SELECT&#x27;</span>) <span class="keyword">and</span> <span class="string">&#x27;LIMIT&#x27;</span> <span class="keyword">not</span> <span class="keyword">in</span> sql.upper():</span><br><span class="line">        sql = <span class="string">f&quot;<span class="subst">&#123;sql.rstrip(<span class="string">&#x27;;&#x27;</span>)&#125;</span> LIMIT <span class="subst">&#123;self.max_result_rows&#125;</span>&quot;</span>  <span class="comment"># 兜底保护</span></span><br></pre></td></tr></table></figure>
+<p>结果以结构化 dict 返回，列名和数据分开：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="literal">True</span>, &#123;</span><br><span class="line">    <span class="string">&quot;columns&quot;</span>: [<span class="string">&quot;id&quot;</span>, <span class="string">&quot;name&quot;</span>, <span class="string">&quot;age&quot;</span>, <span class="string">&quot;city&quot;</span>],</span><br><span class="line">    <span class="string">&quot;rows&quot;</span>: [&#123;<span class="string">&quot;id&quot;</span>: <span class="number">2</span>, <span class="string">&quot;name&quot;</span>: <span class="string">&quot;李四&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">32</span>, <span class="string">&quot;city&quot;</span>: <span class="string">&quot;上海&quot;</span>&#125;],</span><br><span class="line">    <span class="string">&quot;count&quot;</span>: <span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h1 id="四、完整流程走一遍："><a href="#四、完整流程走一遍：" class="headerlink" title="四、完整流程走一遍："></a>四、完整流程走一遍：</h1><p>以”年龄大于30的用户有哪些”为例。</p>
+<p><strong>Step 1：知识库检索</strong></p>
+<p>BGE-M3 把 query 向量化，Milvus 返回 top-5 相关知识：</p>
+<ul>
+<li>DDL（相似度 0.85）：users 表结构，含 id/name/email/age/city 字段</li>
+<li>Q-SQL 示例（相似度 0.82）：”查询年龄超过25岁的用户” → <code>SELECT * FROM users WHERE age &gt; 25</code></li>
+<li>描述（相似度 0.78）：age 字段是整数，表示用户年龄</li>
+</ul>
+<p>注意这里检索到的示例是 <code>age &gt; 25</code>，不是 <code>age &gt; 30</code>。LLM 会从示例里学到模式（<code>WHERE age &gt; 数值</code>），然后把实际数值 30 替换进去。</p>
+<p><strong>Step 2：SQL 生成</strong></p>
+<p>LLM 分析 query → 识别字段（age）、操作符（大于）、阈值（30）→ 参考示例模式 → 生成：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> age <span class="operator">&gt;</span> <span class="number">30</span></span><br></pre></td></tr></table></figure>
+<p><strong>Step 3：执行</strong></p>
+<p>Agent 自动加 LIMIT：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> age <span class="operator">&gt;</span> <span class="number">30</span> LIMIT <span class="number">100</span></span><br></pre></td></tr></table></figure>
+<p>SQLite 逐行过滤，李四（32）和赵六（35）符合，最终返回：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;sql&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SELECT * FROM users WHERE age &gt; 30 LIMIT 100&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;results&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;columns&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;name&quot;</span><span class="punctuation">,</span> <span class="string">&quot;email&quot;</span><span class="punctuation">,</span> <span class="string">&quot;age&quot;</span><span class="punctuation">,</span> <span class="string">&quot;city&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;rows&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span><span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">2</span><span class="punctuation">,</span> <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;李四&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;age&quot;</span><span class="punctuation">:</span> <span class="number">32</span><span class="punctuation">,</span> <span class="attr">&quot;city&quot;</span><span class="punctuation">:</span> <span class="string">&quot;上海&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="punctuation">&#123;</span><span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">4</span><span class="punctuation">,</span> <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;赵六&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;age&quot;</span><span class="punctuation">:</span> <span class="number">35</span><span class="punctuation">,</span> <span class="attr">&quot;city&quot;</span><span class="punctuation">:</span> <span class="string">&quot;深圳&quot;</span><span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;count&quot;</span><span class="punctuation">:</span> <span class="number">2</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;retry_count&quot;</span><span class="punctuation">:</span> <span class="number">0</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h1 id="五、为什么不用现成框架："><a href="#五、为什么不用现成框架：" class="headerlink" title="五、为什么不用现成框架："></a>五、为什么不用现成框架：</h1><p>LangChain 之类的高封装框架存在黑盒问题。</p>
+<p>查询结果不对的时候，不知道是检索环节出了问题、还是 SQL 生成的问题、还是执行的问题，根本没法定位。</p>
+<p>自己实现三个模块，每一步都可以单独打 log 调试，这才是可维护的方案。</p>
+<hr>
+<h1 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://python.langchain.com/docs/tutorials/sql_qa/">LangChain Docs: Text to SQL</a></li>
+<li><a target="_blank" rel="noopener" href="https://ragflow.io/blog/implementing-text2sql-with-ragflow">RAGFlow Blog: Implementing Text2SQL with RAGFlow</a></li>
+<li><a target="_blank" rel="noopener" href="https://datawhalechina.github.io/all-in-rag/#/chapter4/13_text2sql">all-in-rag chapter4</a></li>
+</ul>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8613_Text2SQL/" title="RAG底层原理13:Text2SQL">http://example.com/2026/04/25/AI/code/RAG/chapter4_检索优化/RAG底层原理13_Text2SQL/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/AI%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> AI开发</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/Text2SQL/" rel="tag"><i class="fa fa-tag"></i> Text2SQL</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8612_%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA/" rel="prev" title="RAG底层原理12:查询构建">
+      <i class="fa fa-chevron-left"></i> RAG底层原理12:查询构建
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8614_%E6%9F%A5%E8%AF%A2%E9%87%8D%E6%9E%84%E4%B8%8E%E5%88%86%E5%8F%91/" rel="next" title="RAG底层原理14:查询重构与分发">
+      RAG底层原理14:查询重构与分发 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%A0%B8%E5%BF%83%E6%8C%91%E6%88%98%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">一、核心挑战：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">二、优化策略：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%8F%90%E4%BE%9B%E7%B2%BE%E7%A1%AE%E7%9A%84-Schema%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">1. 提供精确的 Schema：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Few-shot-%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="nav-number">3.2.</span> <span class="nav-text">2. Few-shot 示例：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-RAG-%E5%A2%9E%E5%BC%BA%E4%B8%8A%E4%B8%8B%E6%96%87%EF%BC%9A"><span class="nav-number">3.3.</span> <span class="nav-text">3. RAG 增强上下文：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E9%94%99%E8%AF%AF%E4%BF%AE%E6%AD%A3%EF%BC%88Reflection%EF%BC%89%EF%BC%9A"><span class="nav-number">3.4.</span> <span class="nav-text">4. 错误修正（Reflection）：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E6%A1%86%E6%9E%B6%E5%AE%9E%E7%8E%B0%EF%BC%88RAGFlow-%E6%96%B9%E6%A1%88%EF%BC%89%EF%BC%9A"><span class="nav-number">4.</span> <span class="nav-text">三、框架实现（RAGFlow 方案）：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E7%9F%A5%E8%AF%86%E5%BA%93%E6%A8%A1%E5%9D%97%EF%BC%88knowledge-base-py%EF%BC%89%EF%BC%9A"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 知识库模块（knowledge_base.py）：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-SQL-%E7%94%9F%E6%88%90%E6%A8%A1%E5%9D%97%EF%BC%88sql-generator-py%EF%BC%89%EF%BC%9A"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 SQL 生成模块（sql_generator.py）：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-Agent%EF%BC%88text2sql-agent-py%EF%BC%89%EF%BC%9A"><span class="nav-number">4.3.</span> <span class="nav-text">3.3 Agent（text2sql_agent.py）：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E8%B5%B0%E4%B8%80%E9%81%8D%EF%BC%9A"><span class="nav-number">5.</span> <span class="nav-text">四、完整流程走一遍：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%94%A8%E7%8E%B0%E6%88%90%E6%A1%86%E6%9E%B6%EF%BC%9A"><span class="nav-number">6.</span> <span class="nav-text">五、为什么不用现成框架：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A"><span class="nav-number">7.</span> <span class="nav-text">参考：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">71</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">85</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>

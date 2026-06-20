@@ -25,7 +25,7 @@
   <meta name="description" content="前言： 本节讲述了RAG基本的框架，以及基本原理  RAG（检索增强生成）工作原理那么，RAG 系统是如何实现“参数化知识”与“非参数化知识”的结合呢？如下图所示，其架构主要通过两个阶段来完成这一过程： （1）检索阶段：寻找“非参数化知识”  知识向量化：嵌入模型（Embedding Model） 充当了“连接器”的角色。它将外部知识库编码为向量索引（Index），存入向量数据库。 语义召回：当用">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RAG底层原理2:RAG 理论基石">
-<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/index.html">
+<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/chapter1_%E8%A7%A3%E9%94%81RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/index.html">
 <meta property="og:site_name" content="s0m1ng">
 <meta property="og:description" content="前言： 本节讲述了RAG基本的框架，以及基本原理  RAG（检索增强生成）工作原理那么，RAG 系统是如何实现“参数化知识”与“非参数化知识”的结合呢？如下图所示，其架构主要通过两个阶段来完成这一过程： （1）检索阶段：寻找“非参数化知识”  知识向量化：嵌入模型（Embedding Model） 充当了“连接器”的角色。它将外部知识库编码为向量索引（Index），存入向量数据库。 语义召回：当用">
 <meta property="og:locale" content="zh_CN">
@@ -39,7 +39,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://datawhalechina.github.io/all-in-rag/chapter1/images/1_1_1.svg">
 
-<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/">
+<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/chapter1_%E8%A7%A3%E9%94%81RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/">
 
 
 <script id="page-configurations">
@@ -185,7 +185,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/chapter1_%E8%A7%A3%E9%94%81RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile_photo.jpg">
@@ -422,7 +422,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://example.com/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/" title="RAG底层原理2:RAG 理论基石">http://example.com/2026/04/25/AI/code/RAG/RAG底层原理2_RAG理论基石/</a>
+    <a href="http://example.com/2026/04/25/AI/code/RAG/chapter1_%E8%A7%A3%E9%94%81RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%862_RAG%E7%90%86%E8%AE%BA%E5%9F%BA%E7%9F%B3/" title="RAG底层原理2:RAG 理论基石">http://example.com/2026/04/25/AI/code/RAG/chapter1_解锁RAG/RAG底层原理2_RAG理论基石/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -464,11 +464,11 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%861_%E6%80%BB%E4%BD%93%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/" rel="prev" title="RAG底层原理1:总体学习框架">
+    <a href="/2026/04/25/AI/code/RAG/chapter1_%E8%A7%A3%E9%94%81RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%861_%E6%80%BB%E4%BD%93%E5%AD%A6%E4%B9%A0%E6%A1%86%E6%9E%B6/" rel="prev" title="RAG底层原理1:总体学习框架">
       <i class="fa fa-chevron-left"></i> RAG底层原理1:总体学习框架
     </a></div>
       <div class="post-nav-item">
-    <a href="/2026/04/25/AI/code/RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/" rel="next" title="RAG底层原理3:环境配置与启动">
+    <a href="/2026/04/25/AI/code/RAG/chapter1_%E8%A7%A3%E9%94%81RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%863_%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E4%B8%8E%E5%90%AF%E5%8A%A8/" rel="next" title="RAG底层原理3:环境配置与启动">
       RAG底层原理3:环境配置与启动 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
@@ -545,7 +545,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-count">71</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -555,7 +555,7 @@
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-count">85</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>

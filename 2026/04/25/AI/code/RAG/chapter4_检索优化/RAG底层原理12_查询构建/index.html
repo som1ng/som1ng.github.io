@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：RAG 系统的检索部分，大多数情况下只做向量相似度搜索。 但实际场景里数据不都是非结构化的，会有 SQL 数据库、带元数据的文档、图数据库等。 Query Construction 就是解决这个问题的——用 LLM 把用户的自然语言 query 翻译成对应数据源的结构化查询。  一、文本到元数据过滤器：基本思路：向量索引里的 chunk，常常会带上元数据（Metadata），比如：  文档来">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG底层原理12:查询构建">
+<meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8612_%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：RAG 系统的检索部分，大多数情况下只做向量相似度搜索。 但实际场景里数据不都是非结构化的，会有 SQL 数据库、带元数据的文档、图数据库等。 Query Construction 就是解决这个问题的——用 LLM 把用户的自然语言 query 翻译成对应数据源的结构化查询。  一、文本到元数据过滤器：基本思路：向量索引里的 chunk，常常会带上元数据（Metadata），比如：  文档来">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-25T13:00:00.000Z">
+<meta property="article:modified_time" content="2026-06-14T03:27:28.517Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="AI开发">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="查询构建">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8612_%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RAG底层原理12:查询构建 | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8612_%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG底层原理12:查询构建
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-04-25 21:00:00" itemprop="dateCreated datePublished" datetime="2026-04-25T21:00:00+08:00">2026-04-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-06-14 11:27:28" itemprop="dateModified" datetime="2026-06-14T11:27:28+08:00">2026-06-14</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/" itemprop="url" rel="index"><span itemprop="name">AI</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">开发</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" itemprop="url" rel="index"><span itemprop="name">RAG</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>RAG 系统的检索部分，大多数情况下只做向量相似度搜索。</p>
+<p>但实际场景里数据不都是非结构化的，会有 SQL 数据库、带元数据的文档、图数据库等。</p>
+<p>Query Construction 就是解决这个问题的——用 LLM 把用户的自然语言 query 翻译成对应数据源的结构化查询。</p>
+<hr>
+<h1 id="一、文本到元数据过滤器："><a href="#一、文本到元数据过滤器：" class="headerlink" title="一、文本到元数据过滤器："></a>一、文本到元数据过滤器：</h1><h2 id="基本思路："><a href="#基本思路：" class="headerlink" title="基本思路："></a>基本思路：</h2><p>向量索引里的 chunk，常常会带上元数据（Metadata），比如：</p>
+<ul>
+<li>文档来源</li>
+<li>发布日期</li>
+<li>作者</li>
+<li>章节/类别</li>
+</ul>
+<p>这些元数据可以做精确过滤，相当于在语义搜索之上多加了一层 <code>WHERE</code> 条件。</p>
+<h2 id="Self-Query-Retriever："><a href="#Self-Query-Retriever：" class="headerlink" title="Self-Query Retriever："></a>Self-Query Retriever：</h2><p>LangChain 里实现这个功能的核心组件，工作流程：</p>
+<ol>
+<li>定义元数据结构（告诉 LLM 每个字段叫什么、是什么类型）</li>
+<li>用户输入自然语言 query</li>
+<li>LLM 把 query 拆成两部分：<ul>
+<li><strong>查询字符串</strong>：用于语义搜索的部分</li>
+<li><strong>元数据过滤器</strong>：结构化的过滤条件</li>
+</ul>
+</li>
+<li>两个一起发给向量数据库执行</li>
+</ol>
+<p>举个例子，query 是”关于2022年发布的机器学习的论文”：</p>
+<ul>
+<li>查询字符串：<code>&quot;机器学习的论文&quot;</code></li>
+<li>元数据过滤器：<code>year == 2022</code></li>
+</ul>
+<h2 id="代码走读："><a href="#代码走读：" class="headerlink" title="代码走读："></a>代码走读：</h2><p>以 B 站视频为例。</p>
+<h3 id="数据加载和预处理："><a href="#数据加载和预处理：" class="headerlink" title="数据加载和预处理："></a>数据加载和预处理：</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">loader = BiliBiliLoader(video_urls=video_urls)</span><br><span class="line">docs = loader.load()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> doc <span class="keyword">in</span> docs:</span><br><span class="line">    original = doc.metadata</span><br><span class="line">    metadata = &#123;</span><br><span class="line">        <span class="string">&#x27;title&#x27;</span>: original.get(<span class="string">&#x27;title&#x27;</span>, <span class="string">&#x27;未知标题&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;author&#x27;</span>: original.get(<span class="string">&#x27;owner&#x27;</span>, &#123;&#125;).get(<span class="string">&#x27;name&#x27;</span>, <span class="string">&#x27;未知作者&#x27;</span>),  <span class="comment"># 嵌套结构要手动提取</span></span><br><span class="line">        <span class="string">&#x27;source&#x27;</span>: original.get(<span class="string">&#x27;bvid&#x27;</span>, <span class="string">&#x27;未知ID&#x27;</span>),</span><br><span class="line">        <span class="string">&#x27;view_count&#x27;</span>: original.get(<span class="string">&#x27;stat&#x27;</span>, &#123;&#125;).get(<span class="string">&#x27;view&#x27;</span>, <span class="number">0</span>),</span><br><span class="line">        <span class="string">&#x27;length&#x27;</span>: original.get(<span class="string">&#x27;duration&#x27;</span>, <span class="number">0</span>),</span><br><span class="line">    &#125;</span><br><span class="line">    doc.metadata = metadata</span><br></pre></td></tr></table></figure>
+<p>注意这里对元数据做了扁平化处理。原始爬虫获取的信息结构是嵌套 dict，比如 <code>owner.name</code>、<code>stat.view</code>，直接用 Self-Query Retriever 会识别不到，所以要先手动拉平。</p>
+<h3 id="定义元数据结构："><a href="#定义元数据结构：" class="headerlink" title="定义元数据结构："></a>定义元数据结构：</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">metadata_field_info = [</span><br><span class="line">    AttributeInfo(</span><br><span class="line">        name=<span class="string">&quot;length&quot;</span>,</span><br><span class="line">        description=<span class="string">&quot;视频长度，以秒为单位的整数&quot;</span>,  <span class="comment"># 描述要清晰，LLM 靠这个理解字段含义</span></span><br><span class="line">        <span class="built_in">type</span>=<span class="string">&quot;integer&quot;</span></span><br><span class="line">    ),</span><br><span class="line">    AttributeInfo(</span><br><span class="line">        name=<span class="string">&quot;view_count&quot;</span>,</span><br><span class="line">        description=<span class="string">&quot;视频观看次数（整数）&quot;</span>,</span><br><span class="line">        <span class="built_in">type</span>=<span class="string">&quot;integer&quot;</span>,</span><br><span class="line">    ),</span><br><span class="line">    <span class="comment"># ...</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p><code>AttributeInfo</code>（属性信息） 里的 <code>description</code> 很关键，LLM 是根据这个来判断用户 query 里哪些词对应哪个字段的。</p>
+<h3 id="创建检索器："><a href="#创建检索器：" class="headerlink" title="创建检索器："></a>创建检索器：</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">retriever = SelfQueryRetriever.from_llm(</span><br><span class="line">    llm=llm,</span><br><span class="line">    vectorstore=vectorstore,</span><br><span class="line">    document_contents=<span class="string">&quot;记录视频标题、作者、观看次数等信息的视频元数据&quot;</span>,</span><br><span class="line">    metadata_field_info=metadata_field_info,</span><br><span class="line">    enable_limit=<span class="literal">True</span>,</span><br><span class="line">    verbose=<span class="literal">True</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><code>from_llm</code> 内部做了两件事：</p>
+<ol>
+<li>创建一个查询构造链，负责把自然语言翻译成通用结构化查询对象</li>
+<li>根据 vectorstore 类型（这里是 Chroma）匹配对应的翻译器，把通用对象转成 Chroma 能执行的过滤语法</li>
+</ol>
+<p><code>temperature=0</code> 是必要的——这类精确转换任务需要确定性输出，不能有随机性。</p>
+<h3 id="执行结果："><a href="#执行结果：" class="headerlink" title="执行结果："></a>执行结果：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">查询: &#x27;时长大于600秒的视频&#x27;</span><br><span class="line">Generated Query: query=&#x27; &#x27; filter=Comparison(comparator=&lt;Comparator.GT: &#x27;gt&#x27;&gt;, attribute=&#x27;length&#x27;, value=600)</span><br></pre></td></tr></table></figure>
+<p>可以看到 LLM 成功把”时长大于600秒”转成了 <code>length &gt; 600</code> 的过滤条件。</p>
+<hr>
+<h1 id="二、文本到-Cypher："><a href="#二、文本到-Cypher：" class="headerlink" title="二、文本到 Cypher："></a>二、文本到 Cypher：</h1><h2 id="什么是-Cypher："><a href="#什么是-Cypher：" class="headerlink" title="什么是 Cypher："></a>什么是 Cypher：</h2><p>图数据库（Neo4j）的查询语言，相当于图数据库里的 SQL。</p>
+<p>语法直观，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(:Person &#123;name:&quot;Tomaz&quot;&#125;)-[:LIVES_IN]-&gt;(:Country &#123;name:&quot;Slovenia&quot;&#125;)</span><br></pre></td></tr></table></figure>
+<p>就是描述”Tomaz 住在 Slovenia”这个关系。</p>
+<h2 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h2><p>和 Self-Query Retriever 基本一样，把”自然语言 → 元数据过滤器”换成了”自然语言 → Cypher 查询语句”。</p>
+<p>LangChain 有现成的 <code>GraphCypherQAChain</code>，流程：</p>
+<ol>
+<li>接收自然语言问题</li>
+<li>LLM 根据图谱 Schema 生成 Cypher</li>
+<li>在图数据库执行</li>
+<li>（可选）把结果再交给 LLM 生成自然语言回答</li>
+</ol>
+<p>这类任务对 LLM 能力要求较高，通常用参数量更大的模型。</p>
+<hr>
+<h1 id="思考题答案："><a href="#思考题答案：" class="headerlink" title="思考题答案："></a>思考题答案：</h1><p>原文留了一个问题：为什么查询”时间最短的视频”结果是错的？</p>
+<p>看输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Generated Query: query=&#x27; &#x27; filter=None limit=1</span><br></pre></td></tr></table></figure>
+<p>filter 是 None，也就是没有任何过滤条件，只有 <code>limit=1</code>。</p>
+<p>原因是 Self-Query Retriever 擅长处理<strong>过滤条件</strong>（大于/小于/等于某个值），但处理不了<strong>排序+取极值</strong>的语义。</p>
+<p>“时间最短”的正确翻译应该是 <code>ORDER BY length ASC LIMIT 1</code>，但 Self-Query Retriever 的查询构造器没有排序能力，LLM 把”最短”识别不了，退化成了 <code>filter=None limit=1</code>，最终只是做了一次普通语义检索，跟时长无关。</p>
+<p>简单来说：Self-Query Retriever 只能做”过滤”，做不了”排序取最值”。</p>
+<hr>
+<h1 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://blog.langchain.ac.cn/query-construction/">LangChain Blog: Query Construction</a></li>
+<li><a target="_blank" rel="noopener" href="https://datawhalechina.github.io/all-in-rag/#/chapter4/12_query_construction">all-in-rag chapter4</a></li>
+</ul>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8612_%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA/" title="RAG底层原理12:查询构建">http://example.com/2026/04/25/AI/code/RAG/chapter4_检索优化/RAG底层原理12_查询构建/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/AI%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> AI开发</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA/" rel="tag"><i class="fa fa-tag"></i> 查询构建</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8611_%E6%B7%B7%E5%90%88%E6%A3%80%E7%B4%A2/" rel="prev" title="RAG底层原理11:混合检索">
+      <i class="fa fa-chevron-left"></i> RAG底层原理11:混合检索
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8613_Text2SQL/" rel="next" title="RAG底层原理13:Text2SQL">
+      RAG底层原理13:Text2SQL <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%96%87%E6%9C%AC%E5%88%B0%E5%85%83%E6%95%B0%E6%8D%AE%E8%BF%87%E6%BB%A4%E5%99%A8%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">一、文本到元数据过滤器：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E8%B7%AF%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">基本思路：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Self-Query-Retriever%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">Self-Query Retriever：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E8%B5%B0%E8%AF%BB%EF%BC%9A"><span class="nav-number">2.3.</span> <span class="nav-text">代码走读：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%8A%A0%E8%BD%BD%E5%92%8C%E9%A2%84%E5%A4%84%E7%90%86%EF%BC%9A"><span class="nav-number">2.3.1.</span> <span class="nav-text">数据加载和预处理：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E5%85%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="nav-number">2.3.2.</span> <span class="nav-text">定义元数据结构：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%A3%80%E7%B4%A2%E5%99%A8%EF%BC%9A"><span class="nav-number">2.3.3.</span> <span class="nav-text">创建检索器：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C%EF%BC%9A"><span class="nav-number">2.3.4.</span> <span class="nav-text">执行结果：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%96%87%E6%9C%AC%E5%88%B0-Cypher%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">二、文本到 Cypher：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Cypher%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">什么是 Cypher：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86%EF%BC%9A"><span class="nav-number">3.2.</span> <span class="nav-text">原理：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%9D%E8%80%83%E9%A2%98%E7%AD%94%E6%A1%88%EF%BC%9A"><span class="nav-number">4.</span> <span class="nav-text">思考题答案：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A"><span class="nav-number">5.</span> <span class="nav-text">参考：</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">71</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">85</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>
