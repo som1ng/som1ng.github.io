@@ -619,11 +619,11 @@
     <category term="内网横向" scheme="http://example.com/categories/ISW/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91/"/>
     
     
-    <category term="信息收集" scheme="http://example.com/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/"/>
-    
     <category term="横向移动" scheme="http://example.com/tags/%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/"/>
     
     <category term="域控" scheme="http://example.com/tags/%E5%9F%9F%E6%8E%A7/"/>
+    
+    <category term="信息收集" scheme="http://example.com/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/"/>
     
   </entry>
   
@@ -649,11 +649,11 @@
     <category term="内网横向" scheme="http://example.com/categories/ISW/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91/"/>
     
     
-    <category term="信息收集" scheme="http://example.com/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/"/>
-    
     <category term="横向移动" scheme="http://example.com/tags/%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8/"/>
     
     <category term="域控" scheme="http://example.com/tags/%E5%9F%9F%E6%8E%A7/"/>
+    
+    <category term="信息收集" scheme="http://example.com/tags/%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86/"/>
     
     <category term="Fscan" scheme="http://example.com/tags/Fscan/"/>
     
