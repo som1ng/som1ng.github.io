@@ -22,16 +22,16 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前言：传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：向量检索只看语义相似度，不建模实体之间的关系。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。 一、传统 RAG 到底差在哪？先搞清楚为什么需要图，才知道图解决了什么问题：">
+  <meta name="description" content="前言：传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：向量检索只看语义相似度，不建模实体之间的关系。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。 传统 RAG 到底差在哪？先搞清楚为什么需要图，才知道图解决了什么问题：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RAG底层原理17:图RAG">
 <meta property="og:url" content="http://example.com/2026/07/11/AI/code/RAG/chapter6_%E9%AB%98%E7%BA%A7RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8617_%E5%9B%BERAG/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前言：传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：向量检索只看语义相似度，不建模实体之间的关系。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。 一、传统 RAG 到底差在哪？先搞清楚为什么需要图，才知道图解决了什么问题：">
+<meta property="og:description" content="前言：传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：向量检索只看语义相似度，不建模实体之间的关系。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。 传统 RAG 到底差在哪？先搞清楚为什么需要图，才知道图解决了什么问题：">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter7/images/7_1_1.svg">
 <meta property="article:published_time" content="2026-07-11T15:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T14:24:58.267Z">
+<meta property="article:modified_time" content="2026-07-14T15:47:09.244Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="AI开发">
 <meta property="article:tag" content="RAG">
@@ -207,10 +207,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2026-07-11 23:00:00 / 修改时间：22:24:58" itemprop="dateCreated datePublished" datetime="2026-07-11T23:00:00+08:00">2026-07-11</time>
+              <time title="创建时间：2026-07-11 23:00:00" itemprop="dateCreated datePublished" datetime="2026-07-11T23:00:00+08:00">2026-07-11</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-07-14 23:47:09" itemprop="dateModified" datetime="2026-07-14T23:47:09+08:00">2026-07-14</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -249,7 +255,7 @@
       
   
   <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：<strong>向量检索只看语义相似度，不建模实体之间的关系</strong>。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。</p>
-<h1 id="一、传统-RAG-到底差在哪？"><a href="#一、传统-RAG-到底差在哪？" class="headerlink" title="一、传统 RAG 到底差在哪？"></a>一、传统 RAG 到底差在哪？</h1><p>先搞清楚为什么需要图，才知道图解决了什么问题：</p>
+<h1 id="传统-RAG-到底差在哪？"><a href="#传统-RAG-到底差在哪？" class="headerlink" title="传统 RAG 到底差在哪？"></a>传统 RAG 到底差在哪？</h1><p>先搞清楚为什么需要图，才知道图解决了什么问题：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -292,7 +298,7 @@
 </blockquote>
 <p>传统 RAG 需要检索多段文本并在生成阶段自行拼接推理，任何一段缺失或存在歧义，整条推理链就断了。而知识图谱天然能沿着 <code>收购→母公司→投资</code> 这条路径走下去。</p>
 <hr>
-<h1 id="二、知识图谱凭什么能救场？"><a href="#二、知识图谱凭什么能救场？" class="headerlink" title="二、知识图谱凭什么能救场？"></a>二、知识图谱凭什么能救场？</h1><p>知识图谱用<strong>节点（实体）</strong> 和<strong>边（关系）</strong> 把离散的知识编织成一张网。核心优势四个字：<strong>显式连接</strong>。</p>
+<h1 id="知识图谱凭什么能救场？"><a href="#知识图谱凭什么能救场？" class="headerlink" title="知识图谱凭什么能救场？"></a>知识图谱凭什么能救场？</h1><p>知识图谱用<strong>节点（实体）</strong> 和<strong>边（关系）</strong> 把离散的知识编织成一张网。核心优势四个字：<strong>显式连接</strong>。</p>
 <ul>
 <li><strong>结构化语义表达</strong>：直接编码 <code>公司A -[收购]→ 公司B</code> 这种显式关系，不需要 LLM 从文字里猜</li>
 <li><strong>天然支持多跳推理</strong>：沿图路径遍历，间接但关键的知识关联都能发现</li>
@@ -306,17 +312,17 @@
 <li><strong>时间建模</strong>：支持时间态边和版本化节点，可以做”某年某公司还是不是子公司”这种时间旅行查询</li>
 </ul>
 <hr>
-<h1 id="三、GraphRAG-通用架构（三阶段）"><a href="#三、GraphRAG-通用架构（三阶段）" class="headerlink" title="三、GraphRAG 通用架构（三阶段）"></a>三、GraphRAG 通用架构（三阶段）</h1><p>不管哪个框架，GraphRAG 基本都是三步走：<strong>构建图谱 → 图谱检索 → 增强生成</strong>。</p>
+<h1 id="GraphRAG-通用架构（三阶段）"><a href="#GraphRAG-通用架构（三阶段）" class="headerlink" title="GraphRAG 通用架构（三阶段）"></a>GraphRAG 通用架构（三阶段）</h1><p>不管哪个框架，GraphRAG 基本都是三步走：<strong>构建图谱 → 图谱检索 → 增强生成</strong>。</p>
 <p><img data-src="https://datawhalechina.github.io/all-in-rag/chapter7/images/7_1_1.svg" alt=""></p>
 <hr>
-<h3 id="3-1-知识图谱构建"><a href="#3-1-知识图谱构建" class="headerlink" title="3.1 知识图谱构建"></a>3.1 知识图谱构建</h3><p>这是整个 GraphRAG 的地基，质量决定上限：</p>
+<h2 id="知识图谱构建"><a href="#知识图谱构建" class="headerlink" title="知识图谱构建"></a>知识图谱构建</h2><p>这是整个 GraphRAG 的地基，质量决定上限：</p>
 <ul>
 <li><strong>知识抽取</strong>：用 LLM 或 IE 管线从文本中抽取实体、关系和属性（含指代消解、别名归一、术语标准化）</li>
 <li><strong>质量控制</strong>：对三元组做置信度评估、人机协同抽检、冲突消解，必要时用规则和本体约束做一致性校验</li>
 <li><strong>图谱融合</strong>：跨来源的实体对齐与去重（Entity Resolution），合并时保留溯源信息</li>
 <li><strong>存储与索引</strong>：落地到图数据库（Neo4j / NebulaGraph / TigerGraph 等），建立属性和关系索引</li>
 </ul>
-<h3 id="3-2-图谱检索"><a href="#3-2-图谱检索" class="headerlink" title="3.2 图谱检索"></a>3.2 图谱检索</h3><p>这一步是和传统 RAG 差别最大的地方——不再是简单的向量相似度搜索，而是<strong>在图上做结构化查询</strong>：</p>
+<h2 id="图谱检索"><a href="#图谱检索" class="headerlink" title="图谱检索"></a>图谱检索</h2><p>这一步是和传统 RAG 差别最大的地方——不再是简单的向量相似度搜索，而是<strong>在图上做结构化查询</strong>：</p>
 <ol>
 <li><strong>实体定位</strong>：先用实体链接或向量检索在图中锁定核心实体节点</li>
 <li><strong>子图探索</strong>：从命中节点出发，用图查询语言（Cypher）或遍历算法做邻域扩展、路径发现、约束过滤（限定关系类型、跳数、时间区间、置信度阈值）</li>
@@ -325,14 +331,14 @@
 </ol>
 <p>Cypher 查询示例——查询公司A两跳内的收购路径及目标行业：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MATCH (a:Company &#123;name: &quot;A&quot;&#125;)-[:ACQUIRED]-&gt;(b:Company)-[:IN_INDUSTRY]-&gt;(i:Industry)</span><br><span class="line">RETURN a.name AS acquirer, b.name AS target, i.name AS industry</span><br><span class="line">UNION</span><br><span class="line">MATCH (a:Company &#123;name: &quot;A&quot;&#125;)-[:ACQUIRED]-&gt;(:Company)-[:ACQUIRED]-&gt;(b2:Company)-[:IN_INDUSTRY]-&gt;(i2:Industry)</span><br><span class="line">RETURN a.name AS acquirer, b2.name AS target, i2.name AS industry;</span><br></pre></td></tr></table></figure>
-<h3 id="3-3-增强生成"><a href="#3-3-增强生成" class="headerlink" title="3.3 增强生成"></a>3.3 增强生成</h3><p>把检索到的结构化知识（实体属性、关系路径、子图摘要等）和原始查询一起注入 Prompt：</p>
+<h2 id="增强生成"><a href="#增强生成" class="headerlink" title="增强生成"></a>增强生成</h2><p>把检索到的结构化知识（实体属性、关系路径、子图摘要等）和原始查询一起注入 Prompt：</p>
 <ul>
 <li><strong>提示设计</strong>：明确要求模型引用”图证据”，在回答中给出来源与路径</li>
 <li><strong>证据融合</strong>：结构化三元组/路径 + 原文片段联合提供，兼顾事实性和文本细节</li>
 <li><strong>约束回答</strong>：敏感领域（金融/医疗）可采用模板化输出 + 字段校验，进一步减少幻觉</li>
 </ul>
 <hr>
-<h1 id="四、方法论分类"><a href="#四、方法论分类" class="headerlink" title="四、方法论分类"></a>四、方法论分类</h1><p>根据知识图谱与 RAG 的结合深度，现有方法大致分三类：</p>
+<h1 id="方法论分类"><a href="#方法论分类" class="headerlink" title="方法论分类"></a>方法论分类</h1><p>根据知识图谱与 RAG 的结合深度，现有方法大致分三类：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -367,7 +373,7 @@
 </div>
 <p>实践中混合型是主流趋势——简单事实问答优先图检索，叙事性问题补充文本证据，复杂查询先在图上定位路径再以路径节点为”导航枢纽”做针对性文档检索。</p>
 <hr>
-<h1 id="五、主流框架对比"><a href="#五、主流框架对比" class="headerlink" title="五、主流框架对比"></a>五、主流框架对比</h1><h3 id="5-1-Microsoft-GraphRAG"><a href="#5-1-Microsoft-GraphRAG" class="headerlink" title="5.1 Microsoft GraphRAG"></a>5.1 Microsoft GraphRAG</h3><p>重量级框架，核心理念是”<strong>先构建全局知识，再按需检索</strong>“：</p>
+<h1 id="主流框架对比"><a href="#主流框架对比" class="headerlink" title="主流框架对比"></a>主流框架对比</h1><h2 id="Microsoft-GraphRAG"><a href="#Microsoft-GraphRAG" class="headerlink" title="Microsoft GraphRAG"></a>Microsoft GraphRAG</h2><p>重量级框架，核心理念是”<strong>先构建全局知识，再按需检索</strong>“：</p>
 <ul>
 <li>文本 → 三元组/子图构建 → 属性图</li>
 <li>采用社区检测（Leiden算法）进行图划分，按层级生成全局/社区/局部摘要</li>
@@ -375,28 +381,28 @@
 <li>返回”全局观 + 证据路径”并行的双视角答案</li>
 </ul>
 <p><strong>优势</strong>：强全局感知、良好可解释性，适合探索性分析和全景总结。<br><strong>代价</strong>：前期构建和分层摘要成本较高，对数据持续变更需设计增量更新策略。</p>
-<h3 id="5-2-LightRAG"><a href="#5-2-LightRAG" class="headerlink" title="5.2 LightRAG"></a>5.2 LightRAG</h3><p>针对 GraphRAG 的”重量”问题，追求<strong>轻量、高效、易扩展</strong>：</p>
+<h2 id="LightRAG"><a href="#LightRAG" class="headerlink" title="LightRAG"></a>LightRAG</h2><p>针对 GraphRAG 的”重量”问题，追求<strong>轻量、高效、易扩展</strong>：</p>
 <ul>
 <li>“双层检索”与”图增强索引”，以较低构建成本获得全局-局部兼顾的检索能力</li>
 <li>强调将结构信号嵌入到文本索引与重排中，弱化复杂的社区发现流程</li>
 <li>适用于资源受限、快速迭代与在线更新场景</li>
 </ul>
-<h3 id="5-3-FRAG（Flexible-RAG）"><a href="#5-3-FRAG（Flexible-RAG）" class="headerlink" title="5.3 FRAG（Flexible RAG）"></a>5.3 FRAG（Flexible RAG）</h3><p>强调”<strong>灵活性与模块化</strong>“，自适应不同复杂度的查询：</p>
+<h2 id="FRAG（Flexible-RAG）"><a href="#FRAG（Flexible-RAG）" class="headerlink" title="FRAG（Flexible RAG）"></a>FRAG（Flexible RAG）</h2><p>强调”<strong>灵活性与模块化</strong>“，自适应不同复杂度的查询：</p>
 <ul>
 <li>查询分流：通过分类器或规则将请求判定为简单/复杂</li>
 <li>简单查询：直接实体链接 + 属性查找，低延迟返回</li>
 <li>复杂查询：激活路径检索/多跳推理模块，再融合文本证据</li>
 <li>模块化设计，迁移成本低</li>
 </ul>
-<h3 id="5-4-GraphIRAG（迭代检索）"><a href="#5-4-GraphIRAG（迭代检索）" class="headerlink" title="5.4 GraphIRAG（迭代检索）"></a>5.4 GraphIRAG（迭代检索）</h3><p>引入”<strong>迭代检索</strong>“思想，认为单次检索不足以解决复杂问题：</p>
+<h2 id="GraphIRAG（迭代检索）"><a href="#GraphIRAG（迭代检索）" class="headerlink" title="GraphIRAG（迭代检索）"></a>GraphIRAG（迭代检索）</h2><p>引入”<strong>迭代检索</strong>“思想，认为单次检索不足以解决复杂问题：</p>
 <ul>
 <li>由控制器在生成过程中多轮触发图查询，逐步补齐证据链</li>
 <li>以”新信息增益”为准则决定是否继续迭代以及何时停止</li>
 <li>对时间敏感和多跳推理任务更具鲁棒性</li>
 </ul>
 <hr>
-<h1 id="六、评估体系"><a href="#六、评估体系" class="headerlink" title="六、评估体系"></a>六、评估体系</h1><p>GraphRAG 的评估是多维度的，比传统 RAG 多了图特有的维度：</p>
-<h3 id="6-1-核心评估指标"><a href="#6-1-核心评估指标" class="headerlink" title="6.1 核心评估指标"></a>6.1 核心评估指标</h3><p><strong>检索质量：</strong></p>
+<h1 id="评估体系"><a href="#评估体系" class="headerlink" title="评估体系"></a>评估体系</h1><p>GraphRAG 的评估是多维度的，比传统 RAG 多了图特有的维度：</p>
+<h2 id="核心评估指标"><a href="#核心评估指标" class="headerlink" title="核心评估指标"></a>核心评估指标</h2><p><strong>检索质量：</strong></p>
 <ul>
 <li>传统：Precision、Recall、F1、Hit Rate@K</li>
 <li>RAG 特有：<ul>
@@ -416,7 +422,7 @@
 <ul>
 <li>推理延迟（Latency）、吞吐量（QPS）、成本（API 调用次数、GPU/内存消耗）</li>
 </ul>
-<h3 id="6-2-常用基准数据集"><a href="#6-2-常用基准数据集" class="headerlink" title="6.2 常用基准数据集"></a>6.2 常用基准数据集</h3><div class="table-container">
+<h2 id="常用基准数据集"><a href="#常用基准数据集" class="headerlink" title="常用基准数据集"></a>常用基准数据集</h2><div class="table-container">
 <table>
 <thead>
 <tr>
@@ -448,7 +454,7 @@
 <p>⚠️ 部分现有基准（如 WebQSP）存在数据质量问题或评估方法过于僵化（如严格的 EM），可能导致对模型性能的低估。构建更高质量的基准是未来的重要方向。</p>
 </blockquote>
 <hr>
-<h1 id="七、生产环境的现实挑战"><a href="#七、生产环境的现实挑战" class="headerlink" title="七、生产环境的现实挑战"></a>七、生产环境的现实挑战</h1><p>把 GraphRAG 从实验室推向生产，面临的坑比传统 RAG 多不少：</p>
+<h1 id="生产环境的现实挑战"><a href="#生产环境的现实挑战" class="headerlink" title="生产环境的现实挑战"></a>生产环境的现实挑战</h1><p>把 GraphRAG 从实验室推向生产，面临的坑比传统 RAG 多不少：</p>
 <ul>
 <li><strong>知识图谱的构建与维护</strong>：高质量图谱本身就是知识工程的苦活，生产环境还要求动态更新——增量更新机制是核心难点</li>
 <li><strong>系统性能与可扩展性</strong>：知识库规模和查询量增长后，延迟、吞吐和资源消耗成为主要瓶颈（向量化慢、内存溢出、API 挂了都是常见问题）</li>
@@ -456,7 +462,7 @@
 <li><strong>成本控制</strong>：大规模部署需要大量计算和存储资源，架构优化以降低运营成本是重要的商业考量</li>
 </ul>
 <hr>
-<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>这一节的核心脉络：</p>
+<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><p>这一节的核心脉络：</p>
 <ul>
 <li><strong>为什么要图 RAG</strong>：传统 RAG 的向量检索搞不定多跳推理、实体关系和跨文档关联</li>
 <li><strong>图 RAG 怎么做</strong>：构建知识图谱 → 图谱检索（实体定位 + 子图探索 + 证据抽取）→ 增强生成</li>
@@ -465,7 +471,7 @@
 <li><strong>落地挑战</strong>：图谱构建维护贵、性能扩展难、安全隐私风险、成本高</li>
 </ul>
 <p>简单说，GraphRAG = <strong>用知识图谱给 RAG 装上了”关系推理引擎”</strong>。适合多跳问答、事实性要求高、需要可解释性的场景。但代价是工程复杂度上了一个台阶。</p>
-<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ul>
 <li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2404.16130">Edge et al. (2024). <em>From Local to Global: A Graph RAG Approach to Query-Focused Summarization</em></a></li>
 <li><a target="_blank" rel="noopener" href="https://microsoft.github.io/graphrag/">Microsoft GraphRAG Documentation</a></li>
 <li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2410.05779">Guo et al. (2024). <em>LightRAG: Simple and Fast Retrieval-Augmented Generation</em></a></li>
@@ -607,7 +613,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BC%A0%E7%BB%9F-RAG-%E5%88%B0%E5%BA%95%E5%B7%AE%E5%9C%A8%E5%93%AA%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">一、传统 RAG 到底差在哪？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E5%87%AD%E4%BB%80%E4%B9%88%E8%83%BD%E6%95%91%E5%9C%BA%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">二、知识图谱凭什么能救场？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81GraphRAG-%E9%80%9A%E7%94%A8%E6%9E%B6%E6%9E%84%EF%BC%88%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">三、GraphRAG 通用架构（三阶段）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E6%9E%84%E5%BB%BA"><span class="nav-number">4.0.1.</span> <span class="nav-text">3.1 知识图谱构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%9B%BE%E8%B0%B1%E6%A3%80%E7%B4%A2"><span class="nav-number">4.0.2.</span> <span class="nav-text">3.2 图谱检索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90"><span class="nav-number">4.0.3.</span> <span class="nav-text">3.3 增强生成</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%96%B9%E6%B3%95%E8%AE%BA%E5%88%86%E7%B1%BB"><span class="nav-number">5.</span> <span class="nav-text">四、方法论分类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94"><span class="nav-number">6.</span> <span class="nav-text">五、主流框架对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-Microsoft-GraphRAG"><span class="nav-number">6.0.1.</span> <span class="nav-text">5.1 Microsoft GraphRAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-LightRAG"><span class="nav-number">6.0.2.</span> <span class="nav-text">5.2 LightRAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-FRAG%EF%BC%88Flexible-RAG%EF%BC%89"><span class="nav-number">6.0.3.</span> <span class="nav-text">5.3 FRAG（Flexible RAG）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-GraphIRAG%EF%BC%88%E8%BF%AD%E4%BB%A3%E6%A3%80%E7%B4%A2%EF%BC%89"><span class="nav-number">6.0.4.</span> <span class="nav-text">5.4 GraphIRAG（迭代检索）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E8%AF%84%E4%BC%B0%E4%BD%93%E7%B3%BB"><span class="nav-number">7.</span> <span class="nav-text">六、评估体系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E6%A0%B8%E5%BF%83%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87"><span class="nav-number">7.0.1.</span> <span class="nav-text">6.1 核心评估指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E5%B8%B8%E7%94%A8%E5%9F%BA%E5%87%86%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-number">7.0.2.</span> <span class="nav-text">6.2 常用基准数据集</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%9A%84%E7%8E%B0%E5%AE%9E%E6%8C%91%E6%88%98"><span class="nav-number">8.</span> <span class="nav-text">七、生产环境的现实挑战</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">8.1.</span> <span class="nav-text">总结：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">8.2.</span> <span class="nav-text">参考文献</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F-RAG-%E5%88%B0%E5%BA%95%E5%B7%AE%E5%9C%A8%E5%93%AA%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">传统 RAG 到底差在哪？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E5%87%AD%E4%BB%80%E4%B9%88%E8%83%BD%E6%95%91%E5%9C%BA%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">知识图谱凭什么能救场？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GraphRAG-%E9%80%9A%E7%94%A8%E6%9E%B6%E6%9E%84%EF%BC%88%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">GraphRAG 通用架构（三阶段）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E6%9E%84%E5%BB%BA"><span class="nav-number">4.1.</span> <span class="nav-text">知识图谱构建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BE%E8%B0%B1%E6%A3%80%E7%B4%A2"><span class="nav-number">4.2.</span> <span class="nav-text">图谱检索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90"><span class="nav-number">4.3.</span> <span class="nav-text">增强生成</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E8%AE%BA%E5%88%86%E7%B1%BB"><span class="nav-number">5.</span> <span class="nav-text">方法论分类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94"><span class="nav-number">6.</span> <span class="nav-text">主流框架对比</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Microsoft-GraphRAG"><span class="nav-number">6.1.</span> <span class="nav-text">Microsoft GraphRAG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LightRAG"><span class="nav-number">6.2.</span> <span class="nav-text">LightRAG</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FRAG%EF%BC%88Flexible-RAG%EF%BC%89"><span class="nav-number">6.3.</span> <span class="nav-text">FRAG（Flexible RAG）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GraphIRAG%EF%BC%88%E8%BF%AD%E4%BB%A3%E6%A3%80%E7%B4%A2%EF%BC%89"><span class="nav-number">6.4.</span> <span class="nav-text">GraphIRAG（迭代检索）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%84%E4%BC%B0%E4%BD%93%E7%B3%BB"><span class="nav-number">7.</span> <span class="nav-text">评估体系</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87"><span class="nav-number">7.1.</span> <span class="nav-text">核心评估指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%9F%BA%E5%87%86%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-number">7.2.</span> <span class="nav-text">常用基准数据集</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%9A%84%E7%8E%B0%E5%AE%9E%E6%8C%91%E6%88%98"><span class="nav-number">8.</span> <span class="nav-text">生产环境的现实挑战</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">9.</span> <span class="nav-text">总结：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">10.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -22,18 +22,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="1 为什么需要检索优化在前面的章节中，我们已经学习了最基本的 RAG 流程：用户问题首先经过 Embedding 编码，然后利用向量数据库检索与问题最相似的文档片段（Chunk），最后将检索结果作为上下文输入大模型生成最终回答。 整个流程如下：12345flowchart LRA[用户问题] --&gt; B[Embedding]B --&gt; C[Vector Search]C --&gt;">
+  <meta name="description" content="为什么需要检索优化在前面的章节中，我们已经学习了最基本的 RAG 流程：用户问题首先经过 Embedding 编码，然后利用向量数据库检索与问题最相似的文档片段（Chunk），最后将检索结果作为上下文输入大模型生成最终回答。 整个流程如下：12345flowchart LRA[用户问题] --&gt; B[Embedding]B --&gt; C[Vector Search]C --&gt; D[">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RAG底层原理15:检索进阶技术">
 <meta property="og:url" content="http://example.com/2026/04/26/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8615_%E6%A3%80%E7%B4%A2%E8%BF%9B%E9%98%B6%E6%8A%80%E6%9C%AF/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="1 为什么需要检索优化在前面的章节中，我们已经学习了最基本的 RAG 流程：用户问题首先经过 Embedding 编码，然后利用向量数据库检索与问题最相似的文档片段（Chunk），最后将检索结果作为上下文输入大模型生成最终回答。 整个流程如下：12345flowchart LRA[用户问题] --&gt; B[Embedding]B --&gt; C[Vector Search]C --&gt;">
+<meta property="og:description" content="为什么需要检索优化在前面的章节中，我们已经学习了最基本的 RAG 流程：用户问题首先经过 Embedding 编码，然后利用向量数据库检索与问题最相似的文档片段（Chunk），最后将检索结果作为上下文输入大模型生成最终回答。 整个流程如下：12345flowchart LRA[用户问题] --&gt; B[Embedding]B --&gt; C[Vector Search]C --&gt; D[">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_5_1.webp">
 <meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_5_2.webp">
 <meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_5_3.svg">
 <meta property="article:published_time" content="2026-04-25T17:00:00.000Z">
-<meta property="article:modified_time" content="2026-07-11T10:19:34.848Z">
+<meta property="article:modified_time" content="2026-07-14T16:02:28.644Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="AI开发">
 <meta property="article:tag" content="RAG">
@@ -216,7 +216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-07-11 18:19:34" itemprop="dateModified" datetime="2026-07-11T18:19:34+08:00">2026-07-11</time>
+                <time title="修改时间：2026-07-15 00:02:28" itemprop="dateModified" datetime="2026-07-15T00:02:28+08:00">2026-07-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -255,7 +255,7 @@
 
       
   
-  <h1 id="1-为什么需要检索优化"><a href="#1-为什么需要检索优化" class="headerlink" title="1 为什么需要检索优化"></a>1 为什么需要检索优化</h1><p>在前面的章节中，我们已经学习了最基本的 RAG 流程：用户问题首先经过 Embedding 编码，然后利用向量数据库检索与问题最相似的文档片段（Chunk），最后将检索结果作为上下文输入大模型生成最终回答。</p>
+  <h1 id="为什么需要检索优化"><a href="#为什么需要检索优化" class="headerlink" title="为什么需要检索优化"></a>为什么需要检索优化</h1><p>在前面的章节中，我们已经学习了最基本的 RAG 流程：用户问题首先经过 Embedding 编码，然后利用向量数据库检索与问题最相似的文档片段（Chunk），最后将检索结果作为上下文输入大模型生成最终回答。</p>
 <p>整个流程如下：<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">A[用户问题] --&gt; B[Embedding]</span><br><span class="line">B --&gt; C[Vector Search]</span><br><span class="line">C --&gt; D[Top-K Chunk]</span><br><span class="line">D --&gt; E[LLM生成答案]</span><br></pre></td></tr></table></figure></p>
 <p>这种方式实现简单，也是目前大多数 RAG 系统的基础架构。然而，在真实业务场景中，仅依赖向量相似度进行检索仍然存在许多不足。</p>
 <p>首先，Embedding 模型只能计算语义相似度，并不能真正理解用户的问题意图。当多个文档都具有较高的语义相似性时，向量检索容易返回内容相关但答案错误的文档。</p>
@@ -268,7 +268,7 @@
 <p>因此，在实际项目中，通常会在 Retriever 前后增加多个优化模块，以提升系统的召回率（Recall）和准确率（Precision）。</p>
 <p><img data-src="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_5_1.webp" alt="整体检索流程图"></p>
 <hr>
-<h1 id="2-Reranker（重排序）"><a href="#2-Reranker（重排序）" class="headerlink" title="2 Reranker（重排序）"></a>2 Reranker（重排序）</h1><h2 id="2-1-为什么需要-Reranker"><a href="#2-1-为什么需要-Reranker" class="headerlink" title="2.1 为什么需要 Reranker"></a>2.1 为什么需要 Reranker</h2><p>向量数据库的主要优势在于检索速度快，但其排序依据仅为向量之间的距离，因此返回的 Top-K 结果并不一定真正符合用户的问题。</p>
+<h1 id="Reranker（重排序）"><a href="#Reranker（重排序）" class="headerlink" title="Reranker（重排序）"></a>Reranker（重排序）</h1><h2 id="为什么需要-Reranker"><a href="#为什么需要-Reranker" class="headerlink" title="为什么需要 Reranker"></a>为什么需要 Reranker</h2><p>向量数据库的主要优势在于检索速度快，但其排序依据仅为向量之间的距离，因此返回的 Top-K 结果并不一定真正符合用户的问题。</p>
 <p>例如，系统首先检索出 20 个候选文档，其中真正能够回答问题的文档可能只排在第 15 位。如果直接将前几个结果输入 LLM，模型就可能无法获得最佳上下文。</p>
 <p>因此，工业界通常采用<strong>两阶段检索（Two-stage Retrieval）</strong>：</p>
 <ol>
@@ -277,12 +277,12 @@
 </ol>
 <p>整个流程如下：<br><img data-src="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_5_2.webp" alt=""></p>
 <p>第一阶段关注<strong>召回率</strong>，尽可能找到所有可能相关的文档；第二阶段关注<strong>准确率</strong>，进一步筛选真正有价值的内容。</p>
-<h2 id="2-2-工作原理"><a href="#2-2-工作原理" class="headerlink" title="2.2 工作原理"></a>2.2 工作原理</h2><p>目前最常见的 Reranker 是 <strong>Cross Encoder</strong>。</p>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p>目前最常见的 Reranker 是 <strong>Cross Encoder</strong>。</p>
 <p>它的工作原理是将查询（Query）和每个候选文档（Document）<strong>拼接</strong>成一个单一的输入（例如，<code>[CLS] query [SEP] document [SEP]</code>），然后将这个整体输入到一个预训练的 Transformer 模型（如 BERT）中，模型最终会输出一个单一的分数（通常在 0 到 1 之间），这个分数直接代表了文档与查询的<strong>相关性</strong>。</p>
 <p><img data-src="https://datawhalechina.github.io/all-in-rag/chapter4/images/4_5_3.svg" alt=""></p>
 <p>模型直接输出两者之间的相关性分数，再按照得分重新排序。</p>
 <p>由于模型能够同时理解问题和文档之间的关系，因此排序效果通常优于仅依赖向量距离的方式，但计算成本也更高。</p>
-<h2 id="2-3-优缺点"><a href="#2-3-优缺点" class="headerlink" title="2.3 优缺点"></a>2.3 优缺点</h2><p><strong>优点：</strong></p>
+<h2 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h2><p><strong>优点：</strong></p>
 <ul>
 <li>提高检索准确率</li>
 <li>有效过滤无关文档</li>
@@ -295,12 +295,12 @@
 <li>通常仅用于 Top-K 候选结果的重排序</li>
 </ul>
 <hr>
-<h1 id="3-Contextual-Compression（上下文压缩）"><a href="#3-Contextual-Compression（上下文压缩）" class="headerlink" title="3 Contextual Compression（上下文压缩）"></a>3 Contextual Compression（上下文压缩）</h1><h2 id="3-1-为什么需要上下文压缩"><a href="#3-1-为什么需要上下文压缩" class="headerlink" title="3.1 为什么需要上下文压缩"></a>3.1 为什么需要上下文压缩</h2><p>Retriever 返回的 Chunk 往往包含大量无关内容，而真正能够回答问题的信息可能只有几句话。</p>
+<h1 id="Contextual-Compression（上下文压缩）"><a href="#Contextual-Compression（上下文压缩）" class="headerlink" title="Contextual Compression（上下文压缩）"></a>Contextual Compression（上下文压缩）</h1><h2 id="为什么需要上下文压缩"><a href="#为什么需要上下文压缩" class="headerlink" title="为什么需要上下文压缩"></a>为什么需要上下文压缩</h2><p>Retriever 返回的 Chunk 往往包含大量无关内容，而真正能够回答问题的信息可能只有几句话。</p>
 <p>例如，一个 1000 Token 的文档中，真正有价值的内容可能只有几十个 Token。如果将完整文档全部输入大模型，不仅浪费上下文窗口，还可能降低回答质量。</p>
 <p>因此，可以在 Retriever 与 LLM 之间增加<strong>上下文压缩器（Contextual Compression）</strong>。</p>
 <p>流程如下：<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">A[Retriever]</span><br><span class="line">--&gt;B[Original Chunk]</span><br><span class="line">--&gt;C[Compression]</span><br><span class="line">--&gt;D[Compressed Context]</span><br><span class="line">--&gt;E[LLM]</span><br></pre></td></tr></table></figure><br>压缩器的作用不是总结全文，而是<strong>保留与当前问题最相关的内容</strong>，删除无关信息。</p>
-<h2 id="3-2-Compression-的实现方式"><a href="#3-2-Compression-的实现方式" class="headerlink" title="3.2 Compression 的实现方式"></a>3.2 Compression 的实现方式</h2><p>Compression 并不是一种固定算法，而是一类思想。目前工程中主要有三种实现方式。</p>
-<h3 id="（1）Embedding-Filter"><a href="#（1）Embedding-Filter" class="headerlink" title="（1）Embedding Filter"></a>（1）Embedding Filter</h3><p>Embedding Filter 是最轻量级的实现方式。</p>
+<h2 id="Compression-的实现方式"><a href="#Compression-的实现方式" class="headerlink" title="Compression 的实现方式"></a>Compression 的实现方式</h2><p>Compression 并不是一种固定算法，而是一类思想。目前工程中主要有三种实现方式。</p>
+<h3 id="Embedding-Filter"><a href="#Embedding-Filter" class="headerlink" title="Embedding Filter"></a>Embedding Filter</h3><p>Embedding Filter 是最轻量级的实现方式。</p>
 <p>Retriever 返回文档后，将文档再次划分为更细粒度的句子或段落，计算每个片段与 Query 的向量相似度，仅保留相似度较高的部分。</p>
 <p>流程如下：<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">flowchart TD</span><br><span class="line">A[Retrieved Document]</span><br><span class="line">--&gt;B[Split Sentence]</span><br><span class="line">--&gt;C[Embedding Similarity]</span><br><span class="line">--&gt;D[保留高分句子]</span><br><span class="line">--&gt;E[LLM]</span><br></pre></td></tr></table></figure></p>
 <p><strong>优点：</strong></p>
@@ -323,7 +323,7 @@
 </ul>
 <p>如果每天需要处理数十万次检索请求，通常优先选择 Embedding Filter。</p>
 <hr>
-<h3 id="（2）LLM-Extractor"><a href="#（2）LLM-Extractor" class="headerlink" title="（2）LLM Extractor"></a>（2）LLM Extractor</h3><p>另一种方式是利用 LLM 直接阅读 Retriever 返回的文档，并根据用户问题提取真正相关的信息。</p>
+<h3 id="LLM-Extractor"><a href="#LLM-Extractor" class="headerlink" title="LLM Extractor"></a>LLM Extractor</h3><p>另一种方式是利用 LLM 直接阅读 Retriever 返回的文档，并根据用户问题提取真正相关的信息。</p>
 <p>例如：</p>
 <p>用户问题：</p>
 <blockquote>
@@ -356,13 +356,13 @@
 </ul>
 <p>这些场景更加关注回答质量，而不是推理速度。</p>
 <hr>
-<h3 id="（3）Pipeline-Compression"><a href="#（3）Pipeline-Compression" class="headerlink" title="（3）Pipeline Compression"></a>（3）Pipeline Compression</h3><p>工业界通常不会只采用一种压缩方式，而是组合多种方法形成 Pipeline。</p>
+<h3 id="Pipeline-Compression"><a href="#Pipeline-Compression" class="headerlink" title="Pipeline Compression"></a>Pipeline Compression</h3><p>工业界通常不会只采用一种压缩方式，而是组合多种方法形成 Pipeline。</p>
 <p>例如：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Retriever</span><br><span class="line">      │</span><br><span class="line">Embedding Filter</span><br><span class="line">      │</span><br><span class="line">LLM Extractor</span><br><span class="line">      │</span><br><span class="line">Compressed Context</span><br></pre></td></tr></table></figure>
 <p>先利用 Embedding Filter 删除明显无关的内容，再由 LLM 对剩余文本进行精细提取。</p>
 <p>这样能够兼顾推理成本与压缩效果，也是目前较为常见的工程实践。</p>
 <hr>
-<h2 id="3-3-工程实践如何选择"><a href="#3-3-工程实践如何选择" class="headerlink" title="3.3 工程实践如何选择"></a>3.3 工程实践如何选择</h2><p>Compression 没有统一的最佳方案，应根据业务特点进行选择。</p>
+<h2 id="工程实践如何选择"><a href="#工程实践如何选择" class="headerlink" title="工程实践如何选择"></a>工程实践如何选择</h2><p>Compression 没有统一的最佳方案，应根据业务特点进行选择。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -405,7 +405,7 @@
 <p><strong>经验总结：</strong><br><strong>如果系统首先关注吞吐量，优先选择 Embedding Filter；如果首先关注回答质量，则优先选择 LLM Extractor。企业级 RAG 更多采用 Pipeline，将两者结合使用。</strong></p>
 </blockquote>
 <hr>
-<h1 id="4-Retrieval-Correction（检索校正）"><a href="#4-Retrieval-Correction（检索校正）" class="headerlink" title="4 Retrieval Correction（检索校正）"></a>4 Retrieval Correction（检索校正）</h1><h2 id="4-1-为什么需要-Retrieval-Correction"><a href="#4-1-为什么需要-Retrieval-Correction" class="headerlink" title="4.1 为什么需要 Retrieval Correction"></a>4.1 为什么需要 Retrieval Correction</h2><p>在传统 RAG 中，通常默认 Retriever 能够返回与用户问题高度相关的文档，因此系统会直接将检索结果作为上下文输入 LLM。</p>
+<h1 id="Retrieval-Correction（检索校正）"><a href="#Retrieval-Correction（检索校正）" class="headerlink" title="Retrieval Correction（检索校正）"></a>Retrieval Correction（检索校正）</h1><h2 id="为什么需要-Retrieval-Correction"><a href="#为什么需要-Retrieval-Correction" class="headerlink" title="为什么需要 Retrieval Correction"></a>为什么需要 Retrieval Correction</h2><p>在传统 RAG 中，通常默认 Retriever 能够返回与用户问题高度相关的文档，因此系统会直接将检索结果作为上下文输入 LLM。</p>
 <p>这种方式有一个隐含假设：<strong>检索到的文档一定是正确且足够回答问题的。</strong></p>
 <p>然而，在真实项目中，这个假设并不总是成立。Retriever 的能力受 Embedding 模型、Chunk 划分方式以及知识库质量等因素影响，即使返回了语义相似的文档，也可能出现以下情况：</p>
 <ul>
@@ -419,12 +419,12 @@
 <p><strong>不要盲目信任 Retriever，而是在生成答案之前，先判断检索结果是否值得相信。</strong></p>
 </blockquote>
 <hr>
-<h2 id="4-2-C-RAG-的核心思想"><a href="#4-2-C-RAG-的核心思想" class="headerlink" title="4.2 C-RAG 的核心思想"></a>4.2 C-RAG 的核心思想</h2><p>C-RAG 在传统 RAG 的基础上增加了一个<strong>检索结果评估（Retrieval Evaluator）</strong>模块。</p>
+<h2 id="C-RAG-的核心思想"><a href="#C-RAG-的核心思想" class="headerlink" title="C-RAG 的核心思想"></a>C-RAG 的核心思想</h2><p>C-RAG 在传统 RAG 的基础上增加了一个<strong>检索结果评估（Retrieval Evaluator）</strong>模块。</p>
 <p>整体流程如下：</p>
 <p>整个流程可以概括为三个阶段：</p>
-<h3 id="（1）Retrieve（检索）"><a href="#（1）Retrieve（检索）" class="headerlink" title="（1）Retrieve（检索）"></a>（1）Retrieve（检索）</h3><p>与普通 RAG 相同，根据用户问题从知识库中检索相关文档。</p>
+<h3 id="Retrieve（检索）"><a href="#Retrieve（检索）" class="headerlink" title="Retrieve（检索）"></a>Retrieve（检索）</h3><p>与普通 RAG 相同，根据用户问题从知识库中检索相关文档。</p>
 <hr>
-<h3 id="（2）Assess（评估）"><a href="#（2）Assess（评估）" class="headerlink" title="（2）Assess（评估）"></a>（2）Assess（评估）</h3><p>这是 C-RAG 最核心的一步。<br>系统不会立即使用 Retriever 返回的文档，而是首先评估这些文档是否真正能够回答当前问题。<br>评估结果通常分为三类：</p>
+<h3 id="Assess（评估）"><a href="#Assess（评估）" class="headerlink" title="Assess（评估）"></a>Assess（评估）</h3><p>这是 C-RAG 最核心的一步。<br>系统不会立即使用 Retriever 返回的文档，而是首先评估这些文档是否真正能够回答当前问题。<br>评估结果通常分为三类：</p>
 <div class="table-container">
 <table>
 <thead>
@@ -451,7 +451,7 @@
 </div>
 <p>相比于传统 RAG，C-RAG 增加了一层”事实核查”，避免模型建立在错误上下文之上进行推理。</p>
 <hr>
-<h3 id="（3）Act（行动）"><a href="#（3）Act（行动）" class="headerlink" title="（3）Act（行动）"></a>（3）Act（行动）</h3><p>根据评估结果，系统采取不同策略。</p>
+<h3 id="Act（行动）"><a href="#Act（行动）" class="headerlink" title="Act（行动）"></a>Act（行动）</h3><p>根据评估结果，系统采取不同策略。</p>
 <h4 id="Correct"><a href="#Correct" class="headerlink" title="Correct"></a>Correct</h4><p>说明 Retriever 已经找到了正确知识。</p>
 <p>此时无需重新检索，而是进一步对文档进行<strong>Knowledge Refinement（知识精炼）</strong>。</p>
 <p>Knowledge Refinement 的目标是删除无关内容，仅保留真正能够回答问题的信息。</p>
@@ -475,9 +475,9 @@
 <h4 id="Ambiguous"><a href="#Ambiguous" class="headerlink" title="Ambiguous"></a>Ambiguous</h4><p>如果评估器认为文档只有部分相关，或者不同文档之间存在冲突，则说明当前信息不足。<br>此时系统通常不会直接回答，而是继续补充外部知识，例如再次进行 Web Search，或者增加新的 Retriever。</p>
 <p>这种策略能够有效减少由于信息缺失导致的错误回答。</p>
 <hr>
-<h2 id="4-3-Retrieval-Evaluator-如何实现"><a href="#4-3-Retrieval-Evaluator-如何实现" class="headerlink" title="4.3 Retrieval Evaluator 如何实现"></a>4.3 Retrieval Evaluator 如何实现</h2><p>C-RAG 的关键在于 <strong>Retriever Evaluator</strong>。</p>
+<h2 id="Retrieval-Evaluator-如何实现"><a href="#Retrieval-Evaluator-如何实现" class="headerlink" title="Retrieval Evaluator 如何实现"></a>Retrieval Evaluator 如何实现</h2><p>C-RAG 的关键在于 <strong>Retriever Evaluator</strong>。</p>
 <p>工程上并没有固定实现方式，目前主要有以下几种方案。</p>
-<h3 id="（1）LLM-Judge（推荐）"><a href="#（1）LLM-Judge（推荐）" class="headerlink" title="（1）LLM Judge（推荐）"></a>（1）LLM Judge（推荐）</h3><p>利用 LLM 判断文档是否能够回答问题。</p>
+<h3 id="LLM-Judge（推荐）"><a href="#LLM-Judge（推荐）" class="headerlink" title="LLM Judge（推荐）"></a>LLM Judge（推荐）</h3><p>利用 LLM 判断文档是否能够回答问题。</p>
 <p>输入：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Question</span><br><span class="line"></span><br><span class="line">Document</span><br></pre></td></tr></table></figure>
 <p>输出：</p>
@@ -494,9 +494,9 @@
 <li>推理成本较高。</li>
 </ul>
 <hr>
-<h3 id="（2）Cross-Encoder"><a href="#（2）Cross-Encoder" class="headerlink" title="（2）Cross Encoder"></a>（2）Cross Encoder</h3><p>利用 Cross Encoder 对 Question 与 Document 进行相关性评分。<br>当评分低于阈值时，认为检索失败。<br>这种方法速度快、成本低，但无法像 LLM 一样理解复杂推理关系。</p>
+<h3 id="Cross-Encoder"><a href="#Cross-Encoder" class="headerlink" title="Cross Encoder"></a>Cross Encoder</h3><p>利用 Cross Encoder 对 Question 与 Document 进行相关性评分。<br>当评分低于阈值时，认为检索失败。<br>这种方法速度快、成本低，但无法像 LLM 一样理解复杂推理关系。</p>
 <hr>
-<h3 id="（3）规则判断（Rule-based）"><a href="#（3）规则判断（Rule-based）" class="headerlink" title="（3）规则判断（Rule-based）"></a>（3）规则判断（Rule-based）</h3><p>对于一些固定业务，例如企业 FAQ 或客服系统，也可以根据规则直接判断：</p>
+<h3 id="规则判断（Rule-based）"><a href="#规则判断（Rule-based）" class="headerlink" title="规则判断（Rule-based）"></a>规则判断（Rule-based）</h3><p>对于一些固定业务，例如企业 FAQ 或客服系统，也可以根据规则直接判断：</p>
 <ul>
 <li>相似度低于阈值；</li>
 <li>Retriever Score 太低；</li>
@@ -506,7 +506,7 @@
 </li>
 </ul>
 <hr>
-<h2 id="4-4-工程实践如何选择"><a href="#4-4-工程实践如何选择" class="headerlink" title="4.4 工程实践如何选择"></a>4.4 工程实践如何选择</h2><p>并不是所有 RAG 系统都需要引入 C-RAG。<br>是否增加检索校正，应根据业务对<strong>准确率</strong>和<strong>成本</strong>的要求进行权衡。</p>
+<h2 id="工程实践如何选择-1"><a href="#工程实践如何选择-1" class="headerlink" title="工程实践如何选择"></a>工程实践如何选择</h2><p>并不是所有 RAG 系统都需要引入 C-RAG。<br>是否增加检索校正，应根据业务对<strong>准确率</strong>和<strong>成本</strong>的要求进行权衡。</p>
 <div class="table-container">
 <table>
 <thead>
@@ -557,7 +557,7 @@
 <li><strong>只有当知识库覆盖率不足时</strong>，才进一步接入 Web Search 或 Agent，实现完整的 C-RAG 流程。<br>这种方式能够在准确率、响应速度和系统复杂度之间取得较好的平衡。</li>
 </ol>
 <hr>
-<h2 id="4-5-我的理解"><a href="#4-5-我的理解" class="headerlink" title="4.5 我的理解"></a>4.5 我的理解</h2><p>我认为，<strong>C-RAG 并不是一种新的检索算法，而是在传统 RAG 流程中增加了一个”决策层”。</strong></p>
+<h2 id="我的理解"><a href="#我的理解" class="headerlink" title="我的理解"></a>我的理解</h2><p>我认为，<strong>C-RAG 并不是一种新的检索算法，而是在传统 RAG 流程中增加了一个”决策层”。</strong></p>
 <p>普通 RAG 的思想是：</p>
 <blockquote>
 <p><strong>检索到了，就相信它。</strong></p>
@@ -704,7 +704,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">1 为什么需要检索优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-Reranker%EF%BC%88%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">2 Reranker（重排序）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Reranker"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 为什么需要 Reranker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 优缺点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Contextual-Compression%EF%BC%88%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">3 Contextual Compression（上下文压缩）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 为什么需要上下文压缩</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-Compression-%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 Compression 的实现方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%881%EF%BC%89Embedding-Filter"><span class="nav-number">3.2.1.</span> <span class="nav-text">（1）Embedding Filter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%882%EF%BC%89LLM-Extractor"><span class="nav-number">3.2.2.</span> <span class="nav-text">（2）LLM Extractor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%883%EF%BC%89Pipeline-Compression"><span class="nav-number">3.2.3.</span> <span class="nav-text">（3）Pipeline Compression</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 工程实践如何选择</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-Retrieval-Correction%EF%BC%88%E6%A3%80%E7%B4%A2%E6%A0%A1%E6%AD%A3%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">4 Retrieval Correction（检索校正）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Retrieval-Correction"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 为什么需要 Retrieval Correction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-C-RAG-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 C-RAG 的核心思想</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%881%EF%BC%89Retrieve%EF%BC%88%E6%A3%80%E7%B4%A2%EF%BC%89"><span class="nav-number">4.2.1.</span> <span class="nav-text">（1）Retrieve（检索）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%882%EF%BC%89Assess%EF%BC%88%E8%AF%84%E4%BC%B0%EF%BC%89"><span class="nav-number">4.2.2.</span> <span class="nav-text">（2）Assess（评估）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%883%EF%BC%89Act%EF%BC%88%E8%A1%8C%E5%8A%A8%EF%BC%89"><span class="nav-number">4.2.3.</span> <span class="nav-text">（3）Act（行动）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Correct"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">Correct</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Incorrect"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">Incorrect</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ambiguous"><span class="nav-number">4.2.3.3.</span> <span class="nav-text">Ambiguous</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-Retrieval-Evaluator-%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 Retrieval Evaluator 如何实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%881%EF%BC%89LLM-Judge%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="nav-number">4.3.1.</span> <span class="nav-text">（1）LLM Judge（推荐）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%882%EF%BC%89Cross-Encoder"><span class="nav-number">4.3.2.</span> <span class="nav-text">（2）Cross Encoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%EF%BC%883%EF%BC%89%E8%A7%84%E5%88%99%E5%88%A4%E6%96%AD%EF%BC%88Rule-based%EF%BC%89"><span class="nav-number">4.3.3.</span> <span class="nav-text">（3）规则判断（Rule-based）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9"><span class="nav-number">4.4.</span> <span class="nav-text">4.4 工程实践如何选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-%E6%88%91%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">4.5.</span> <span class="nav-text">4.5 我的理解</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">为什么需要检索优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reranker%EF%BC%88%E9%87%8D%E6%8E%92%E5%BA%8F%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">Reranker（重排序）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Reranker"><span class="nav-number">2.1.</span> <span class="nav-text">为什么需要 Reranker</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">2.3.</span> <span class="nav-text">优缺点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Contextual-Compression%EF%BC%88%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">Contextual Compression（上下文压缩）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9"><span class="nav-number">3.1.</span> <span class="nav-text">为什么需要上下文压缩</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compression-%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">3.2.</span> <span class="nav-text">Compression 的实现方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Embedding-Filter"><span class="nav-number">3.2.1.</span> <span class="nav-text">Embedding Filter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LLM-Extractor"><span class="nav-number">3.2.2.</span> <span class="nav-text">LLM Extractor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pipeline-Compression"><span class="nav-number">3.2.3.</span> <span class="nav-text">Pipeline Compression</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9"><span class="nav-number">3.3.</span> <span class="nav-text">工程实践如何选择</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Retrieval-Correction%EF%BC%88%E6%A3%80%E7%B4%A2%E6%A0%A1%E6%AD%A3%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">Retrieval Correction（检索校正）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Retrieval-Correction"><span class="nav-number">4.1.</span> <span class="nav-text">为什么需要 Retrieval Correction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-RAG-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-number">4.2.</span> <span class="nav-text">C-RAG 的核心思想</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Retrieve%EF%BC%88%E6%A3%80%E7%B4%A2%EF%BC%89"><span class="nav-number">4.2.1.</span> <span class="nav-text">Retrieve（检索）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Assess%EF%BC%88%E8%AF%84%E4%BC%B0%EF%BC%89"><span class="nav-number">4.2.2.</span> <span class="nav-text">Assess（评估）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Act%EF%BC%88%E8%A1%8C%E5%8A%A8%EF%BC%89"><span class="nav-number">4.2.3.</span> <span class="nav-text">Act（行动）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Correct"><span class="nav-number">4.2.3.1.</span> <span class="nav-text">Correct</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Incorrect"><span class="nav-number">4.2.3.2.</span> <span class="nav-text">Incorrect</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ambiguous"><span class="nav-number">4.2.3.3.</span> <span class="nav-text">Ambiguous</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Retrieval-Evaluator-%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.3.</span> <span class="nav-text">Retrieval Evaluator 如何实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LLM-Judge%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="nav-number">4.3.1.</span> <span class="nav-text">LLM Judge（推荐）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cross-Encoder"><span class="nav-number">4.3.2.</span> <span class="nav-text">Cross Encoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E5%88%A4%E6%96%AD%EF%BC%88Rule-based%EF%BC%89"><span class="nav-number">4.3.3.</span> <span class="nav-text">规则判断（Rule-based）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9-1"><span class="nav-number">4.4.</span> <span class="nav-text">工程实践如何选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">4.5.</span> <span class="nav-text">我的理解</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -22,15 +22,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前言：之前写的混合检索笔记没跟上 Datawhale 原文的结构，这次直接对标原文重构一版。这节主要盘清楚两个底层概念：稀疏向量和密集向量，以及它们在混合检索（Hybrid Search）中是怎么融合的。懂了这些底层结构，以后写 RAG 代码或者调优检索策略时才有直觉。 正文：稀疏向量 vs 密集向量：要搞懂混合检索，首先得搞清楚我们要“混”的两个东西是什么。 1. 稀疏向量 (Sparse Ve">
+  <meta name="description" content="前言：之前写的混合检索笔记没跟上 Datawhale 原文的结构，这次直接对标原文重构一版。这节主要盘清楚两个底层概念：稀疏向量和密集向量，以及它们在混合检索（Hybrid Search）中是怎么融合的。懂了这些底层结构，以后写 RAG 代码或者调优检索策略时才有直觉。 正文：稀疏向量 vs 密集向量：要搞懂混合检索，首先得搞清楚我们要“混”的两个东西是什么。 稀疏向量 (Sparse Vecto">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RAG底层原理11:混合检索">
 <meta property="og:url" content="http://example.com/2026/04/25/AI/code/RAG/chapter4_%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8611_%E6%B7%B7%E5%90%88%E6%A3%80%E7%B4%A2/index.html">
 <meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前言：之前写的混合检索笔记没跟上 Datawhale 原文的结构，这次直接对标原文重构一版。这节主要盘清楚两个底层概念：稀疏向量和密集向量，以及它们在混合检索（Hybrid Search）中是怎么融合的。懂了这些底层结构，以后写 RAG 代码或者调优检索策略时才有直觉。 正文：稀疏向量 vs 密集向量：要搞懂混合检索，首先得搞清楚我们要“混”的两个东西是什么。 1. 稀疏向量 (Sparse Ve">
+<meta property="og:description" content="前言：之前写的混合检索笔记没跟上 Datawhale 原文的结构，这次直接对标原文重构一版。这节主要盘清楚两个底层概念：稀疏向量和密集向量，以及它们在混合检索（Hybrid Search）中是怎么融合的。懂了这些底层结构，以后写 RAG 代码或者调优检索策略时才有直觉。 正文：稀疏向量 vs 密集向量：要搞懂混合检索，首先得搞清楚我们要“混”的两个东西是什么。 稀疏向量 (Sparse Vecto">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-25T12:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-13T12:01:59.558Z">
+<meta property="article:modified_time" content="2026-07-14T16:02:28.642Z">
 <meta property="article:author" content="s0m1ng">
 <meta property="article:tag" content="AI开发">
 <meta property="article:tag" content="RAG">
@@ -213,7 +213,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-06-13 20:01:59" itemprop="dateModified" datetime="2026-06-13T20:01:59+08:00">2026-06-13</time>
+                <time title="修改时间：2026-07-15 00:02:28" itemprop="dateModified" datetime="2026-07-15T00:02:28+08:00">2026-07-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -254,7 +254,7 @@
   
   <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>之前写的混合检索笔记没跟上 Datawhale 原文的结构，这次直接对标原文重构一版。这节主要盘清楚两个底层概念：稀疏向量和密集向量，以及它们在混合检索（Hybrid Search）中是怎么融合的。懂了这些底层结构，以后写 RAG 代码或者调优检索策略时才有直觉。</p>
 <h1 id="正文："><a href="#正文：" class="headerlink" title="正文："></a>正文：</h1><h2 id="稀疏向量-vs-密集向量："><a href="#稀疏向量-vs-密集向量：" class="headerlink" title="稀疏向量 vs 密集向量："></a>稀疏向量 vs 密集向量：</h2><p>要搞懂混合检索，首先得搞清楚我们要“混”的两个东西是什么。</p>
-<h3 id="1-稀疏向量-Sparse-Vectors-："><a href="#1-稀疏向量-Sparse-Vectors-：" class="headerlink" title="1. 稀疏向量 (Sparse Vectors)："></a>1. 稀疏向量 (Sparse Vectors)：</h3><p>顾名思义，这是一个绝大多数元素为 0 的高维向量。它其实就是传统的“词频统计”的底层数学表示。</p>
+<h3 id="稀疏向量-Sparse-Vectors-："><a href="#稀疏向量-Sparse-Vectors-：" class="headerlink" title="稀疏向量 (Sparse Vectors)："></a>稀疏向量 (Sparse Vectors)：</h3><p>顾名思义，这是一个绝大多数元素为 0 的高维向量。它其实就是传统的“词频统计”的底层数学表示。</p>
 <p>简单来说，就是把文档看成一堆词，不考虑语法和顺序。只要你的问题里带了这个词，对应的维度就有值（权重）。</p>
 <p>目前应用最广的打分算法就是 BM25：</p>
 <script type="math/tex; mode=display">
@@ -264,14 +264,14 @@ Score(Q, D) = \sum_{i=1}^{n} IDF(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q
 <li><code>f(q_i, D)</code> (词频)：词在文档中出现的次数。</li>
 </ul>
 <p><strong>优点</strong>：不需要训练，完全是精确匹配，专门治专业术语和名词找不到的病。<br><strong>缺点</strong>：存在词汇鸿沟。比如你搜“汽车”，它永远匹配不到“轿车”，因为它俩是两个完全不同的词条。</p>
-<h3 id="2-密集向量-Dense-Vectors-："><a href="#2-密集向量-Dense-Vectors-：" class="headerlink" title="2. 密集向量 (Dense Vectors)："></a>2. 密集向量 (Dense Vectors)：</h3><p>这也就是我们常说的语义向量（Embeddings）。它是通过 Transformer 等深度学习模型映射出来的低维、连续的浮点数数组。</p>
+<h3 id="密集向量-Dense-Vectors-："><a href="#密集向量-Dense-Vectors-：" class="headerlink" title="密集向量 (Dense Vectors)："></a>密集向量 (Dense Vectors)：</h3><p>这也就是我们常说的语义向量（Embeddings）。它是通过 Transformer 等深度学习模型映射出来的低维、连续的浮点数数组。</p>
 <p>它解决的就是“词汇鸿沟”问题。它把所有的词映射到了一个语义空间里，方向和距离代表了概念。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vector(&#x27;国王&#x27;) - vector(&#x27;男人&#x27;) + vector(&#x27;女人&#x27;) ≈ vector(&#x27;女王&#x27;) // 经典的语义计算</span><br></pre></td></tr></table></figure>
 <p><strong>优点</strong>：泛化能力极强，完全理解同义词和上下文。<br><strong>缺点</strong>：需要极大的算力训练，并且对未登录词（OOV）处理很差。</p>
 <blockquote>
 <p>OOV (Out-of-Vocabulary)：也就是模型训练时没见过的词。BM25 遇到 OOV 直接忽略，而密集向量可以通过子词分割（如BPE）来勉强处理。</p>
 </blockquote>
-<h3 id="3-实例对比（直观理解）："><a href="#3-实例对比（直观理解）：" class="headerlink" title="3. 实例对比（直观理解）："></a>3. 实例对比（直观理解）：</h3><p>拿“西红柿炒蛋”举例。</p>
+<h3 id="实例对比（直观理解）："><a href="#实例对比（直观理解）：" class="headerlink" title="实例对比（直观理解）："></a>实例对比（直观理解）：</h3><p>拿“西红柿炒蛋”举例。</p>
 <p><strong>稀疏向量表示</strong>：<br>因为大部分维度是 0，为了省空间，通常用字典（Key-Value）或者 COO（坐标列表）表示。<br>假设词表中西红柿=88，炒=666，蛋=999。</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// &#123;索引: 权重&#125;</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;88&quot;</span><span class="punctuation">:</span> <span class="number">1.2</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;666&quot;</span><span class="punctuation">:</span> <span class="number">0.8</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;999&quot;</span><span class="punctuation">:</span> <span class="number">1.5</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 <p>相当于只记录了这三个词的位置和权重。如果你去搜“番茄”，因为番茄的索引不是88，这里就完全匹配不上。</p>
@@ -280,14 +280,14 @@ Score(Q, D) = \sum_{i=1}^{n} IDF(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q
 <p>虽然人看不懂，但在模型的空间里，这个向量和“番茄鸡蛋面”的向量靠得非常近。</p>
 <h2 id="混合检索融合策略："><a href="#混合检索融合策略：" class="headerlink" title="混合检索融合策略："></a>混合检索融合策略：</h2><p>因为这两者互补性极强，所以现在的 RAG 架构基本上都会把它们拼在一起用，也就是 Hybrid Search。</p>
 <p>当两路检索跑完，拿到两堆格式完全不同的结果后，怎么合并呢？</p>
-<h3 id="1-倒数排序融合-RRF-："><a href="#1-倒数排序融合-RRF-：" class="headerlink" title="1. 倒数排序融合 (RRF)："></a>1. 倒数排序融合 (RRF)：</h3><p>RRF (Reciprocal Rank Fusion) 完全不看两边的分数，只看排名。这是目前最稳定、用得最多的融合算法。</p>
+<h3 id="倒数排序融合-RRF-："><a href="#倒数排序融合-RRF-：" class="headerlink" title="倒数排序融合 (RRF)："></a>倒数排序融合 (RRF)：</h3><p>RRF (Reciprocal Rank Fusion) 完全不看两边的分数，只看排名。这是目前最稳定、用得最多的融合算法。</p>
 <script type="math/tex; mode=display">
 RRF_{score}(d) = \sum_{i=1}^{k} \frac{1}{rank_i(d) + c}</script><ul>
 <li><code>rank</code>：文档在各自检索池里的排名。</li>
 <li><code>c</code>：常数，通常取 60。加常数是为了防止排名第一的权重过大。</li>
 </ul>
 <p>相当于用排名去计算得分，直接抹平了两边打分标准不一致的问题。</p>
-<h3 id="2-加权线性组合："><a href="#2-加权线性组合：" class="headerlink" title="2. 加权线性组合："></a>2. 加权线性组合：</h3><p>先把稀疏和密集的结果分数全部归一化（Normalize）到 0~1 之间，然后再给它们分配权重（Alpha）。</p>
+<h3 id="加权线性组合："><a href="#加权线性组合：" class="headerlink" title="加权线性组合："></a>加权线性组合：</h3><p>先把稀疏和密集的结果分数全部归一化（Normalize）到 0~1 之间，然后再给它们分配权重（Alpha）。</p>
 <script type="math/tex; mode=display">
 Hybrid_{score} = \alpha \cdot Dense_{score} + (1 - \alpha) \cdot Sparse_{score}</script><ul>
 <li><code>Alpha</code> 越大，越偏向语义检索；越小，越偏向关键词匹配。</li>
@@ -450,7 +450,7 @@ Hybrid_{score} = \alpha \cdot Dense_{score} + (1 - \alpha) \cdot Sparse_{score}<
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AD%A3%E6%96%87%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">正文：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%80%E7%96%8F%E5%90%91%E9%87%8F-vs-%E5%AF%86%E9%9B%86%E5%90%91%E9%87%8F%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">稀疏向量 vs 密集向量：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%A8%80%E7%96%8F%E5%90%91%E9%87%8F-Sparse-Vectors-%EF%BC%9A"><span class="nav-number">2.1.1.</span> <span class="nav-text">1. 稀疏向量 (Sparse Vectors)：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AF%86%E9%9B%86%E5%90%91%E9%87%8F-Dense-Vectors-%EF%BC%9A"><span class="nav-number">2.1.2.</span> <span class="nav-text">2. 密集向量 (Dense Vectors)：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%AE%9E%E4%BE%8B%E5%AF%B9%E6%AF%94%EF%BC%88%E7%9B%B4%E8%A7%82%E7%90%86%E8%A7%A3%EF%BC%89%EF%BC%9A"><span class="nav-number">2.1.3.</span> <span class="nav-text">3. 实例对比（直观理解）：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B7%E5%90%88%E6%A3%80%E7%B4%A2%E8%9E%8D%E5%90%88%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">混合检索融合策略：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%80%92%E6%95%B0%E6%8E%92%E5%BA%8F%E8%9E%8D%E5%90%88-RRF-%EF%BC%9A"><span class="nav-number">2.2.1.</span> <span class="nav-text">1. 倒数排序融合 (RRF)：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%8A%A0%E6%9D%83%E7%BA%BF%E6%80%A7%E7%BB%84%E5%90%88%EF%BC%9A"><span class="nav-number">2.2.2.</span> <span class="nav-text">2. 加权线性组合：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">总结：</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AD%A3%E6%96%87%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">正文：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A8%80%E7%96%8F%E5%90%91%E9%87%8F-vs-%E5%AF%86%E9%9B%86%E5%90%91%E9%87%8F%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">稀疏向量 vs 密集向量：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A8%80%E7%96%8F%E5%90%91%E9%87%8F-Sparse-Vectors-%EF%BC%9A"><span class="nav-number">2.1.1.</span> <span class="nav-text">稀疏向量 (Sparse Vectors)：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%86%E9%9B%86%E5%90%91%E9%87%8F-Dense-Vectors-%EF%BC%9A"><span class="nav-number">2.1.2.</span> <span class="nav-text">密集向量 (Dense Vectors)：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E5%AF%B9%E6%AF%94%EF%BC%88%E7%9B%B4%E8%A7%82%E7%90%86%E8%A7%A3%EF%BC%89%EF%BC%9A"><span class="nav-number">2.1.3.</span> <span class="nav-text">实例对比（直观理解）：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B7%E5%90%88%E6%A3%80%E7%B4%A2%E8%9E%8D%E5%90%88%E7%AD%96%E7%95%A5%EF%BC%9A"><span class="nav-number">2.2.</span> <span class="nav-text">混合检索融合策略：</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%80%92%E6%95%B0%E6%8E%92%E5%BA%8F%E8%9E%8D%E5%90%88-RRF-%EF%BC%9A"><span class="nav-number">2.2.1.</span> <span class="nav-text">倒数排序融合 (RRF)：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E6%9D%83%E7%BA%BF%E6%80%A7%E7%BB%84%E5%90%88%EF%BC%9A"><span class="nav-number">2.2.2.</span> <span class="nav-text">加权线性组合：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">总结：</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
