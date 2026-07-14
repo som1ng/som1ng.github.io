@@ -1275,7 +1275,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #508c6f;
+  background: #ffa6ff;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -2568,6 +2568,14 @@ body {
   margin-bottom: 20px !important;
   box-shadow: none !important;
 }
-/* =============================
-   代码块样式
-   ============================= */
+blockquote {
+  color: #444 !important; /* 加深文字颜色，用深灰色替代原先的浅灰色 */
+  background-color: #f8f9fa !important; /* 稍微加深一点背景，提升卡片层次感 */
+  border-left: 4px solid #42b983 !important; /* 把左边的边框加粗一点，并换成清新的绿色（你可以改成你喜欢的颜色代码） */
+  padding: 10px 20px !important; /* 调整内部文字与边框的距离 */
+  margin-bottom: 20px !important; /* 保证引用块下方有足够的留白 */
+}
+blockquote code {
+  color: #c7254e !important; /* 让代码块字体变红一点，更醒目 */
+  background-color: #f9f2f4 !important;
+}

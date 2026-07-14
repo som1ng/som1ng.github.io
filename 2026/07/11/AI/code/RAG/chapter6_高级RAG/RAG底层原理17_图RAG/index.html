@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言：传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：向量检索只看语义相似度，不建模实体之间的关系。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。 一、传统 RAG 到底差在哪？先搞清楚为什么需要图，才知道图解决了什么问题：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG底层原理17:图RAG">
+<meta property="og:url" content="http://example.com/2026/07/11/AI/code/RAG/chapter6_%E9%AB%98%E7%BA%A7RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8617_%E5%9B%BERAG/index.html">
+<meta property="og:site_name" content="s0m1ng">
+<meta property="og:description" content="前言：传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：向量检索只看语义相似度，不建模实体之间的关系。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。 一、传统 RAG 到底差在哪？先搞清楚为什么需要图，才知道图解决了什么问题：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://datawhalechina.github.io/all-in-rag/chapter7/images/7_1_1.svg">
+<meta property="article:published_time" content="2026-07-11T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-07-11T14:24:58.267Z">
+<meta property="article:author" content="s0m1ng">
+<meta property="article:tag" content="AI开发">
+<meta property="article:tag" content="RAG">
+<meta property="article:tag" content="知识图谱">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://datawhalechina.github.io/all-in-rag/chapter7/images/7_1_1.svg">
+
+<link rel="canonical" href="http://example.com/2026/07/11/AI/code/RAG/chapter6_%E9%AB%98%E7%BA%A7RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8617_%E5%9B%BERAG/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>RAG底层原理17:图RAG | s0m1ng</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">s0m1ng</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">二进制学习中</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/07/11/AI/code/RAG/chapter6_%E9%AB%98%E7%BA%A7RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8617_%E5%9B%BERAG/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile_photo.jpg">
+      <meta itemprop="name" content="s0m1ng">
+      <meta itemprop="description" content="逆向学习中~">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="s0m1ng">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RAG底层原理17:图RAG
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-07-11 23:00:00 / 修改时间：22:24:58" itemprop="dateCreated datePublished" datetime="2026-07-11T23:00:00+08:00">2026-07-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/" itemprop="url" rel="index"><span itemprop="name">AI</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">开发</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" itemprop="url" rel="index"><span itemprop="name">RAG</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+  
+  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>传统 RAG 靠”向量搜索 + 拼上下文”已经能解决大部分问答场景了，但碰到多跳推理、跨文档关联这类”连线题”就开始拉胯。根本原因是：<strong>向量检索只看语义相似度，不建模实体之间的关系</strong>。GraphRAG（图 RAG）的核心思路就是——用知识图谱把实体和关系显式地连起来，让检索从”找相似文本块”升级成”在图上找路径”。</p>
+<h1 id="一、传统-RAG-到底差在哪？"><a href="#一、传统-RAG-到底差在哪？" class="headerlink" title="一、传统 RAG 到底差在哪？"></a>一、传统 RAG 到底差在哪？</h1><p>先搞清楚为什么需要图，才知道图解决了什么问题：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>传统 RAG 的痛点</th>
+<th>具体表现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>关系理解缺失</strong></td>
+<td>向量检索只关注语义相似度，碰到”A 收购了 B，B 的母公司是 C”这种多实体关联就断链</td>
+</tr>
+<tr>
+<td><strong>上下文碎片化</strong></td>
+<td>文本被切成独立 Chunk，跨文档/跨章节的信息整合能力极差</td>
+</tr>
+<tr>
+<td><strong>检索噪声→幻觉</strong></td>
+<td>召回了不相关或半相关的文本块，反而干扰 LLM 判断，诱发胡编</td>
+</tr>
+<tr>
+<td><strong>推理能力有限</strong></td>
+<td>只能基于线性文本做推理，不支持多跳逻辑导航</td>
+</tr>
+<tr>
+<td><strong>实体歧义</strong></td>
+<td>同名不同义（”苹果”是公司还是水果？）、别名/缩写/多语言变体，向量相似度搞不定</td>
+</tr>
+<tr>
+<td><strong>时效性不足</strong></td>
+<td>文本块没有可计算的时间属性，问”某公司2021年是否还是子公司”这种时序问题就懵了</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>一个经典例子：</p>
+<blockquote>
+<p>问题：”2019年收购A公司的企业，其母公司在2021年的主要投资对象是谁？”</p>
+</blockquote>
+<p>传统 RAG 需要检索多段文本并在生成阶段自行拼接推理，任何一段缺失或存在歧义，整条推理链就断了。而知识图谱天然能沿着 <code>收购→母公司→投资</code> 这条路径走下去。</p>
+<hr>
+<h1 id="二、知识图谱凭什么能救场？"><a href="#二、知识图谱凭什么能救场？" class="headerlink" title="二、知识图谱凭什么能救场？"></a>二、知识图谱凭什么能救场？</h1><p>知识图谱用<strong>节点（实体）</strong> 和<strong>边（关系）</strong> 把离散的知识编织成一张网。核心优势四个字：<strong>显式连接</strong>。</p>
+<ul>
+<li><strong>结构化语义表达</strong>：直接编码 <code>公司A -[收购]→ 公司B</code> 这种显式关系，不需要 LLM 从文字里猜</li>
+<li><strong>天然支持多跳推理</strong>：沿图路径遍历，间接但关键的知识关联都能发现</li>
+<li><strong>事实性 + 可解释性</strong>：答案可以追溯图中的推理路径，有理有据，抑制幻觉</li>
+<li><strong>异构数据集成</strong>：结构化（数据库）和非结构化（文本）数据都能往图里塞，形成统一知识视图</li>
+</ul>
+<p>进阶能力：</p>
+<ul>
+<li><strong>本体约束</strong>：通过 Schema 和 Ontology 约束推理空间，降低歧义</li>
+<li><strong>溯源管理</strong>：边和节点可以带来源、时间戳、置信度，方便冲突消解</li>
+<li><strong>时间建模</strong>：支持时间态边和版本化节点，可以做”某年某公司还是不是子公司”这种时间旅行查询</li>
+</ul>
+<hr>
+<h1 id="三、GraphRAG-通用架构（三阶段）"><a href="#三、GraphRAG-通用架构（三阶段）" class="headerlink" title="三、GraphRAG 通用架构（三阶段）"></a>三、GraphRAG 通用架构（三阶段）</h1><p>不管哪个框架，GraphRAG 基本都是三步走：<strong>构建图谱 → 图谱检索 → 增强生成</strong>。</p>
+<p><img data-src="https://datawhalechina.github.io/all-in-rag/chapter7/images/7_1_1.svg" alt=""></p>
+<hr>
+<h3 id="3-1-知识图谱构建"><a href="#3-1-知识图谱构建" class="headerlink" title="3.1 知识图谱构建"></a>3.1 知识图谱构建</h3><p>这是整个 GraphRAG 的地基，质量决定上限：</p>
+<ul>
+<li><strong>知识抽取</strong>：用 LLM 或 IE 管线从文本中抽取实体、关系和属性（含指代消解、别名归一、术语标准化）</li>
+<li><strong>质量控制</strong>：对三元组做置信度评估、人机协同抽检、冲突消解，必要时用规则和本体约束做一致性校验</li>
+<li><strong>图谱融合</strong>：跨来源的实体对齐与去重（Entity Resolution），合并时保留溯源信息</li>
+<li><strong>存储与索引</strong>：落地到图数据库（Neo4j / NebulaGraph / TigerGraph 等），建立属性和关系索引</li>
+</ul>
+<h3 id="3-2-图谱检索"><a href="#3-2-图谱检索" class="headerlink" title="3.2 图谱检索"></a>3.2 图谱检索</h3><p>这一步是和传统 RAG 差别最大的地方——不再是简单的向量相似度搜索，而是<strong>在图上做结构化查询</strong>：</p>
+<ol>
+<li><strong>实体定位</strong>：先用实体链接或向量检索在图中锁定核心实体节点</li>
+<li><strong>子图探索</strong>：从命中节点出发，用图查询语言（Cypher）或遍历算法做邻域扩展、路径发现、约束过滤（限定关系类型、跳数、时间区间、置信度阈值）</li>
+<li><strong>结构化证据抽取</strong>：将路径和关键节点属性序列化为可读证据片段，或生成子图的文本摘要</li>
+<li><strong>高级检索</strong>：如社区检测（Leiden）生成多层次摘要，实现”全局-局部”联合检索</li>
+</ol>
+<p>Cypher 查询示例——查询公司A两跳内的收购路径及目标行业：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MATCH (a:Company &#123;name: &quot;A&quot;&#125;)-[:ACQUIRED]-&gt;(b:Company)-[:IN_INDUSTRY]-&gt;(i:Industry)</span><br><span class="line">RETURN a.name AS acquirer, b.name AS target, i.name AS industry</span><br><span class="line">UNION</span><br><span class="line">MATCH (a:Company &#123;name: &quot;A&quot;&#125;)-[:ACQUIRED]-&gt;(:Company)-[:ACQUIRED]-&gt;(b2:Company)-[:IN_INDUSTRY]-&gt;(i2:Industry)</span><br><span class="line">RETURN a.name AS acquirer, b2.name AS target, i2.name AS industry;</span><br></pre></td></tr></table></figure>
+<h3 id="3-3-增强生成"><a href="#3-3-增强生成" class="headerlink" title="3.3 增强生成"></a>3.3 增强生成</h3><p>把检索到的结构化知识（实体属性、关系路径、子图摘要等）和原始查询一起注入 Prompt：</p>
+<ul>
+<li><strong>提示设计</strong>：明确要求模型引用”图证据”，在回答中给出来源与路径</li>
+<li><strong>证据融合</strong>：结构化三元组/路径 + 原文片段联合提供，兼顾事实性和文本细节</li>
+<li><strong>约束回答</strong>：敏感领域（金融/医疗）可采用模板化输出 + 字段校验，进一步减少幻觉</li>
+</ul>
+<hr>
+<h1 id="四、方法论分类"><a href="#四、方法论分类" class="headerlink" title="四、方法论分类"></a>四、方法论分类</h1><p>根据知识图谱与 RAG 的结合深度，现有方法大致分三类：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>核心思路</th>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>知识驱动型</strong></td>
+<td>检索过程完全依赖图谱，文本转 Cypher/Gremlin 在图上直接查询推理</td>
+<td>高精度、高可解释性</td>
+<td>受限于图谱完备性，覆盖和容错差</td>
+</tr>
+<tr>
+<td><strong>索引驱动型</strong></td>
+<td>把图谱的结构信息融入文本索引（如用邻居实体/关系做元数据特征，子图摘要拼接后再向量化）</td>
+<td>集成成本低</td>
+<td>显式推理弱，可解释性一般</td>
+</tr>
+<tr>
+<td><strong>混合型</strong></td>
+<td>同时用图检索和文本检索，对结果统一重排融合</td>
+<td>综合表现最稳健</td>
+<td>系统复杂度和工程成本较高</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>实践中混合型是主流趋势——简单事实问答优先图检索，叙事性问题补充文本证据，复杂查询先在图上定位路径再以路径节点为”导航枢纽”做针对性文档检索。</p>
+<hr>
+<h1 id="五、主流框架对比"><a href="#五、主流框架对比" class="headerlink" title="五、主流框架对比"></a>五、主流框架对比</h1><h3 id="5-1-Microsoft-GraphRAG"><a href="#5-1-Microsoft-GraphRAG" class="headerlink" title="5.1 Microsoft GraphRAG"></a>5.1 Microsoft GraphRAG</h3><p>重量级框架，核心理念是”<strong>先构建全局知识，再按需检索</strong>“：</p>
+<ul>
+<li>文本 → 三元组/子图构建 → 属性图</li>
+<li>采用社区检测（Leiden算法）进行图划分，按层级生成全局/社区/局部摘要</li>
+<li>查询时先匹配全局/社区摘要，再下钻到局部子图与原文证据</li>
+<li>返回”全局观 + 证据路径”并行的双视角答案</li>
+</ul>
+<p><strong>优势</strong>：强全局感知、良好可解释性，适合探索性分析和全景总结。<br><strong>代价</strong>：前期构建和分层摘要成本较高，对数据持续变更需设计增量更新策略。</p>
+<h3 id="5-2-LightRAG"><a href="#5-2-LightRAG" class="headerlink" title="5.2 LightRAG"></a>5.2 LightRAG</h3><p>针对 GraphRAG 的”重量”问题，追求<strong>轻量、高效、易扩展</strong>：</p>
+<ul>
+<li>“双层检索”与”图增强索引”，以较低构建成本获得全局-局部兼顾的检索能力</li>
+<li>强调将结构信号嵌入到文本索引与重排中，弱化复杂的社区发现流程</li>
+<li>适用于资源受限、快速迭代与在线更新场景</li>
+</ul>
+<h3 id="5-3-FRAG（Flexible-RAG）"><a href="#5-3-FRAG（Flexible-RAG）" class="headerlink" title="5.3 FRAG（Flexible RAG）"></a>5.3 FRAG（Flexible RAG）</h3><p>强调”<strong>灵活性与模块化</strong>“，自适应不同复杂度的查询：</p>
+<ul>
+<li>查询分流：通过分类器或规则将请求判定为简单/复杂</li>
+<li>简单查询：直接实体链接 + 属性查找，低延迟返回</li>
+<li>复杂查询：激活路径检索/多跳推理模块，再融合文本证据</li>
+<li>模块化设计，迁移成本低</li>
+</ul>
+<h3 id="5-4-GraphIRAG（迭代检索）"><a href="#5-4-GraphIRAG（迭代检索）" class="headerlink" title="5.4 GraphIRAG（迭代检索）"></a>5.4 GraphIRAG（迭代检索）</h3><p>引入”<strong>迭代检索</strong>“思想，认为单次检索不足以解决复杂问题：</p>
+<ul>
+<li>由控制器在生成过程中多轮触发图查询，逐步补齐证据链</li>
+<li>以”新信息增益”为准则决定是否继续迭代以及何时停止</li>
+<li>对时间敏感和多跳推理任务更具鲁棒性</li>
+</ul>
+<hr>
+<h1 id="六、评估体系"><a href="#六、评估体系" class="headerlink" title="六、评估体系"></a>六、评估体系</h1><p>GraphRAG 的评估是多维度的，比传统 RAG 多了图特有的维度：</p>
+<h3 id="6-1-核心评估指标"><a href="#6-1-核心评估指标" class="headerlink" title="6.1 核心评估指标"></a>6.1 核心评估指标</h3><p><strong>检索质量：</strong></p>
+<ul>
+<li>传统：Precision、Recall、F1、Hit Rate@K</li>
+<li>RAG 特有：<ul>
+<li>上下文精确率 = 检索到的上下文中”真正相关”的比例</li>
+<li>上下文召回率 = 所有应当支持答案的”金标准证据”被检回的比例</li>
+<li>引用/归因准确率 = 生成答案中的关键断言是否被检索证据正确支撑</li>
+</ul>
+</li>
+</ul>
+<p><strong>生成质量：</strong></p>
+<ul>
+<li>问答：精确匹配（EM）、F1</li>
+<li>摘要：ROUGE</li>
+<li>事实一致性/忠实度（Faithfulness）：断言与证据的一致性</li>
+</ul>
+<p><strong>系统性能：</strong></p>
+<ul>
+<li>推理延迟（Latency）、吞吐量（QPS）、成本（API 调用次数、GPU/内存消耗）</li>
+</ul>
+<h3 id="6-2-常用基准数据集"><a href="#6-2-常用基准数据集" class="headerlink" title="6.2 常用基准数据集"></a>6.2 常用基准数据集</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>代表数据集</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>多跳问答</strong></td>
+<td>HotpotQA、2WikiMultihopQA、MuSiQue</td>
+<td>要求在多个知识源之间推理，是 GraphRAG 核心能力的试金石</td>
+</tr>
+<tr>
+<td><strong>复杂问答</strong></td>
+<td>WebQSP、ComplexWebQuestions (CWQ)</td>
+<td>包含结构复杂的查询</td>
+</tr>
+<tr>
+<td><strong>知识图谱QA</strong></td>
+<td>KGQAgen-10k</td>
+<td>专门评估知识图谱问答能力</td>
+</tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p>⚠️ 部分现有基准（如 WebQSP）存在数据质量问题或评估方法过于僵化（如严格的 EM），可能导致对模型性能的低估。构建更高质量的基准是未来的重要方向。</p>
+</blockquote>
+<hr>
+<h1 id="七、生产环境的现实挑战"><a href="#七、生产环境的现实挑战" class="headerlink" title="七、生产环境的现实挑战"></a>七、生产环境的现实挑战</h1><p>把 GraphRAG 从实验室推向生产，面临的坑比传统 RAG 多不少：</p>
+<ul>
+<li><strong>知识图谱的构建与维护</strong>：高质量图谱本身就是知识工程的苦活，生产环境还要求动态更新——增量更新机制是核心难点</li>
+<li><strong>系统性能与可扩展性</strong>：知识库规模和查询量增长后，延迟、吞吐和资源消耗成为主要瓶颈（向量化慢、内存溢出、API 挂了都是常见问题）</li>
+<li><strong>安全与隐私</strong>：引入外部数据源意味着新的攻击面——数据隐私泄露、模型中毒、检索模块被攻击</li>
+<li><strong>成本控制</strong>：大规模部署需要大量计算和存储资源，架构优化以降低运营成本是重要的商业考量</li>
+</ul>
+<hr>
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>这一节的核心脉络：</p>
+<ul>
+<li><strong>为什么要图 RAG</strong>：传统 RAG 的向量检索搞不定多跳推理、实体关系和跨文档关联</li>
+<li><strong>图 RAG 怎么做</strong>：构建知识图谱 → 图谱检索（实体定位 + 子图探索 + 证据抽取）→ 增强生成</li>
+<li><strong>三种结合深度</strong>：知识驱动（纯图查询） / 索引驱动（图信号嵌入文本索引） / 混合型（图 + 文本双路检索），混合型是主流</li>
+<li><strong>主流框架</strong>：Microsoft GraphRAG（重但全）、LightRAG（轻量）、FRAG（灵活模块化）、GraphIRAG（迭代检索）</li>
+<li><strong>落地挑战</strong>：图谱构建维护贵、性能扩展难、安全隐私风险、成本高</li>
+</ul>
+<p>简单说，GraphRAG = <strong>用知识图谱给 RAG 装上了”关系推理引擎”</strong>。适合多跳问答、事实性要求高、需要可解释性的场景。但代价是工程复杂度上了一个台阶。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2404.16130">Edge et al. (2024). <em>From Local to Global: A Graph RAG Approach to Query-Focused Summarization</em></a></li>
+<li><a target="_blank" rel="noopener" href="https://microsoft.github.io/graphrag/">Microsoft GraphRAG Documentation</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2410.05779">Guo et al. (2024). <em>LightRAG: Simple and Fast Retrieval-Augmented Generation</em></a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/HKUDS/LightRAG">HKUDS LightRAG Repository</a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2501.09957">Zhang et al. (2025). <em>FRAG: A Flexible Modular Framework for Retrieval-Augmented Generation based on Knowledge Graphs</em></a></li>
+<li><a target="_blank" rel="noopener" href="https://arxiv.org/abs/2503.14234">Chen et al. (2025). <em>GraphIRAG: A Knowledge Graph-Based Iterative Retrieval-Augmented Generation Framework for Temporal Reasoning</em></a></li>
+</ul>
+
+
+
+    
+    
+    
+        <div class="reward-container">
+  <div>您的支持将鼓励我继续创作!</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>s0m1ng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2026/07/11/AI/code/RAG/chapter6_%E9%AB%98%E7%BA%A7RAG/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8617_%E5%9B%BERAG/" title="RAG底层原理17:图RAG">http://example.com/2026/07/11/AI/code/RAG/chapter6_高级RAG/RAG底层原理17_图RAG/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="fa fa-rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/AI%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> AI开发</a>
+              <a href="/tags/RAG/" rel="tag"><i class="fa fa-tag"></i> RAG</a>
+              <a href="/tags/%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1/" rel="tag"><i class="fa fa-tag"></i> 知识图谱</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/26/AI/code/RAG/chapter5_%E7%94%9F%E6%88%90%E9%9B%86%E6%88%90/RAG%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%8616_%E6%A0%BC%E5%BC%8F%E5%8C%96%E7%94%9F%E6%88%90/" rel="prev" title="RAG底层原理16:格式化生成">
+      <i class="fa fa-chevron-left"></i> RAG底层原理16:格式化生成
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BC%A0%E7%BB%9F-RAG-%E5%88%B0%E5%BA%95%E5%B7%AE%E5%9C%A8%E5%93%AA%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">一、传统 RAG 到底差在哪？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E5%87%AD%E4%BB%80%E4%B9%88%E8%83%BD%E6%95%91%E5%9C%BA%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">二、知识图谱凭什么能救场？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81GraphRAG-%E9%80%9A%E7%94%A8%E6%9E%B6%E6%9E%84%EF%BC%88%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">三、GraphRAG 通用架构（三阶段）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E6%9E%84%E5%BB%BA"><span class="nav-number">4.0.1.</span> <span class="nav-text">3.1 知识图谱构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%9B%BE%E8%B0%B1%E6%A3%80%E7%B4%A2"><span class="nav-number">4.0.2.</span> <span class="nav-text">3.2 图谱检索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90"><span class="nav-number">4.0.3.</span> <span class="nav-text">3.3 增强生成</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%96%B9%E6%B3%95%E8%AE%BA%E5%88%86%E7%B1%BB"><span class="nav-number">5.</span> <span class="nav-text">四、方法论分类</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6%E5%AF%B9%E6%AF%94"><span class="nav-number">6.</span> <span class="nav-text">五、主流框架对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-Microsoft-GraphRAG"><span class="nav-number">6.0.1.</span> <span class="nav-text">5.1 Microsoft GraphRAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-LightRAG"><span class="nav-number">6.0.2.</span> <span class="nav-text">5.2 LightRAG</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-FRAG%EF%BC%88Flexible-RAG%EF%BC%89"><span class="nav-number">6.0.3.</span> <span class="nav-text">5.3 FRAG（Flexible RAG）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-GraphIRAG%EF%BC%88%E8%BF%AD%E4%BB%A3%E6%A3%80%E7%B4%A2%EF%BC%89"><span class="nav-number">6.0.4.</span> <span class="nav-text">5.4 GraphIRAG（迭代检索）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E8%AF%84%E4%BC%B0%E4%BD%93%E7%B3%BB"><span class="nav-number">7.</span> <span class="nav-text">六、评估体系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E6%A0%B8%E5%BF%83%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87"><span class="nav-number">7.0.1.</span> <span class="nav-text">6.1 核心评估指标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E5%B8%B8%E7%94%A8%E5%9F%BA%E5%87%86%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-number">7.0.2.</span> <span class="nav-text">6.2 常用基准数据集</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E7%9A%84%E7%8E%B0%E5%AE%9E%E6%8C%91%E6%88%98"><span class="nav-number">8.</span> <span class="nav-text">七、生产环境的现实挑战</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">8.1.</span> <span class="nav-text">总结：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="nav-number">8.2.</span> <span class="nav-text">参考文献</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="s0m1ng"
+      src="/images/profile_photo.jpg">
+  <p class="site-author-name" itemprop="name">s0m1ng</p>
+  <div class="site-description" itemprop="description">逆向学习中~</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">87</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
+      </span>
+  </div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+function initCategoryFold() {
+  // 找到所有包含了子分类的 <ul>
+  var childLists = document.querySelectorAll('.category-list-child');
+  
+  childLists.forEach(function(child) {
+    // 防抖：防止 PJAX 刷新导致重复注入图标
+    if (child.parentElement.getAttribute('data-folded') === 'true') return;
+    child.parentElement.setAttribute('data-folded', 'true');
+    
+    // 1. 默认把所有子分类强行隐藏
+    child.style.display = 'none'; 
+    
+    // 2. 创建一个带有黑客风的 [+]/[-] 开关
+    var toggleSpan = document.createElement('span');
+    toggleSpan.innerHTML = ' ➕ ';
+    toggleSpan.style.cursor = 'pointer';
+    toggleSpan.style.fontSize = '12px';
+    toggleSpan.style.marginRight = '5px';
+    
+    // 3. 把开关插到父分类名字的前面
+    var parentLi = child.parentElement;
+    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
+    
+    // 4. 给开关绑定点击事件 (Hook)
+    toggleSpan.addEventListener('click', function(e) {
+      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
+      if (child.style.display === 'none') {
+        child.style.display = 'block';
+        toggleSpan.innerHTML = ' ➖ ';
+      } else {
+        child.style.display = 'none';
+        toggleSpan.innerHTML = ' ➕ ';
+      }
+    });
+  });
+}
+
+// 首次加载页面时执行
+document.addEventListener("DOMContentLoaded", initCategoryFold);
+// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
+document.addEventListener("pjax:success", initCategoryFold);
+</script>
+</body>
+</html>
