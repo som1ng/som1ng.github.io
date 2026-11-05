@@ -1,743 +1,157 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
-<meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 7.3.0">
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
-  <link rel="mask-icon" href="/images/logo.svg" color="#222">
-  <meta name="google-site-verification" content="VnNixUxQwNBvFc-nAdXdfYkKhdk4ncl53flMSHEm1gw">
-
-<link rel="stylesheet" href="/css/main.css">
-
-
-<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
-
-<script id="hexo-configurations">
-    var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","width":300,"display":"post","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
-  </script>
-
-  <meta name="description" content="前言：windows窗口编程就是创造一个窗口并实现消息循环，我们需要逆向的是窗口消息处理函数 流程：入口点：窗口的入口点是WinMain()函数 123456int WINAPI WinMain(    HINSTANCE hInstance,     HINSTANCE hPreInstance,    LPSTR lpCmdeLine,    int nCmdShow)   HINSTANCE">
-<meta property="og:type" content="article">
-<meta property="og:title" content="windows窗口运行逻辑和常用api">
-<meta property="og:url" content="http://example.com/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/index.html">
-<meta property="og:site_name" content="s0m1ng">
-<meta property="og:description" content="前言：windows窗口编程就是创造一个窗口并实现消息循环，我们需要逆向的是窗口消息处理函数 流程：入口点：窗口的入口点是WinMain()函数 123456int WINAPI WinMain(    HINSTANCE hInstance,     HINSTANCE hPreInstance,    LPSTR lpCmdeLine,    int nCmdShow)   HINSTANCE">
-<meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-10-14T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-12T12:17:01.338Z">
-<meta property="article:author" content="s0m1ng">
-<meta property="article:tag" content="窗口逆向">
-<meta name="twitter:card" content="summary">
-
-<link rel="canonical" href="http://example.com/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/">
-
-
-<script id="page-configurations">
-  // https://hexo.io/docs/variables.html
-  CONFIG.page = {
-    sidebar: "",
-    isHome : false,
-    isPost : true,
-    lang   : 'zh-CN'
-  };
-</script>
-
-  <title>windows窗口运行逻辑和常用api | s0m1ng</title>
-  
-
-
-
-
-
-
-  <noscript>
-  <style>
-  .use-motion .brand,
-  .use-motion .menu-item,
-  .sidebar-inner,
-  .use-motion .post-block,
-  .use-motion .pagination,
-  .use-motion .comments,
-  .use-motion .post-header,
-  .use-motion .post-body,
-  .use-motion .collection-header { opacity: initial; }
-
-  .use-motion .site-title,
-  .use-motion .site-subtitle {
-    opacity: initial;
-    top: initial;
-  }
-
-  .use-motion .logo-line-before i { left: initial; }
-  .use-motion .logo-line-after i { right: initial; }
-  </style>
-</noscript>
-
-<link rel="alternate" href="/atom.xml" title="s0m1ng" type="application/atom+xml">
-</head>
-
-<body itemscope itemtype="http://schema.org/WebPage">
-  <div class="container use-motion">
-    <div class="headband"></div>
-
-    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
-      <div class="header-inner"><div class="site-brand-container">
-  <div class="site-nav-toggle">
-    <div class="toggle" aria-label="切换导航栏">
-      <span class="toggle-line toggle-line-first"></span>
-      <span class="toggle-line toggle-line-middle"></span>
-      <span class="toggle-line toggle-line-last"></span>
-    </div>
-  </div>
-
-  <div class="site-meta">
-
-    <a href="/" class="brand" rel="start">
-      <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">s0m1ng</h1>
-      <span class="logo-line-after"><i></i></span>
-    </a>
-      <p class="site-subtitle" itemprop="description">二进制学习中</p>
-  </div>
-
-  <div class="site-nav-right">
-    <div class="toggle popup-trigger">
-        <i class="fa fa-search fa-fw fa-lg"></i>
-    </div>
-  </div>
-</div>
-
-
-
-
-<nav class="site-nav">
-  <ul id="menu" class="main-menu menu">
-        <li class="menu-item menu-item-home">
-
-    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
-
-  </li>
-        <li class="menu-item menu-item-archives">
-
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
-
-  </li>
-      <li class="menu-item menu-item-search">
-        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
-        </a>
-      </li>
-  </ul>
-</nav>
-
-
-
-  <div class="search-pop-overlay">
-    <div class="popup search-popup">
-        <div class="search-header">
-  <span class="search-icon">
-    <i class="fa fa-search"></i>
-  </span>
-  <div class="search-input-container">
-    <input autocomplete="off" autocapitalize="off"
-           placeholder="搜索..." spellcheck="false"
-           type="search" class="search-input">
-  </div>
-  <span class="popup-btn-close">
-    <i class="fa fa-times-circle"></i>
-  </span>
-</div>
-<div id="search-result">
-  <div id="no-result">
-    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
-  </div>
-</div>
-
-    </div>
-  </div>
-
-</div>
-    </header>
-
-    
-
-  <a href="https://github.com/som1ng" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
-
-
-    <main class="main">
-      <div class="main-inner">
-        <div class="content-wrap">
-          
-
-          <div class="content post posts-expand">
-            
-
-    
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/profile_photo.jpg">
-      <meta itemprop="name" content="s0m1ng">
-      <meta itemprop="description" content="逆向学习中~">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="s0m1ng">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          windows窗口运行逻辑和常用api
-        </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-10-15 00:00:00" itemprop="dateCreated datePublished" datetime="2025-10-15T00:00:00+08:00">2025-10-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-12 20:17:01" itemprop="dateModified" datetime="2026-03-12T20:17:01+08:00">2026-03-12</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/REVERSE/" itemprop="url" rel="index"><span itemprop="name">REVERSE</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/REVERSE/pe%E9%80%86%E5%90%91/" itemprop="url" rel="index"><span itemprop="name">pe逆向</span></a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/REVERSE/pe%E9%80%86%E5%90%91/pe%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index"><span itemprop="name">pe逆向基础</span></a>
-                </span>
-            </span>
-
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-  
-  <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>windows窗口编程就是创造一个窗口并实现消息循环，我们需要逆向的是窗口消息处理函数</p>
-<h1 id="流程："><a href="#流程：" class="headerlink" title="流程："></a>流程：</h1><h2 id="入口点："><a href="#入口点：" class="headerlink" title="入口点："></a>入口点：</h2><p>窗口的入口点是WinMain()函数</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> WINAPI <span class="title function_">WinMain</span><span class="params">(</span></span><br><span class="line"><span class="params">    HINSTANCE hInstance, </span></span><br><span class="line"><span class="params">    HINSTANCE hPreInstance,</span></span><br><span class="line"><span class="params">    LPSTR lpCmdeLine,</span></span><br><span class="line"><span class="params">    <span class="type">int</span> nCmdShow</span></span><br><span class="line"><span class="params">)</span> </span><br></pre></td></tr></table></figure>
+<!DOCTYPE html><html lang="zh-CN" style="--hue:250;--page-width:75rem"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>windows窗口运行逻辑和常用api · s0m1ng</title><meta name="description" content="前言： windows窗口编程就是创造一个窗口并实现消息循环，我们需要逆向的是窗口消息处理函数 流程： 入口点： 窗口的入口点是WinMain()函数 - HINSTANCE hInstance ： 含义：当前模块（process module）的实例句柄。 现代 Windows"><meta name="author" content="s0m1ng"><meta name="color-scheme" content="light dark"><link rel="canonical" href="https://www.s0m1ng.xyz/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/"><link rel="icon" href="/favicon/favicon-light-32.png"><link rel="preload" as="image" href="/theme/demo-banner.webp" fetchpriority="high"><link rel="alternate" type="application/rss+xml" title="s0m1ng RSS" href="/rss.xml"><meta property="og:title" content="windows窗口运行逻辑和常用api · s0m1ng"><meta property="og:description" content="前言： windows窗口编程就是创造一个窗口并实现消息循环，我们需要逆向的是窗口消息处理函数 流程： 入口点： 窗口的入口点是WinMain()函数 - HINSTANCE hInstance ： 含义：当前模块（process module）的实例句柄。 现代 Windows"><meta property="og:type" content="article"><meta property="og:url" content="https://www.s0m1ng.xyz/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/"><meta property="og:site_name" content="s0m1ng"><script>
+(()=>{try{const theme=localStorage.getItem('theme') || 'auto';document.documentElement.classList.toggle('dark',theme==='dark' || (theme==='auto' && matchMedia('(prefers-color-scheme: dark)').matches));const hue=Number(localStorage.getItem('theme-hue'));if(localStorage.getItem('theme-hue')!==null&&hue>=0&&hue<=360)document.documentElement.style.setProperty('--hue',String(hue));}catch{}})();
+</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"windows窗口运行逻辑和常用api","datePublished":"2025-10-15T00:00:00.000Z","author":{"@type":"Person","name":"s0m1ng"},"url":"https://www.s0m1ng.xyz/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/"}</script><link rel="stylesheet" href="/_astro/Layout.DSulWsr7.css">
+<link rel="stylesheet" href="/_astro/_page_.CZtEFunS.css">
+<link rel="stylesheet" href="/_astro/_page_.CLMvY_Mt.css">
+<link rel="stylesheet" href="/_astro/_page_.C32s0tJo.css"><script type="module" src="/_astro/page.B6KzXudg.js"></script></head> <body class="enable-banner"> <a class="skip-link" href="#swup-container">跳到正文</a> <div id="config-carrier" data-hue="250"></div>   <header class="site-header"><nav id="navbar" class="site-nav card-base" aria-label="主导航"> <a href="/" class="brand" aria-label="s0m1ng 首页"><svg width="28" height="28" viewBox="0 0 24 24" data-icon="material-symbols:home-outline-rounded">   <symbol id="ai:material-symbols:home-outline-rounded"><path fill="currentColor" d="M6 19h3v-5q0-.425.288-.712T10 13h4q.425 0 .713.288T15 14v5h3v-9l-6-4.5L6 10zm-2 0v-9q0-.475.213-.9t.587-.7l6-4.5q.525-.4 1.2-.4t1.2.4l6 4.5q.375.275.588.7T20 10v9q0 .825-.588 1.413T18 21h-4q-.425 0-.712-.288T13 20v-5h-2v5q0 .425-.288.713T10 21H6q-.825 0-1.412-.587T4 19m8-6.75"/></symbol><use href="#ai:material-symbols:home-outline-rounded"></use>  </svg><span>s0m1ng</span></a> <div class="desktop-links"><a href="/" class="nav-link">首页</a><a href="/categories/" class="nav-link">分类</a><a href="/archive/" class="nav-link">归档</a><a href="/series/" class="nav-link">系列</a><a href="/about/" class="nav-link">关于</a></div> <div class="nav-actions"><style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="Z1UOrYP" component-url="/_astro/Search.TMJDWgRV.js" component-export="default" renderer-url="/_astro/client.svelte.Cr0rtMYY.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;Search&quot;,&quot;value&quot;:true}" await-children><!--[--><button id="search-switch" class="search-trigger icon-button" aria-label="搜索文章" aria-haspopup="dialog"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg><span>搜索</span><kbd>⌘ K</kbd></button> <dialog class="search-dialog" aria-label="搜索文章"><div class="search-heading"><label for="site-search" class="sr-only">搜索文章关键词</label><input value="" id="site-search" placeholder="搜索逆向、PWN、RAG…" autocomplete="off"/><button class="icon-button" aria-label="关闭搜索">✕</button></div> <p class="search-status" role="status">输入关键词，搜索全部文章</p> <div class="search-results"><!--[--><!--]--></div> <div class="search-footer"><span>↑ ↓ 选择 · Enter 打开</span><span>Esc 关闭</span></div></dialog><!--]--><!--astro:end--></astro-island> <button id="scheme-switch" class="icon-button" aria-label="切换明暗模式" title="切换明暗模式"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.5 13A8.7 8.7 0 0 1 11 3.5 8.8 8.8 0 1 0 20.5 13Z"></path></svg></button> <details class="appearance-settings"><summary class="icon-button" aria-label="主题颜色" title="主题颜色"><svg width="22" height="22" viewBox="0 0 24 24" data-icon="material-symbols:palette-outline-rounded">   <symbol id="ai:material-symbols:palette-outline-rounded"><path fill="currentColor" d="M12 22q-2.05 0-3.875-.788t-3.187-2.15t-2.15-3.187T2 12q0-2.075.813-3.9t2.2-3.175T8.25 2.788T12.2 2q2 0 3.775.688t3.113 1.9t2.125 2.875T22 11.05q0 2.875-1.75 4.413T16 17h-1.85q-.225 0-.312.125t-.088.275q0 .3.375.863t.375 1.287q0 1.25-.687 1.85T12 22m-4.425-9.425Q8 12.15 8 11.5t-.425-1.075T6.5 10t-1.075.425T5 11.5t.425 1.075T6.5 13t1.075-.425m3-4Q11 8.15 11 7.5t-.425-1.075T9.5 6t-1.075.425T8 7.5t.425 1.075T9.5 9t1.075-.425m5 0Q16 8.15 16 7.5t-.425-1.075T14.5 6t-1.075.425T13 7.5t.425 1.075T14.5 9t1.075-.425m3 4Q19 12.15 19 11.5t-.425-1.075T17.5 10t-1.075.425T16 11.5t.425 1.075T17.5 13t1.075-.425M12 20q.225 0 .363-.125t.137-.325q0-.35-.375-.825T11.75 17.3q0-1.05.725-1.675T14.25 15H16q1.65 0 2.825-.962T20 11.05q0-3.025-2.312-5.038T12.2 4Q8.8 4 6.4 6.325T4 12q0 3.325 2.338 5.663T12 20"/></symbol><use href="#ai:material-symbols:palette-outline-rounded"></use>  </svg></summary><div class="appearance-panel"><label for="theme-hue">主题颜色 <output id="theme-hue-value">250</output></label><input id="theme-hue" type="range" min="0" max="360" value="250"><button class="filter-chip" id="reset-theme-hue">恢复默认</button></div></details> <button id="nav-menu-switch" class="icon-button mobile-menu-button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu-panel"><svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button> </div> <div id="nav-menu-panel" class="mobile-menu" inert><a href="/" class="nav-link">首页</a><a href="/categories/" class="nav-link">分类</a><a href="/archive/" class="nav-link">归档</a><a href="/series/" class="nav-link">系列</a><a href="/about/" class="nav-link">关于</a></div> </nav></header> <div class="site-banner" aria-hidden="true"><img src="/theme/demo-banner.webp" width="1344" height="896" alt="" fetchpriority="high" decoding="async" style="object-position:center"></div><div class="banner-spacer" aria-hidden="true"></div><div class="site-grid"> <a class="banner-credit" href="https://www.pixiv.net/artworks/111024784" target="_blank" rel="noopener">© 空色天絵 / NEO TOKYO NOIR 01 ↗</a> <aside class="site-sidebar"><div id="sidebar" class="sidebar-content"> <section class="card-base profile-card"> <a class="profile-image" href="/about/" aria-label="关于 s0m1ng"><img class="profile-avatar" src="/theme/github-avatar.jpg" width="512" height="512" alt="s0m1ng 的 GitHub 头像" decoding="async"><span aria-hidden="true"><svg width="48" height="48" viewBox="0 0 576 512" data-icon="fa6-regular:address-card">   <symbol id="ai:fa6-regular:address-card"><path fill="currentColor" d="M512 80c8.8 0 16 7.2 16 16v320c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V96c0-8.8 7.2-16 16-16zM64 32C28.7 32 0 60.7 0 96v320c0 35.3 28.7 64 64 64h448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64zm144 224a64 64 0 1 0 0-128a64 64 0 1 0 0 128m-32 32c-44.2 0-80 35.8-80 80c0 8.8 7.2 16 16 16h192c8.8 0 16-7.2 16-16c0-44.2-35.8-80-80-80zm200-144c-13.3 0-24 10.7-24 24s10.7 24 24 24h80c13.3 0 24-10.7 24-24s-10.7-24-24-24zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24h80c13.3 0 24-10.7 24-24s-10.7-24-24-24z"/></symbol><use href="#ai:fa6-regular:address-card"></use>  </svg></span></a> <div class="profile-name">s0m1ng</div><div class="profile-accent"></div><p class="profile-bio">二进制学习中。记录、拆解与理解。</p> <div class="profile-links"><a class="icon-button btn-regular" href="https://github.com/som1ng" target="_blank" rel="noopener me" aria-label="GitHub"><svg width="24" height="24" viewBox="0 0 496 512" data-icon="fa6-brands:github">   <symbol id="ai:fa6-brands:github"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6c-3.3.3-5.6-1.3-5.6-3.6c0-2 2.3-3.6 5.2-3.6c3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9c2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9c.3 2 2.9 3.3 5.9 2.6c2.9-.7 4.9-2.6 4.6-4.6c-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2c12.8 2.3 17.3-5.6 17.3-12.1c0-6.2-.3-40.4-.3-61.4c0 0-70 15-84.7-29.8c0 0-11.4-29.1-27.8-36.6c0 0-22.9-15.7 1.6-15.4c0 0 24.9 2 38.6 25.8c21.9 38.6 58.6 27.5 72.9 20.9c2.3-16 8.8-27.1 16-33.7c-55.9-6.2-112.3-14.3-112.3-110.5c0-27.5 7.6-41.3 23.6-58.9c-2.6-6.5-11.1-33.3 2.6-67.9c20.9-6.5 69 27 69 27c20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27c13.7 34.7 5.2 61.4 2.6 67.9c16 17.7 25.8 31.5 25.8 58.9c0 96.5-58.9 104.2-114.8 110.5c9.2 7.9 17 22.9 17 46.4c0 33.7-.3 75.4-.3 83.6c0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252C496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2c1.6 1.6 3.9 2.3 5.2 1c1.3-1 1-3.3-.7-5.2c-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9c1.6 1 3.6.7 4.3-.7c.7-1.3-.3-2.9-2.3-3.9c-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2c2.3 2.3 5.2 2.6 6.5 1c1.3-1.3.7-4.3-1.3-6.2c-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2c-1.4-2.3-4-3.3-5.6-2"/></symbol><use href="#ai:fa6-brands:github"></use>  </svg></a><a class="icon-button btn-regular" href="/rss.xml" aria-label="订阅 RSS"><svg width="24" height="24" viewBox="0 0 24 24" data-icon="material-symbols:rss-feed-rounded">   <symbol id="ai:material-symbols:rss-feed-rounded"><path fill="currentColor" d="M3.588 20.413Q3 19.825 3 19t.588-1.412T5 17t1.413.588T7 19t-.587 1.413T5 21t-1.412-.587M18.5 21q-.65 0-1.088-.475T16.9 19.4q-.275-2.425-1.312-4.537T12.9 11.1T9.138 8.413T4.6 7.1q-.65-.075-1.125-.512T3 5.5t.45-1.062t1.075-.363q3.075.275 5.763 1.563t4.737 3.337t3.338 4.738t1.562 5.762q.05.625-.363 1.075T18.5 21m-6 0q-.625 0-1.075-.437T10.85 19.5q-.225-1.225-.787-2.262T8.65 15.35t-1.888-1.412T4.5 13.15q-.625-.125-1.062-.575T3 11.5q0-.65.45-1.075t1.075-.325q1.825.25 3.413 1.063t2.837 2.062t2.063 2.838t1.062 3.412q.1.625-.325 1.075T12.5 21"/></symbol><use href="#ai:material-symbols:rss-feed-rounded"></use>  </svg></a></div> </section> <div class="sidebar-navigation"> <section class="card-base sidebar-section"><h2 class="sidebar-heading"><a href="/categories/">分类</a></h2><nav aria-label="文章分类"><ul class="category-tree"> <li> <details class="category-branch" data-category-branch="AI"> <summary aria-label="展开或收起 AI 的子分类"> <a class="category-link" href="/categories/AI/" data-category-path="AI"><span>AI</span><small>16</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <details class="category-branch" data-category-branch="AI/开发"> <summary aria-label="展开或收起 开发 的子分类"> <a class="category-link" href="/categories/AI/%E5%BC%80%E5%8F%91/" data-category-path="AI/开发"><span>开发</span><small>16</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/AI/%E5%BC%80%E5%8F%91/RAG/" data-category-path="AI/开发/RAG"><span>RAG</span><small>16</small></a> </li> </ul></div> </details> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="ISW"> <summary aria-label="展开或收起 ISW 的子分类"> <a class="category-link" href="/categories/ISW/" data-category-path="ISW"><span>ISW</span><small>24</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/ISW/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91/" data-category-path="ISW/内网横向"><span>内网横向</span><small>6</small></a> </li><li> <a class="category-link category-leaf" href="/categories/ISW/Linux%E6%8F%90%E6%9D%83/" data-category-path="ISW/Linux提权"><span>Linux提权</span><small>10</small></a> </li><li> <a class="category-link category-leaf" href="/categories/ISW/Web%E6%B8%97%E9%80%8F/" data-category-path="ISW/Web渗透"><span>Web渗透</span><small>1</small></a> </li><li> <a class="category-link category-leaf" href="/categories/ISW/Windows%E6%8F%90%E6%9D%83/" data-category-path="ISW/Windows提权"><span>Windows提权</span><small>7</small></a> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="PWN"> <summary aria-label="展开或收起 PWN 的子分类"> <a class="category-link" href="/categories/PWN/" data-category-path="PWN"><span>PWN</span><small>9</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <details class="category-branch" data-category-branch="PWN/PWN_ATTACK"> <summary aria-label="展开或收起 PWN_ATTACK 的子分类"> <a class="category-link" href="/categories/PWN/PWN_ATTACK/" data-category-path="PWN/PWN_ATTACK"><span>PWN_ATTACK</span><small>8</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/PWN/PWN_ATTACK/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/" data-category-path="PWN/PWN_ATTACK/格式化字符串"><span>格式化字符串</span><small>1</small></a> </li><li> <a class="category-link category-leaf" href="/categories/PWN/PWN_ATTACK/AWD/" data-category-path="PWN/PWN_ATTACK/AWD"><span>AWD</span><small>1</small></a> </li><li> <a class="category-link category-leaf" href="/categories/PWN/PWN_ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/" data-category-path="PWN/PWN_ATTACK/PWN通用问题"><span>PWN通用问题</span><small>3</small></a> </li><li> <a class="category-link category-leaf" href="/categories/PWN/PWN_ATTACK/stack_overflow/" data-category-path="PWN/PWN_ATTACK/stack_overflow"><span>stack_overflow</span><small>3</small></a> </li> </ul></div> </details> </li><li> <a class="category-link category-leaf" href="/categories/PWN/PWN_DEFENSE/" data-category-path="PWN/PWN_DEFENSE"><span>PWN_DEFENSE</span><small>1</small></a> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="REVERSE" open> <summary aria-label="展开或收起 REVERSE 的子分类"> <a class="category-link" href="/categories/REVERSE/" data-category-path="REVERSE"><span>REVERSE</span><small>26</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <details class="category-branch" data-category-branch="REVERSE/安卓逆向"> <summary aria-label="展开或收起 安卓逆向 的子分类"> <a class="category-link" href="/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/" data-category-path="REVERSE/安卓逆向"><span>安卓逆向</span><small>3</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" data-category-path="REVERSE/安卓逆向/安卓逆向基础"><span>安卓逆向基础</span><small>1</small></a> </li><li> <a class="category-link category-leaf" href="/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" data-category-path="REVERSE/安卓逆向/安卓逆向题单"><span>安卓逆向题单</span><small>2</small></a> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="REVERSE/逆向中的密码学"> <summary aria-label="展开或收起 逆向中的密码学 的子分类"> <a class="category-link" href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/" data-category-path="REVERSE/逆向中的密码学"><span>逆向中的密码学</span><small>6</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E5%9F%BA%E7%A1%80/" data-category-path="REVERSE/逆向中的密码学/对称加密基础"><span>对称加密基础</span><small>5</small></a> </li><li> <a class="category-link category-leaf" href="/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E9%A2%98%E5%8D%95/" data-category-path="REVERSE/逆向中的密码学/对称加密题单"><span>对称加密题单</span><small>1</small></a> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="REVERSE/ctf逆向中的misc"> <summary aria-label="展开或收起 ctf逆向中的misc 的子分类"> <a class="category-link" href="/categories/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/" data-category-path="REVERSE/ctf逆向中的misc"><span>ctf逆向中的misc</span><small>5</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E9%80%86%E5%90%91/" data-category-path="REVERSE/ctf逆向中的misc/py逆向"><span>py逆向</span><small>2</small></a> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="REVERSE/js逆向"> <summary aria-label="展开或收起 js逆向 的子分类"> <a class="category-link" href="/categories/REVERSE/js%E9%80%86%E5%90%91/" data-category-path="REVERSE/js逆向"><span>js逆向</span><small>1</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/REVERSE/js%E9%80%86%E5%90%91/wasm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" data-category-path="REVERSE/js逆向/wasm逆向基础"><span>wasm逆向基础</span><small>1</small></a> </li> </ul></div> </details> </li><li> <details class="category-branch" data-category-branch="REVERSE/pe逆向" open> <summary aria-label="展开或收起 pe逆向 的子分类"> <a class="category-link" href="/categories/REVERSE/pe%E9%80%86%E5%90%91/" data-category-path="REVERSE/pe逆向"><span>pe逆向</span><small>7</small></a> <span class="category-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span> </summary> <div class="category-children"><ul class="category-tree"> <li> <a class="category-link category-leaf" href="/categories/REVERSE/pe%E9%80%86%E5%90%91/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/" data-category-path="REVERSE/pe逆向/反调试技术"><span>反调试技术</span><small>2</small></a> </li><li> <a class="category-link category-leaf" href="/categories/REVERSE/pe%E9%80%86%E5%90%91/pe%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" data-category-path="REVERSE/pe逆向/pe逆向基础" aria-current="page"><span>pe逆向基础</span><small>5</small></a> </li> </ul></div> </details> </li><li> <a class="category-link category-leaf" href="/categories/REVERSE/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/" data-category-path="REVERSE/rust逆向基础"><span>rust逆向基础</span><small>1</small></a> </li><li> <a class="category-link category-leaf" href="/categories/REVERSE/vm%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/" data-category-path="REVERSE/vm逆向题单"><span>vm逆向题单</span><small>2</small></a> </li> </ul></div> </details> </li> </ul></nav></section> <section class="card-base sidebar-section"><h2 class="sidebar-heading">标签</h2><div class="sidebar-tags"><a href="/archive/?tag=.NET">.NET</a><a href="/archive/?tag=%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91">安卓逆向</a><a href="/archive/?tag=%E6%9C%AC%E5%9C%B0%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86">本地信息收集</a><a href="/archive/?tag=%E6%9F%A5%E8%AF%A2%E6%9E%84%E5%BB%BA">查询构建</a><a href="/archive/?tag=%E7%AA%97%E5%8F%A3%E9%80%86%E5%90%91">窗口逆向</a><a href="/archive/?tag=%E5%A4%9A%E6%A8%A1%E6%80%81%E5%B5%8C%E5%85%A5">多模态嵌入</a><a href="/archive/?tag=%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF">反调试技术</a><a href="/archive/?tag=%E6%9C%8D%E5%8A%A1%E9%85%8D%E7%BD%AE">服务配置</a><a href="/archive/?tag=%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2">格式化字符串</a><a href="/archive/?tag=%E6%A8%AA%E5%90%91%E7%A7%BB%E5%8A%A8">横向移动</a><a href="/archive/?tag=%E6%A8%AA%E5%90%91%E6%89%A7%E8%A1%8C">横向执行</a><a href="/archive/?tag=%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE">环境配置</a><a href="/archive/?tag=%E6%B7%B7%E5%90%88%E6%A3%80%E7%B4%A2">混合检索</a><a href="/archive/?tag=%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86">基础知识</a><a href="/archive/?tag=%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1">计划任务</a><a href="/archive/?tag=%E7%BB%8F%E5%85%B8%E6%96%B9%E6%B3%95">经典方法</a><a href="/archive/?tag=%E4%BB%A4%E7%89%8C%E7%AA%83%E5%8F%96">令牌窃取</a><a href="/archive/?tag=%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8">漏洞利用</a></div></section> </div> </div></aside> <main id="swup-container" tabindex="-1" class="transition-swup-fade">  <article class="card-base article-card" data-current-category="REVERSE/pe逆向/pe逆向基础">  <header class="article-header"><nav class="category-breadcrumb" aria-label="文章分类路径"><a href="/categories/">分类</a><span aria-hidden="true">/</span><a href="/categories/REVERSE/">REVERSE</a><span aria-hidden="true">/</span><a href="/categories/REVERSE/pe%E9%80%86%E5%90%91/">pe逆向</a><span aria-hidden="true">/</span><a href="/categories/REVERSE/pe%E9%80%86%E5%90%91/pe%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/">pe逆向基础</a></nav><h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title">windows窗口运行逻辑和常用api</h1><div class="post-meta"><time datetime="2025-10-15T00:00:00.000Z">2025-10-15</time><span>约 12 分钟</span><a class="post-series" href="/series/Windows%20PE%20%E9%80%86%E5%90%91/">Windows PE 逆向</a></div></header> <details class="mobile-toc"><summary>本文目录 · 12 个章节</summary><nav aria-label="本文目录"><a href="#前言">前言：#</a><a href="#流程">流程：#</a><a href="#入口点">入口点：#</a><a href="#1创建一个窗口类">1.创建一个窗口类#</a><a href="#2注册窗口类">2.注册窗口类#</a><a href="#3创建窗口">3.创建窗口#</a><a href="#4显示窗口">4.显示窗口#</a><a href="#5消息循环">5.消息循环#</a><a href="#getmessage">GetMessage:#</a><a href="#translatemessage--dispatchmessage">TranslateMessage / DispatchMessage#</a><a href="#6分析wndproc">6.分析WndProc#</a><a href="#实际例子">实际例子：#</a></nav></details> <div data-pagefind-body class="prose dark:prose-invert prose-base !max-w-none custom-md markdown-content"><section><h1 id="前言"><span id="前言：" class="legacy-anchor" aria-hidden="true"></span>前言：<a class="anchor" href="#前言"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h1><p>windows窗口编程就是创造一个窗口并实现消息循环，我们需要逆向的是窗口消息处理函数</p></section>
+<section><h1 id="流程"><span id="流程：" class="legacy-anchor" aria-hidden="true"></span>流程：<a class="anchor" href="#流程"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h1><section><h2 id="入口点"><span id="入口点：" class="legacy-anchor" aria-hidden="true"></span>入口点：<a class="anchor" href="#入口点"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>窗口的入口点是WinMain()函数</p><div class="expressive-code"><link rel="stylesheet" href="/_astro/ec.4fsv9.css"><script type="module" src="/_astro/ec.g1fg5.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WINAPI </span><span style="--0:#B392F0;--1:#B392F0">WinMain</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HINSTANCE </span><span style="--0:#FFAB70;--1:#FFAB70">hInstance</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HINSTANCE </span><span style="--0:#FFAB70;--1:#FFAB70">hPreInstance</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">LPSTR </span><span style="--0:#FFAB70;--1:#FFAB70">lpCmdeLine</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> nCmdShow</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">)</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><ul>
+<li>
+<p>HINSTANCE hInstance ：</p>
 <ul>
-<li><p>HINSTANCE hInstance ：</p>
-<ul>
-<li><p>含义：当前模块（process module）的实例句柄。</p>
+<li>
+<p>含义：当前模块（process module）的实例句柄。</p>
 </li>
-<li><p>现代 Windows（32/64 位）中 <code>HINSTANCE</code> 与 <code>HMODULE</code> 等价，表示模块基址（即 exe 或 dll 的加载基址）。也就是说 <code>HINSTANCE == HMODULE</code>。</p>
+<li>
+<p>现代 Windows（32/64 位）中 <code>HINSTANCE</code> 与 <code>HMODULE</code> 等价，表示模块基址（即 exe 或 dll 的加载基址）。也就是说 <code>HINSTANCE == HMODULE</code>。</p>
 </li>
-<li><p>常用场景：作为资源加载的句柄参数（<code>LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP))</code>、<code>FindResource(hInstance, ...)</code> 等）；也常用来创建窗口类 <code>WNDCLASSEX.hInstance</code>。</p>
+<li>
+<p>常用场景：作为资源加载的句柄参数（<code>LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP))</code>、<code>FindResource(hInstance, ...)</code> 等）；也常用来创建窗口类 <code>WNDCLASSEX.hInstance</code>。</p>
 </li>
-<li><p>获取方式：程序入口 <code>WinMain</code> 会直接给出；也可以在任意地方用 <code>GetModuleHandle(NULL)</code> 获取当前可执行模块句柄，或 <code>GetModuleHandle(&quot;mylib.dll&quot;)</code> 获取指定 DLL 的句柄。</p>
+<li>
+<p>获取方式：程序入口 <code>WinMain</code> 会直接给出；也可以在任意地方用 <code>GetModuleHandle(NULL)</code> 获取当前可执行模块句柄，或 <code>GetModuleHandle("mylib.dll")</code> 获取指定 DLL 的句柄。</p>
 </li>
-<li><p>x86/x64 区别：无差别。都是指向模块基址的句柄（底层为值型，大小随平台指针宽度而定）。</p>
+<li>
+<p>x86/x64 区别：无差别。都是指向模块基址的句柄（底层为值型，大小随平台指针宽度而定）。</p>
 </li>
-<li><p>只有在16位可执行程序里会有差别，因为16位同时多开exe，并不是独立的分割内存，而如今都是每个进程分配4gb</p>
-</li>
-</ul>
-</li>
-<li><p>HINSTANCE hPreInstance 已废弃，填null即可</p>
-</li>
-<li><p>LPSTR lpcmdeline：含义：指向以空字符结尾的命令行字符串（<code>char*</code>，ANSI 版 <code>WinMain</code> 使用）。</p>
-</li>
-<li><p>int nCmdShow：含义：程序窗口的初始显示状态，由操作系统或调用者（例如从快捷方式的“运行方式”设置或 <code>ShowWindow</code> 参数）传入。通常传给 <code>ShowWindow(hwnd, nCmdShow)</code>。</p>
+<li>
+<p>只有在16位可执行程序里会有差别，因为16位同时多开exe，并不是独立的分割内存，而如今都是每个进程分配4gb</p>
 </li>
 </ul>
-<h2 id="1-创建一个窗口类"><a href="#1-创建一个窗口类" class="headerlink" title="1.创建一个窗口类"></a>1.创建一个窗口类</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">WNDCLASSW myClass = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">myClass.lpszClassName = <span class="string">L&quot;51hook&quot;</span>;</span><br><span class="line">myClass.lpfnWndProc = WindowProc;</span><br></pre></td></tr></table></figure>
-<p>其中WNDCLASSW的定义：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">tagWNDCLASSEX</span> &#123;</span><br><span class="line">    UINT cbSize;</span><br><span class="line">    UINT style;</span><br><span class="line">    WNDPROC lpfnWndProc;    <span class="comment">// 窗口过程指针</span></span><br><span class="line">    <span class="type">int</span> cbClsExtra;</span><br><span class="line">    <span class="type">int</span> cbWndExtra;</span><br><span class="line">    HINSTANCE hInstance;</span><br><span class="line">    HICON hIcon;</span><br><span class="line">    HCURSOR hCursor;</span><br><span class="line">    HBRUSH hbrBackground;</span><br><span class="line">    LPCTSTR lpszMenuName;</span><br><span class="line">    LPCTSTR lpszClassName;</span><br><span class="line">    HICON hIconSm;</span><br><span class="line">&#125; WNDCLASSEX;</span><br></pre></td></tr></table></figure>
-<p>其中最重要的就是   WNDPROC lpfnWndProc;    // 窗口过程指针。做逆向只需要学会它的用法</p>
-<h2 id="2-注册窗口类"><a href="#2-注册窗口类" class="headerlink" title="2.注册窗口类"></a>2.注册窗口类</h2><p>RegisterClassW(&amp;myClass);</p>
-<h2 id="3-创建窗口"><a href="#3-创建窗口" class="headerlink" title="3.创建窗口"></a>3.创建窗口</h2><p>用 CreateWindowW</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//3.创建窗口</span></span><br><span class="line">    HWND hwindow = <span class="built_in">CreateWindowW</span>(</span><br><span class="line">        myClass.lpszClassName,</span><br><span class="line"></span><br><span class="line">        <span class="string">L&quot;51hook&quot;</span>,</span><br><span class="line">        WS_OVERLAPPEDWINDOW,</span><br><span class="line">        CW_USEDEFAULT,</span><br><span class="line">        <span class="number">0</span>,</span><br><span class="line">        CW_USEDEFAULT,</span><br><span class="line">        <span class="number">0</span>,</span><br><span class="line">        <span class="literal">NULL</span>,</span><br><span class="line">        <span class="literal">NULL</span>,</span><br><span class="line">        hInstance,</span><br><span class="line">        <span class="number">0</span></span><br><span class="line">    );</span><br></pre></td></tr></table></figure>
-<p>函数定义：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">HWND <span class="title">CreateWindowEx</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  DWORD dwExStyle,</span></span></span><br><span class="line"><span class="params"><span class="function">  LPCTSTR lpClassName,</span></span></span><br><span class="line"><span class="params"><span class="function">  LPCTSTR lpWindowName,</span></span></span><br><span class="line"><span class="params"><span class="function">  DWORD dwStyle,</span></span></span><br><span class="line"><span class="params"><span class="function">  <span class="type">int</span> x, <span class="type">int</span> y, <span class="type">int</span> nWidth, <span class="type">int</span> nHeight,</span></span></span><br><span class="line"><span class="params"><span class="function">  HWND hWndParent,</span></span></span><br><span class="line"><span class="params"><span class="function">  HMENU hMenu,</span></span></span><br><span class="line"><span class="params"><span class="function">  HINSTANCE hInstance,</span></span></span><br><span class="line"><span class="params"><span class="function">  LPVOID lpParam</span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<ul>
-<li><p><code>dwExStyle</code>/<code>dwStyle</code>：窗口扩展样式 / 样式（WS<strong>、WS_EX</strong>）</p>
 </li>
-<li><p><code>lpClassName</code>：类名（或 Atom）</p>
+<li>
+<p>HINSTANCE hPreInstance 已废弃，填null即可</p>
 </li>
-<li><p><code>lpWindowName</code>：窗口标题（Caption）</p>
+<li>
+<p>LPSTR lpcmdeline：含义：指向以空字符结尾的命令行字符串（<code>char*</code>，ANSI 版 <code>WinMain</code> 使用）。</p>
 </li>
-<li><p><code>hMenu</code>：菜单或子控件 ID（对于子窗口/控件是控件 ID）</p>
+<li>
+<p>int nCmdShow：含义：程序窗口的初始显示状态，由操作系统或调用者（例如从快捷方式的“运行方式”设置或 <code>ShowWindow</code> 参数）传入。通常传给 <code>ShowWindow(hwnd, nCmdShow)</code>。</p>
 </li>
-<li><p><code>lpParam</code>：传递给 <code>WM_CREATE</code> 的 <code>CREATESTRUCT*</code> 的 <code>lpCreateParams</code> 字段（常用于传递指针）<br>逆向：</p>
+</ul></section><section><h2 id="1创建一个窗口类"><span id="1-创建一个窗口类" class="legacy-anchor" aria-hidden="true"></span>1.创建一个窗口类<a class="anchor" href="#1创建一个窗口类"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">WNDCLASSW myClass </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> { </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8"> };</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">myClass.lpszClassName </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"51hook"</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">myClass.lpfnWndProc </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WindowProc;</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>其中WNDCLASSW的定义：</p><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">typedef</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#F97583;--1:#F97583">struct</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">tagWNDCLASSEX</span><span style="--0:#E1E4E8;--1:#E1E4E8"> {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">UINT cbSize;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">UINT style;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">WNDPROC lpfnWndProc;</span><span style="--0:#99A0A6;--1:#99A0A6">    // 窗口过程指针</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> cbClsExtra;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> cbWndExtra;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HINSTANCE hInstance;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HICON hIcon;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HCURSOR hCursor;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HBRUSH hbrBackground;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">LPCTSTR lpszMenuName;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">LPCTSTR lpszClassName;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HICON hIconSm;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">} </span><span style="--0:#B392F0;--1:#B392F0">WNDCLASSEX</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>其中最重要的就是   WNDPROC lpfnWndProc;    // 窗口过程指针。做逆向只需要学会它的用法</p></section><section><h2 id="2注册窗口类"><span id="2-注册窗口类" class="legacy-anchor" aria-hidden="true"></span>2.注册窗口类<a class="anchor" href="#2注册窗口类"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>RegisterClassW(&#x26;myClass);</p></section><section><h2 id="3创建窗口"><span id="3-创建窗口" class="legacy-anchor" aria-hidden="true"></span>3.创建窗口<a class="anchor" href="#3创建窗口"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>用 CreateWindowW</p><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#99A0A6;--1:#99A0A6">//3.创建窗口</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HWND hwindow </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">CreateWindowW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">myClass.lpszClassName,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">        </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"51hook"</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">WS_OVERLAPPEDWINDOW,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">CW_USEDEFAULT,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">CW_USEDEFAULT,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">NULL</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">NULL</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">hInstance,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">0</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>函数定义：</p><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">HWND</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">CreateWindowEx</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">DWORD</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">dwExStyle</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">LPCTSTR</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">lpClassName</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">LPCTSTR</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">lpWindowName</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">DWORD</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">dwStyle</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent">  </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">x</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">y</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">nWidth</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">nHeight</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">HWND</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">hWndParent</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">HMENU</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">hMenu</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">HINSTANCE</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">hInstance</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent">  </span><span style="--0:#B392F0;--1:#B392F0">LPVOID</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">lpParam</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><ul>
+<li>
+<p><code>dwExStyle</code>/<code>dwStyle</code>：窗口扩展样式 / 样式（WS__、WS_EX__）</p>
 </li>
-<li><p><code>CreateWindowEx</code> 返回的 <code>HWND</code> 常会被存到全局或成员变量中，搜索 <code>mov [global], eax</code>（x86）或 <code>mov [rip+..], rax</code>（x64）可定位。</p>
+<li>
+<p><code>lpClassName</code>：类名（或 Atom）</p>
 </li>
-<li><p>若使用类 atom（整数），<code>lpClassName</code> 参数的高位为小值。</p>
+<li>
+<p><code>lpWindowName</code>：窗口标题（Caption）</p>
 </li>
-</ul>
-<p><strong>补充：winapi中A版本和W版本（就是函数后的字母）区别只有参数可不可以是unicode的区别，W版本可以用unicode编码，比如说可以写字符串L’这是unicode编码’</strong></p>
-<h2 id="4-显示窗口"><a href="#4-显示窗口" class="headerlink" title="4.显示窗口"></a>4.显示窗口</h2><p>ShowWindow(hwindow, SW_SHOWNORMAL);</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BOOL <span class="title">ShowWindow</span><span class="params">(HWND hWnd, <span class="type">int</span> nCmdShow)</span></span>;</span><br><span class="line"><span class="function">BOOL <span class="title">UpdateWindow</span><span class="params">(HWND hWnd)</span></span>;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p><code>ShowWindow</code> 常在窗口创建后调用以显示窗口（<code>nCmdShow</code>=SW_SHOW, SW_SHOWNORMAL 等）</p>
+<li>
+<p><code>hMenu</code>：菜单或子控件 ID（对于子窗口/控件是控件 ID）</p>
 </li>
-<li><p><code>UpdateWindow</code> 触发 <code>WM_PAINT</code>（如果需要）</p>
+<li>
+<p><code>lpParam</code>：传递给 <code>WM_CREATE</code> 的 <code>CREATESTRUCT*</code> 的 <code>lpCreateParams</code> 字段（常用于传递指针）<br>
+逆向：</p>
 </li>
-</ul>
-<h2 id="5-消息循环"><a href="#5-消息循环" class="headerlink" title="5.消息循环"></a>5.消息循环</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">MSG msg;</span><br><span class="line">    <span class="keyword">while</span> (<span class="built_in">GetMessage</span>(&amp;msg, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="number">0</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">TranslateMessage</span>(&amp;msg);</span><br><span class="line">        <span class="built_in">DispatchMessage</span>(&amp;msg);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<h3 id="GetMessage"><a href="#GetMessage" class="headerlink" title="GetMessage:"></a>GetMessage:</h3><p>获取消息，如果不是WM_quit就接着循环</p>
-<h3 id="TranslateMessage-DispatchMessage"><a href="#TranslateMessage-DispatchMessage" class="headerlink" title="TranslateMessage / DispatchMessage"></a>TranslateMessage / DispatchMessage</h3><ul>
-<li><p><code>TranslateMessage</code>：将虚拟键消息转换为字符消息（WM_KEYDOWN -&gt; WM_CHAR）</p>
+<li>
+<p><code>CreateWindowEx</code> 返回的 <code>HWND</code> 常会被存到全局或成员变量中，搜索 <code>mov [global], eax</code>（x86）或 <code>mov [rip+..], rax</code>（x64）可定位。</p>
 </li>
-<li><p><code>DispatchMessage</code>：把消息派发到目标窗口的 WndProc（最终调用 <code>CallWindowProc</code>）</p>
+<li>
+<p>若使用类 atom（整数），<code>lpClassName</code> 参数的高位为小值。</p>
 </li>
-</ul>
-<h2 id="6-分析WndProc"><a href="#6-分析WndProc" class="headerlink" title="6.分析WndProc"></a>6.分析WndProc</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">LRESULT CALLBACK <span class="title">WindowProc</span><span class="params">(   <span class="comment">//消息处理函数</span></span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ HWND   hwnd, <span class="comment">//窗口句柄</span></span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ UINT   uMsg, <span class="comment">// 接收的消息</span></span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ WPARAM wParam, <span class="comment">//小参数，低6位放</span></span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ LPARAM lParam <span class="comment">//long 参数，高16位放鼠标x坐标，低16位放鼠标y坐标</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (uMsg)</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> WM_CREATE:</span><br><span class="line">        <span class="built_in">MessageBoxW</span>(hwnd, <span class="string">L&quot;窗口创建了&quot;</span>, <span class="string">L&quot;提示&quot;</span>, MB_OK);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> WM_CLOSE:</span><br><span class="line">        <span class="built_in">MessageBoxW</span>(hwnd, <span class="string">L&quot;窗口关闭了&quot;</span>, <span class="string">L&quot;提示&quot;</span>, MB_OK);</span><br><span class="line">        <span class="built_in">DestroyWindow</span>(hwnd);</span><br><span class="line">        <span class="built_in">PostQuitMessage</span>(<span class="number">0</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">DefWindowProcW</span>(hwnd,uMsg,wParam,lParam);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>其中函数参数：</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>类型</th>
-<th>典型用途</th>
-<th>注意点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>HWND hwnd</code></td>
-<td>窗口句柄</td>
-<td>唯一标识窗口实例</td>
-<td>用于区分不同窗口</td>
-</tr>
-<tr>
-<td><code>UINT uMsg</code></td>
-<td>消息ID</td>
-<td>指定当前消息类型</td>
-<td>用于 <code>switch</code> 分发</td>
-</tr>
-<tr>
-<td><code>WPARAM wParam</code></td>
-<td>辅助参数</td>
-<td>消息相关状态/标志/ID</td>
-<td>含义因消息而异</td>
-</tr>
-<tr>
-<td><code>LPARAM lParam</code></td>
-<td>扩展参数</td>
-<td>附加数据，如坐标、句柄</td>
-<td>依赖消息类型解释</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>最常见的wparam和lparam的用法：</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>消息类型</th>
-<th>wParam 含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>WM_KEYDOWN</code></td>
-<td>虚拟键码（VK_XXX）</td>
-</tr>
-<tr>
-<td><code>WM_LBUTTONDOWN</code></td>
-<td>鼠标按键状态（MK_CONTROL / MK_SHIFT 等标志）</td>
-</tr>
-<tr>
-<td><code>WM_COMMAND</code></td>
-<td>高16位是通知码（如按钮点击），低16位是控件ID(父窗口内的代号)</td>
-</tr>
-<tr>
-<td><code>WM_TIMER</code></td>
-<td>定时器ID</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>消息</th>
-<th>lParam 含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>WM_MOUSEMOVE</code>(鼠标移动), <code>WM_LBUTTONDOWN</code>(鼠标左键被按下) 等</td>
-<td>低16位 = X坐标， 高16位 = Y坐标</td>
-</tr>
-<tr>
-<td><code>WM_COMMAND</code>(操作菜单、控件，快捷键、加速键，或程序调用 SendMessage(hwnd, WM_COMMAND, …) 时，系统就会发送这个消息给对应的窗口过程。)</td>
-<td>如果来自控件（子窗口）：lParam 是该控件的 HWND。如果来自菜单/加速键：lParam 为 0（因此可以用来区分）</td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>具体消息和处理逆向我们还需要进一步积累，这里只是起抛砖引玉的作用 </p>
-<h1 id="实际例子："><a href="#实际例子：" class="headerlink" title="实际例子："></a>实际例子：</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;Windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function">LRESULT CALLBACK <span class="title">WindowProc</span><span class="params">(   <span class="comment">//消息处理函数</span></span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ HWND   hwnd,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ UINT   uMsg,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ WPARAM wParam,</span></span></span><br><span class="line"><span class="params"><span class="function">    _In_ LPARAM lParam</span></span></span><br><span class="line"><span class="params"><span class="function">)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (uMsg)</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">case</span> WM_CREATE:</span><br><span class="line">        <span class="built_in">MessageBoxW</span>(hwnd, <span class="string">L&quot;窗口创建了&quot;</span>, <span class="string">L&quot;提示&quot;</span>, MB_OK);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> WM_CLOSE:</span><br><span class="line">        <span class="built_in">MessageBoxW</span>(hwnd, <span class="string">L&quot;窗口关闭了&quot;</span>, <span class="string">L&quot;提示&quot;</span>, MB_OK);</span><br><span class="line">        <span class="built_in">DestroyWindow</span>(hwnd);</span><br><span class="line">        <span class="built_in">PostQuitMessage</span>(<span class="number">0</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">DefWindowProcW</span>(hwnd,uMsg,wParam,lParam);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> WINAPI <span class="title">WinMain</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    HINSTANCE hInstance,</span></span></span><br><span class="line"><span class="params"><span class="function">    HINSTANCE hPreInstance,</span></span></span><br><span class="line"><span class="params"><span class="function">    LPSTR lpCmdeLine,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">int</span> nCmdShow</span></span></span><br><span class="line"><span class="params"><span class="function">)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//1.创建一个窗口类</span></span><br><span class="line">    WNDCLASSW myClass = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">    myClass.lpszClassName = <span class="string">L&quot;51hook&quot;</span>;</span><br><span class="line">    myClass.lpfnWndProc = WindowProc;</span><br><span class="line">    <span class="comment">//2.注册窗口类</span></span><br><span class="line">    <span class="built_in">RegisterClassW</span>(&amp;myClass);</span><br><span class="line">    <span class="comment">//3.创建窗口</span></span><br><span class="line">    HWND hwindow = <span class="built_in">CreateWindowW</span>(</span><br><span class="line">        myClass.lpszClassName,</span><br><span class="line"> </span><br><span class="line">        <span class="string">L&quot;51hook&quot;</span>,</span><br><span class="line">        WS_OVERLAPPEDWINDOW,</span><br><span class="line">        CW_USEDEFAULT,</span><br><span class="line">        <span class="number">0</span>,</span><br><span class="line">        CW_USEDEFAULT,</span><br><span class="line">        <span class="number">0</span>,</span><br><span class="line">        <span class="literal">NULL</span>,</span><br><span class="line">        <span class="literal">NULL</span>,</span><br><span class="line">        hInstance,</span><br><span class="line">        <span class="number">0</span></span><br><span class="line">    );</span><br><span class="line">    <span class="comment">//4.显示窗口</span></span><br><span class="line">    <span class="built_in">ShowWindow</span>(hwindow, SW_SHOWNORMAL);</span><br><span class="line">​</span><br><span class="line">    <span class="comment">//5.获取消息</span></span><br><span class="line">    MSG msg = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">    <span class="keyword">while</span> (<span class="built_in">GetMessageW</span>(&amp;msg, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>)) &#123;</span><br><span class="line">        <span class="built_in">DispatchMessageW</span>(&amp;msg);<span class="comment">//分发消息给消息处理函数</span></span><br><span class="line">    &#125;</span><br><span class="line">​</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-    
-    
-    
-        <div class="reward-container">
-  <div>您的支持将鼓励我继续创作!</div>
-  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
-    打赏
-  </button>
-  <div id="qr" style="display: none;">
-      
-      <div style="display: inline-block;">
-        <img src="/images/reward.jpg" alt="s0m1ng 微信支付">
-        <p>微信支付</p>
-      </div>
-
-  </div>
-</div>
-
-        
-
-<div>
-<ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>s0m1ng
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="http://example.com/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/windows%E7%AA%97%E5%8F%A3%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91%E5%92%8C%E5%B8%B8%E7%94%A8api/" title="windows窗口运行逻辑和常用api">http://example.com/2025/10/15/REVERSE/pe逆向/windows窗口运行逻辑和常用api/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
-
-        
-
-  <div class="followme">
-    <p>欢迎关注我的其它发布渠道</p>
-
-    <div class="social-list">
-
-        <div class="social-item">
-          <a target="_blank" class="social-link" href="/atom.xml">
-            <span class="icon">
-              <i class="fa fa-rss"></i>
-            </span>
-
-            <span class="label">RSS</span>
-          </a>
-        </div>
-    </div>
-  </div>
-
-
-      <footer class="post-footer">
-          
-          <div class="post-tags">
-              <a href="/tags/%E7%AA%97%E5%8F%A3%E9%80%86%E5%90%91/" rel="tag"><i class="fa fa-tag"></i> 窗口逆向</a>
-          </div>
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/2025/10/12/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%BC%BA%E7%BD%91%E6%9D%AF2023-dotdot%E5%A4%8D%E7%8E%B0/" rel="prev" title="强网杯2023-dotdot复现">
-      <i class="fa fa-chevron-left"></i> 强网杯2023-dotdot复现
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2025/10/15/REVERSE/pe%E9%80%86%E5%90%91/dll%E4%B8%93%E9%A2%98/" rel="next" title="DLL专题">
-      DLL专题 <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
-      </footer>
-    
-  </article>
-  
-  
-  
-
-
-
-          </div>
-          
-
-<script>
-  window.addEventListener('tabs:register', () => {
-    let { activeClass } = CONFIG.comments;
-    if (CONFIG.comments.storage) {
-      activeClass = localStorage.getItem('comments_active') || activeClass;
-    }
-    if (activeClass) {
-      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
-      if (activeTab) {
-        activeTab.click();
-      }
-    }
-  });
-  if (CONFIG.comments.storage) {
-    window.addEventListener('tabs:click', event => {
-      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
-      let commentClass = event.target.classList[1];
-      localStorage.setItem('comments_active', commentClass);
-    });
-  }
-</script>
-
-        </div>
-          
-  
-  <div class="toggle sidebar-toggle">
-    <span class="toggle-line toggle-line-first"></span>
-    <span class="toggle-line toggle-line-middle"></span>
-    <span class="toggle-line toggle-line-last"></span>
-  </div>
-
-  <aside class="sidebar">
-    <div class="sidebar-inner">
-
-      <ul class="sidebar-nav motion-element">
-        <li class="sidebar-nav-toc">
-          文章目录
-        </li>
-        <li class="sidebar-nav-overview">
-          站点概览
-        </li>
-      </ul>
-
-      <!--noindex-->
-      <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">2.</span> <span class="nav-text">流程：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A5%E5%8F%A3%E7%82%B9%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">入口点：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%AA%97%E5%8F%A3%E7%B1%BB"><span class="nav-number">2.2.</span> <span class="nav-text">1.创建一个窗口类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%B3%A8%E5%86%8C%E7%AA%97%E5%8F%A3%E7%B1%BB"><span class="nav-number">2.3.</span> <span class="nav-text">2.注册窗口类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%88%9B%E5%BB%BA%E7%AA%97%E5%8F%A3"><span class="nav-number">2.4.</span> <span class="nav-text">3.创建窗口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%98%BE%E7%A4%BA%E7%AA%97%E5%8F%A3"><span class="nav-number">2.5.</span> <span class="nav-text">4.显示窗口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E6%B6%88%E6%81%AF%E5%BE%AA%E7%8E%AF"><span class="nav-number">2.6.</span> <span class="nav-text">5.消息循环</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GetMessage"><span class="nav-number">2.6.1.</span> <span class="nav-text">GetMessage:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TranslateMessage-DispatchMessage"><span class="nav-number">2.6.2.</span> <span class="nav-text">TranslateMessage &#x2F; DispatchMessage</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%88%86%E6%9E%90WndProc"><span class="nav-number">2.7.</span> <span class="nav-text">6.分析WndProc</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E4%BE%8B%E5%AD%90%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">实际例子：</span></a></li></ol></div>
-      </div>
-      <!--/noindex-->
-
-      <div class="site-overview-wrap sidebar-panel">
-        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="s0m1ng"
-      src="/images/profile_photo.jpg">
-  <p class="site-author-name" itemprop="name">s0m1ng</p>
-  <div class="site-description" itemprop="description">逆向学习中~</div>
-</div>
-<div class="site-state-wrap motion-element">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-          <a href="/archives/">
-        
-          <span class="site-state-item-count">75</span>
-          <span class="site-state-item-name">日志</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-            <a href="/categories/">
-        <span class="site-state-item-count">31</span>
-        <span class="site-state-item-name">分类</span></a>
-      </div>
-      <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">87</span>
-        <span class="site-state-item-name">标签</span>
-      </div>
-  </nav>
-</div>
-  <div class="links-of-author motion-element">
-      <span class="links-of-author-item">
-        <a href="http://wpa.qq.com/msgrd?v=3&uin=1327470638&site=qq&menu=yes" title="QQ → http:&#x2F;&#x2F;wpa.qq.com&#x2F;msgrd?v&#x3D;3&amp;uin&#x3D;1327470638&amp;site&#x3D;qq&amp;menu&#x3D;yes" rel="noopener" target="_blank"><i class="fab fa-qq fa-fw"></i>QQ</a>
-      </span>
-  </div>
-
-
-
-      </div>
-        <div class="back-to-top motion-element">
-          <i class="fa fa-arrow-up"></i>
-          <span>0%</span>
-        </div>
-
-    </div>
-  </aside>
-  <div id="sidebar-dimmer"></div>
+</ul><p><strong>补充：winapi中A版本和W版本（就是函数后的字母）区别只有参数可不可以是unicode的区别，W版本可以用unicode编码，比如说可以写字符串L’这是unicode编码’</strong></p></section><section><h2 id="4显示窗口"><span id="4-显示窗口" class="legacy-anchor" aria-hidden="true"></span>4.显示窗口<a class="anchor" href="#4显示窗口"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>ShowWindow(hwindow, SW_SHOWNORMAL);</p><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">BOOL</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">ShowWindow</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#B392F0;--1:#B392F0">HWND</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">hWnd</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">nCmdShow</span><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#B392F0;--1:#B392F0">BOOL</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">UpdateWindow</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#B392F0;--1:#B392F0">HWND</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#FFAB70;--1:#FFAB70">hWnd</span><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><ul>
+<li>
+<p><code>ShowWindow</code> 常在窗口创建后调用以显示窗口（<code>nCmdShow</code>=SW_SHOW, SW_SHOWNORMAL 等）</p>
+</li>
+<li>
+<p><code>UpdateWindow</code> 触发 <code>WM_PAINT</code>（如果需要）</p>
+</li>
+</ul></section><section><h2 id="5消息循环"><span id="5-消息循环" class="legacy-anchor" aria-hidden="true"></span>5.消息循环<a class="anchor" href="#5消息循环"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">MSG msg;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">while</span><span style="--0:#E1E4E8;--1:#E1E4E8"> (</span><span style="--0:#B392F0;--1:#B392F0">GetMessage</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#F97583;--1:#F97583">&#x26;</span><span style="--0:#E1E4E8;--1:#E1E4E8">msg, </span><span style="--0:#79B8FF;--1:#79B8FF">NULL</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">))</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">{</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">TranslateMessage</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#F97583;--1:#F97583">&#x26;</span><span style="--0:#E1E4E8;--1:#E1E4E8">msg);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">DispatchMessage</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#F97583;--1:#F97583">&#x26;</span><span style="--0:#E1E4E8;--1:#E1E4E8">msg);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><section><h3 id="getmessage"><span id="GetMessage" class="legacy-anchor" aria-hidden="true"></span>GetMessage:<a class="anchor" href="#getmessage"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><p>获取消息，如果不是WM_quit就接着循环</p></section><section><h3 id="translatemessage--dispatchmessage"><span id="TranslateMessage-DispatchMessage" class="legacy-anchor" aria-hidden="true"></span>TranslateMessage / DispatchMessage<a class="anchor" href="#translatemessage--dispatchmessage"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h3><ul>
+<li>
+<p><code>TranslateMessage</code>：将虚拟键消息转换为字符消息（WM_KEYDOWN -> WM_CHAR）</p>
+</li>
+<li>
+<p><code>DispatchMessage</code>：把消息派发到目标窗口的 WndProc（最终调用 <code>CallWindowProc</code>）</p>
+</li>
+</ul></section></section><section><h2 id="6分析wndproc"><span id="6-分析WndProc" class="legacy-anchor" aria-hidden="true"></span>6.分析WndProc<a class="anchor" href="#6分析wndproc"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">LRESULT CALLBACK </span><span style="--0:#B392F0;--1:#B392F0">WindowProc</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#99A0A6;--1:#99A0A6">   //消息处理函数</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ HWND   hwnd,</span><span style="--0:#99A0A6;--1:#99A0A6"> //窗口句柄</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ UINT   uMsg,</span><span style="--0:#99A0A6;--1:#99A0A6"> // 接收的消息</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ WPARAM wParam,</span><span style="--0:#99A0A6;--1:#99A0A6"> //小参数，低6位放</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ LPARAM lParam</span><span style="--0:#99A0A6;--1:#99A0A6"> //long 参数，高16位放鼠标x坐标，低16位放鼠标y坐标</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">switch</span><span style="--0:#E1E4E8;--1:#E1E4E8"> (uMsg)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">{</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">case</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WM_CREATE:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">MessageBoxW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"窗口创建了"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"提示"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, MB_OK);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent">        </span><span style="--0:#F97583;--1:#F97583">break</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">case</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WM_CLOSE:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">MessageBoxW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"窗口关闭了"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"提示"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, MB_OK);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">DestroyWindow</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">PostQuitMessage</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span class="indent">        </span><span style="--0:#F97583;--1:#F97583">break</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">default</span><span style="--0:#E1E4E8;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code"><span class="indent">        </span><span style="--0:#F97583;--1:#F97583">break</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">return</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">DefWindowProcW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd,uMsg,wParam,lParam);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">21</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div><p>其中函数参数：</p>
 
 
-      </div>
-    </main>
 
-    <footer class="footer">
-      <div class="footer-inner">
-        
-
-        
-
-<div class="copyright">
-  
-  &copy; 
-  <span itemprop="copyrightYear">2026</span>
-  <span class="with-love">
-    <i class="fa fa-heart"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">s0m1ng</span>
-</div>
-  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
-  </div>
-
-        
-<div class="busuanzi-count">
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-user"></i>
-      </span>
-      <span class="site-uv" title="总访客量">
-        <span id="busuanzi_value_site_uv"></span>
-      </span>
-    </span>
-    <span class="post-meta-divider">|</span>
-    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
-      <span class="post-meta-item-icon">
-        <i class="fa fa-eye"></i>
-      </span>
-      <span class="site-pv" title="总访问量">
-        <span id="busuanzi_value_site_pv"></span>
-      </span>
-    </span>
-</div>
-
-
-
-
-
-
-
-
-      </div>
-    </footer>
-  </div>
-
-  
-  <script size="300" alpha="0.6" zIndex="-1" src="/lib/canvas-ribbon/canvas-ribbon.js"></script>
-  <script src="/lib/anime.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
-  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
-  <script src="/lib/velocity/velocity.min.js"></script>
-  <script src="/lib/velocity/velocity.ui.min.js"></script>
-
-<script src="/js/utils.js"></script>
-
-<script src="/js/motion.js"></script>
-
-
-<script src="/js/schemes/muse.js"></script>
-
-
-<script src="/js/next-boot.js"></script>
-
-
-
-
-  
-
-
-
-
-  
-<script src="/js/local-search.js"></script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  
-
-  
-<script>
-function initCategoryFold() {
-  // 找到所有包含了子分类的 <ul>
-  var childLists = document.querySelectorAll('.category-list-child');
-  
-  childLists.forEach(function(child) {
-    // 防抖：防止 PJAX 刷新导致重复注入图标
-    if (child.parentElement.getAttribute('data-folded') === 'true') return;
-    child.parentElement.setAttribute('data-folded', 'true');
-    
-    // 1. 默认把所有子分类强行隐藏
-    child.style.display = 'none'; 
-    
-    // 2. 创建一个带有黑客风的 [+]/[-] 开关
-    var toggleSpan = document.createElement('span');
-    toggleSpan.innerHTML = ' ➕ ';
-    toggleSpan.style.cursor = 'pointer';
-    toggleSpan.style.fontSize = '12px';
-    toggleSpan.style.marginRight = '5px';
-    
-    // 3. 把开关插到父分类名字的前面
-    var parentLi = child.parentElement;
-    parentLi.insertBefore(toggleSpan, parentLi.firstChild);
-    
-    // 4. 给开关绑定点击事件 (Hook)
-    toggleSpan.addEventListener('click', function(e) {
-      e.stopPropagation(); // 阻止事件冒泡，防止误点分类链接
-      if (child.style.display === 'none') {
-        child.style.display = 'block';
-        toggleSpan.innerHTML = ' ➖ ';
-      } else {
-        child.style.display = 'none';
-        toggleSpan.innerHTML = ' ➕ ';
-      }
-    });
-  });
-}
-
-// 首次加载页面时执行
-document.addEventListener("DOMContentLoaded", initCategoryFold);
-// 如果你的 NexT 开启了 PJAX (无刷新跳转)，保证跳转后依然生效
-document.addEventListener("pjax:success", initCategoryFold);
-</script>
-</body>
-</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数</th><th>类型</th><th>典型用途</th><th>注意点</th></tr></thead><tbody><tr><td><code>HWND hwnd</code></td><td>窗口句柄</td><td>唯一标识窗口实例</td><td>用于区分不同窗口</td></tr><tr><td><code>UINT uMsg</code></td><td>消息ID</td><td>指定当前消息类型</td><td>用于 <code>switch</code> 分发</td></tr><tr><td><code>WPARAM wParam</code></td><td>辅助参数</td><td>消息相关状态/标志/ID</td><td>含义因消息而异</td></tr><tr><td><code>LPARAM lParam</code></td><td>扩展参数</td><td>附加数据，如坐标、句柄</td><td>依赖消息类型解释</td></tr></tbody></table><p>最常见的wparam和lparam的用法：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>消息类型</th><th>wParam 含义</th></tr></thead><tbody><tr><td><code>WM_KEYDOWN</code></td><td>虚拟键码（VK_XXX）</td></tr><tr><td><code>WM_LBUTTONDOWN</code></td><td>鼠标按键状态（MK_CONTROL / MK_SHIFT 等标志）</td></tr><tr><td><code>WM_COMMAND</code></td><td>高16位是通知码（如按钮点击），低16位是控件ID(父窗口内的代号)</td></tr><tr><td><code>WM_TIMER</code></td><td>定时器ID</td></tr></tbody></table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>消息</th><th>lParam 含义</th></tr></thead><tbody><tr><td><code>WM_MOUSEMOVE</code>(鼠标移动), <code>WM_LBUTTONDOWN</code>(鼠标左键被按下) 等</td><td>低16位 = X坐标， 高16位 = Y坐标</td></tr><tr><td><code>WM_COMMAND</code>(操作菜单、控件，快捷键、加速键，或程序调用 SendMessage(hwnd, WM_COMMAND, …) 时，系统就会发送这个消息给对应的窗口过程。)</td><td>如果来自控件（子窗口）：lParam 是该控件的 HWND。如果来自菜单/加速键：lParam 为 0（因此可以用来区分）</td></tr></tbody></table><p>具体消息和处理逆向我们还需要进一步积累，这里只是起抛砖引玉的作用</p></section></section>
+<section><h1 id="实际例子"><span id="实际例子：" class="legacy-anchor" aria-hidden="true"></span>实际例子：<a class="anchor" href="#实际例子"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h1><div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="c++"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">#include</span><span style="--0:#9ECBFF;--1:#9ECBFF">&#x3C;Windows.h></span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">#include</span><span style="--0:#9ECBFF;--1:#9ECBFF">&#x3C;iostream></span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">LRESULT CALLBACK </span><span style="--0:#B392F0;--1:#B392F0">WindowProc</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#99A0A6;--1:#99A0A6">   //消息处理函数</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ HWND   hwnd,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ UINT   uMsg,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ WPARAM wParam,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">_In_ LPARAM lParam</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">switch</span><span style="--0:#E1E4E8;--1:#E1E4E8"> (uMsg)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">{</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">case</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WM_CREATE:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">MessageBoxW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"窗口创建了"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"提示"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, MB_OK);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent">        </span><span style="--0:#F97583;--1:#F97583">break</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">case</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WM_CLOSE:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">MessageBoxW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"窗口关闭了"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"提示"</span><span style="--0:#E1E4E8;--1:#E1E4E8">, MB_OK);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">DestroyWindow</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">PostQuitMessage</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code"><span class="indent">        </span><span style="--0:#F97583;--1:#F97583">break</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">default</span><span style="--0:#E1E4E8;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span class="indent">        </span><span style="--0:#F97583;--1:#F97583">break</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">21</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">22</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">return</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">DefWindowProcW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwnd,uMsg,wParam,lParam);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">23</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">24</div></div><div class="code"><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WINAPI </span><span style="--0:#B392F0;--1:#B392F0">WinMain</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">25</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HINSTANCE hInstance,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">26</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HINSTANCE hPreInstance,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">27</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">LPSTR lpCmdeLine,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">28</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">int</span><span style="--0:#E1E4E8;--1:#E1E4E8"> nCmdShow</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">29</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">30</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">{</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">31</div></div><div class="code"><span class="indent"><span style="--0:#99A0A6;--1:#99A0A6">    </span></span><span style="--0:#99A0A6;--1:#99A0A6">//1.创建一个窗口类</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">32</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">WNDCLASSW myClass </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> { </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8"> };</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">33</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">myClass.lpszClassName </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"51hook"</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">34</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">myClass.lpfnWndProc </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> WindowProc;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">35</div></div><div class="code"><span class="indent"><span style="--0:#99A0A6;--1:#99A0A6">    </span></span><span style="--0:#99A0A6;--1:#99A0A6">//2.注册窗口类</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">36</div></div><div class="code"><span class="indent">    </span><span style="--0:#B392F0;--1:#B392F0">RegisterClassW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#F97583;--1:#F97583">&#x26;</span><span style="--0:#E1E4E8;--1:#E1E4E8">myClass);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">37</div></div><div class="code"><span class="indent"><span style="--0:#99A0A6;--1:#99A0A6">    </span></span><span style="--0:#99A0A6;--1:#99A0A6">//3.创建窗口</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">38</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">HWND hwindow </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#B392F0;--1:#B392F0">CreateWindowW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">39</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">myClass.lpszClassName,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">40</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">41</div></div><div class="code"><span class="indent">        </span><span style="--0:#9ECBFF;--1:#9ECBFF">L"51hook"</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">42</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">WS_OVERLAPPEDWINDOW,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">43</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">CW_USEDEFAULT,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">44</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">45</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">CW_USEDEFAULT,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">46</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">47</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">NULL</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">48</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">NULL</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">49</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">        </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">hInstance,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">50</div></div><div class="code"><span class="indent">        </span><span style="--0:#79B8FF;--1:#79B8FF">0</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">51</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">52</div></div><div class="code"><span class="indent"><span style="--0:#99A0A6;--1:#99A0A6">    </span></span><span style="--0:#99A0A6;--1:#99A0A6">//4.显示窗口</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">53</div></div><div class="code"><span class="indent">    </span><span style="--0:#B392F0;--1:#B392F0">ShowWindow</span><span style="--0:#E1E4E8;--1:#E1E4E8">(hwindow, SW_SHOWNORMAL);</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">54</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">​</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">55</div></div><div class="code"><span class="indent"><span style="--0:#99A0A6;--1:#99A0A6">    </span></span><span style="--0:#99A0A6;--1:#99A0A6">//5.获取消息</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">56</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">MSG msg </span><span style="--0:#F97583;--1:#F97583">=</span><span style="--0:#E1E4E8;--1:#E1E4E8"> { </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8"> };</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">57</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">while</span><span style="--0:#E1E4E8;--1:#E1E4E8"> (</span><span style="--0:#B392F0;--1:#B392F0">GetMessageW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#F97583;--1:#F97583">&#x26;</span><span style="--0:#E1E4E8;--1:#E1E4E8">msg, </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">,</span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">)) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">58</div></div><div class="code"><span class="indent">        </span><span style="--0:#B392F0;--1:#B392F0">DispatchMessageW</span><span style="--0:#E1E4E8;--1:#E1E4E8">(</span><span style="--0:#F97583;--1:#F97583">&#x26;</span><span style="--0:#E1E4E8;--1:#E1E4E8">msg);</span><span style="--0:#99A0A6;--1:#99A0A6">//分发消息给消息处理函数</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">59</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#E1E4E8">    </span></span><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">60</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">​</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">61</div></div><div class="code"><span class="indent">    </span><span style="--0:#F97583;--1:#F97583">return</span><span style="--0:#E1E4E8;--1:#E1E4E8"> </span><span style="--0:#79B8FF;--1:#79B8FF">0</span><span style="--0:#E1E4E8;--1:#E1E4E8">;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">62</div></div><div class="code"><span style="--0:#E1E4E8;--1:#E1E4E8">}</span></div></div></code><button class="copy-btn" aria-label="复制代码"><div class="copy-btn-icon"><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon copy-icon"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"></path></svg><svg viewBox="0 -960 960 960" xmlns="http://www.w3.org/2000/svg" class="copy-btn-icon success-icon"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"></path></svg></div></button></pre></figure></div></section></div>  </article> <div class="series-navigation"><a href="/2025/10/15/REVERSE/pe逆向/DLL免杀/"><small>← 上一章</small>DLL免杀</a><a href="/2025/10/15/REVERSE/pe逆向/dll专题/"><small>下一章 →</small>DLL专题</a></div> <footer class="site-footer">© 2026 s0m1ng · 保持好奇，持续探索<br><a href="/rss.xml">RSS</a> · <a href="/sitemap-index.xml">Sitemap</a> · Powered by <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> & <a href="https://github.com/saicaca/fuwari" target="_blank" rel="noopener">Fuwari</a></footer></main> <aside class="desktop-toc" aria-label="文章目录"><div id="toc" class="transition-swup-fade"><nav><h2>ON THIS PAGE</h2><a href="#前言" data-toc-link data-depth="1">前言：#</a><a href="#流程" data-toc-link data-depth="1">流程：#</a><a href="#入口点" data-toc-link data-depth="2">入口点：#</a><a href="#1创建一个窗口类" data-toc-link data-depth="2">1.创建一个窗口类#</a><a href="#2注册窗口类" data-toc-link data-depth="2">2.注册窗口类#</a><a href="#3创建窗口" data-toc-link data-depth="2">3.创建窗口#</a><a href="#4显示窗口" data-toc-link data-depth="2">4.显示窗口#</a><a href="#5消息循环" data-toc-link data-depth="2">5.消息循环#</a><a href="#getmessage" data-toc-link data-depth="3">GetMessage:#</a><a href="#translatemessage--dispatchmessage" data-toc-link data-depth="3">TranslateMessage / DispatchMessage#</a><a href="#6分析wndproc" data-toc-link data-depth="2">6.分析WndProc#</a><a href="#实际例子" data-toc-link data-depth="1">实际例子：#</a></nav></div></aside> </div> <button id="back-to-top" class="back-top btn-regular" aria-label="返回顶部" hidden>↑</button> <div id="navigation-progress" aria-hidden="true"></div><div id="site-announcer" class="sr-only" aria-live="polite"></div> <script type="module" src="/_astro/Layout.astro_astro_type_script_index_0_lang.Dk64s6LQ.js"></script> </body> </html>

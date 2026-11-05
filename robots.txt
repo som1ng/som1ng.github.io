@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /_astro/
+
+Sitemap: https://www.s0m1ng.xyz/sitemap-index.xml
