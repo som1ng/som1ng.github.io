@@ -1,0 +1,23 @@
+---
+import type { MarkdownHeading } from 'astro';
+import Layout from './Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import SideBar from '../components/widget/SideBar.astro';
+import Footer from '../components/Footer.astro';
+import TOC from '../components/widget/TOC.astro';
+import {siteConfig} from '../config';
+interface Props {title?:string;banner?:string;description?:string;lang?:string;setOGTypeArticle?:boolean;headings?:MarkdownHeading[];}
+const {headings=[],...props}=Astro.props;
+---
+<Layout {...props}>
+<slot slot="head" name="head" />
+<header class="site-header"><Navbar /></header>
+{siteConfig.banner.enable&&<><div class="site-banner" aria-hidden="true"><img src={siteConfig.banner.src} width="1344" height="896" alt="" fetchpriority="high" decoding="async" style={`object-position:${siteConfig.banner.position}`} /></div><div class="banner-spacer" aria-hidden="true"></div></>}
+<div class="site-grid">
+{siteConfig.banner.enable&&siteConfig.banner.credit.enable&&<a class="banner-credit" href={siteConfig.banner.credit.url} target="_blank" rel="noopener">© {siteConfig.banner.credit.text} ↗</a>}
+<aside class="site-sidebar"><SideBar /></aside>
+<main id="swup-container" tabindex="-1" class="transition-swup-fade"><slot /><Footer /></main>
+<aside class="desktop-toc" aria-label="文章目录"><div id="toc" class="transition-swup-fade"><TOC headings={headings} /></div></aside>
+</div>
+<button id="back-to-top" class="back-top btn-regular" aria-label="返回顶部" hidden>↑</button>
+</Layout>

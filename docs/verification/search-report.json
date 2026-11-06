@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "engine": "Pagefind production index, Node HTTP probe",
+  "queries": [
+    {
+      "query": "RAG",
+      "count": 16,
+      "title": "RAG底层原理2:RAG 理论基石",
+      "indexAndResultMs": 172
+    },
+    {
+      "query": "逆向",
+      "count": 22,
+      "title": "逆向中的AES(一)",
+      "indexAndResultMs": 39
+    },
+    {
+      "query": "AES",
+      "count": 6,
+      "title": "逆向中的AES(二)",
+      "indexAndResultMs": 43
+    },
+    {
+      "query": "Linux",
+      "count": 30,
+      "title": "Linux提权0：基础知识及离线知识查询",
+      "indexAndResultMs": 29
+    }
+  ],
+  "articleHttpChecks": 75
+}

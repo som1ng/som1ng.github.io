@@ -1,0 +1,23 @@
+---
+import {Icon} from 'astro-icon/components';
+import {getSortedPosts,getTagList} from '../../utils/content-utils';
+import {buildCategoryTree,categoryPath,resolveCategoryPath} from '../../utils/categories';
+import {profileConfig} from '../../config';
+import CategoryTree from '../CategoryTree.astro';
+const posts=await getSortedPosts();const tags=await getTagList();
+const categories=buildCategoryTree(posts);
+const pathname=decodeURIComponent(Astro.url.pathname);
+const article=posts.find(post=>'/'+post.slug+'/'===pathname);
+const active=article?categoryPath(article).join('/'):resolveCategoryPath(pathname.replace(/^\/categories\/?/,'').replace(/\/page\/\d+\/?$/,'').split('/').filter(Boolean),categories).join('/');
+---
+<div id="sidebar" class="sidebar-content">
+<section class="card-base profile-card">
+  <a class="profile-image" href="/about/" aria-label="关于 s0m1ng"><img class="profile-avatar" src={profileConfig.avatar} width="512" height="512" alt={`${profileConfig.name} 的 GitHub 头像`} decoding="async" /><span aria-hidden="true"><Icon name="fa6-regular:address-card" width="48" height="48" /></span></a>
+  <div class="profile-name">{profileConfig.name}</div><div class="profile-accent"></div><p class="profile-bio">{profileConfig.bio}</p>
+  <div class="profile-links">{profileConfig.links.map(link=><a class="icon-button btn-regular" href={link.url} target="_blank" rel="noopener me" aria-label={link.name}><Icon name={link.icon} width="24" height="24" /></a>)}<a class="icon-button btn-regular" href="/rss.xml" aria-label="订阅 RSS"><Icon name="material-symbols:rss-feed-rounded" width="24" height="24" /></a></div>
+</section>
+<div class="sidebar-navigation">
+<section class="card-base sidebar-section"><h2 class="sidebar-heading"><a href="/categories/">分类</a></h2><nav aria-label="文章分类"><CategoryTree nodes={categories} active={active} /></nav></section>
+<section class="card-base sidebar-section"><h2 class="sidebar-heading">标签</h2><div class="sidebar-tags">{tags.slice(0,18).map(t=><a href={'/archive/?tag='+encodeURIComponent(t.name)}>{t.name}</a>)}</div></section>
+</div>
+</div>

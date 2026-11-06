@@ -1,0 +1,18 @@
+---
+import type {CollectionEntry} from 'astro:content';
+import {Icon} from 'astro-icon/components';
+import {getPostUrlBySlug} from '../utils/url-utils';
+import {categoryPath,categoryUrl} from '../utils/categories';
+interface Props{entry:CollectionEntry<'posts'>;cover?:string;}
+const {entry,cover=''}=Astro.props;const d=entry.data;const words=(entry.body || '').length;const minutes=Math.max(1,Math.ceil(words/600));
+const path=categoryPath(entry);const url=getPostUrlBySlug(entry.slug);
+---
+<article class:list={['card-base post-card',{'has-cover':!!cover}]}>
+<div class="post-card-content">
+  <h2><a href={url}>{d.title}</a></h2>
+  <div class="post-card-meta"><span><span class="meta-icon"><Icon name="material-symbols:calendar-today-outline-rounded" width="18" height="18" /></span><time datetime={d.published.toISOString()}>{d.published.toISOString().slice(0,10)}</time></span><span><span class="meta-icon"><Icon name="material-symbols:menu-rounded" width="18" height="18" /></span><a href={categoryUrl(path)}>{path.at(-1)}</a></span></div>
+  <p>{d.description || '这篇笔记还在整理中。'}</p>
+  <div class="post-reading"><span>{words.toLocaleString('zh-CN')} 字</span><span aria-hidden="true">|</span><span>{minutes} 分钟</span>{d.series&&<a href={'/series/'+encodeURIComponent(d.series)+'/'}>{d.series}</a>}</div>
+</div>
+{cover ? <a class="post-cover" href={url} aria-label={'阅读：'+d.title}><img src={cover} alt="Fuwari 演示封面" width="2048" height="1024" loading="lazy" decoding="async" /><span aria-hidden="true"><Icon name="material-symbols:chevron-right-rounded" width="48" height="48" /></span></a> : <a class="post-arrow btn-regular" href={url} aria-label={'阅读：'+d.title}><Icon name="material-symbols:chevron-right-rounded" width="36" height="36" /></a>}
+</article>

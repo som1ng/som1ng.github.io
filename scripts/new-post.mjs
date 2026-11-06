@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import yaml from 'js-yaml';
+const args=process.argv.slice(2);
+const title=args[0];const categoryIndex=args.indexOf('--category');const category=categoryIndex>=0?args[categoryIndex+1]:'随笔';
+if(!title||!category||category.includes('..')||/[<>:"/\\|?*]/.test(category))throw new Error('用法：npm run new-post -- "文章标题" --category REVERSE');
+const name=title.replace(/[<>:"/\\|?*]/g,'-').trim();if(!name)throw new Error('文章标题不能为空');
+const destination=path.join('source/_posts',category,name+'.md');await fs.mkdir(path.dirname(destination),{recursive:true});
+const file=await fs.open(destination,'wx');
+await file.writeFile('---\n'+yaml.dump({title,date:new Date(),categories:[category],tags:[]},{lineWidth:-1})+'---\n\n在这里开始记录。\n');await file.close();console.log('已创建 '+destination);

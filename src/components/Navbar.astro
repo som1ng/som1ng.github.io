@@ -1,0 +1,16 @@
+---
+import Search from './Search.svelte';
+import {Icon} from 'astro-icon/components';
+import {navBarConfig,siteConfig} from '../config';
+const links=navBarConfig.links.flatMap(link=>typeof link==='object'?[[link.name,link.url]]:[]);
+---
+<nav id="navbar" class="site-nav card-base" aria-label="主导航">
+<a href="/" class="brand" aria-label="s0m1ng 首页"><Icon name="material-symbols:home-outline-rounded" width="28" height="28" /><span>s0m1ng</span></a>
+<div class="desktop-links">{links.map(([label,href])=><a href={href} class="nav-link">{label}</a>)}</div>
+<div class="nav-actions"><Search client:load />
+<button id="scheme-switch" class="icon-button" aria-label="切换明暗模式" title="切换明暗模式"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.5 13A8.7 8.7 0 0 1 11 3.5 8.8 8.8 0 1 0 20.5 13Z" /></svg></button>
+{!siteConfig.themeColor.fixed&&<details class="appearance-settings"><summary class="icon-button" aria-label="主题颜色" title="主题颜色"><Icon name="material-symbols:palette-outline-rounded" width="22" height="22" /></summary><div class="appearance-panel"><label for="theme-hue">主题颜色 <output id="theme-hue-value">{siteConfig.themeColor.hue}</output></label><input id="theme-hue" type="range" min="0" max="360" value={siteConfig.themeColor.hue} /><button class="filter-chip" id="reset-theme-hue">恢复默认</button></div></details>}
+<button id="nav-menu-switch" class="icon-button mobile-menu-button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="nav-menu-panel"><svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+</div>
+<div id="nav-menu-panel" class="mobile-menu" inert>{links.map(([label,href])=><a href={href} class="nav-link">{label}</a>)}</div>
+</nav>

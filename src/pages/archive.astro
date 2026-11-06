@@ -1,0 +1,7 @@
+---
+import MainGridLayout from '../layouts/MainGridLayout.astro';
+import ArchiveList from '../components/ArchiveList.astro';
+import {getSortedPosts} from '../utils/content-utils';
+const posts=await getSortedPosts();
+---
+<MainGridLayout title="文章归档"><ArchiveList posts={posts} filterable={true} /></MainGridLayout>

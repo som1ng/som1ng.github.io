@@ -1,0 +1,6 @@
+---
+import PostCard from './PostCard.astro';
+import {demoCover} from '../config';
+const {page}=Astro.props;
+---
+<div class="post-list">{page.data.map((entry:any,index:number)=><PostCard entry={entry} cover={entry.data.image || (page.start+index===2?demoCover:'')} />)}</div>

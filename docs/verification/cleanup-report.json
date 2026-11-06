@@ -1,0 +1,82 @@
+{
+  "status": "passed",
+  "date": "2026-11-06",
+  "cleanup": {
+    "action": "recoverable archive",
+    "archivedPaths": 37,
+    "archivedFiles": 6161,
+    "archivedBytes": 336446430,
+    "diskSpaceFreed": false,
+    "archiveDirectory": ".backups/cleanup-2026-11-06-archived/",
+    "temporaryToolsArchive": ".backups/cleanup-2026-11-06-archived/verification-tools/"
+  },
+  "sourceIntegrity": {
+    "sha256MatchedOriginalBackup": 185,
+    "articles": 75,
+    "imageFiles": 109,
+    "domainFiles": 1,
+    "obsidianSettingsPreserved": true
+  },
+  "checks": {
+    "migration": {
+      "status": "passed",
+      "articles": 75,
+      "series": 7,
+      "preservedExistingEmptyArticles": 1
+    },
+    "typecheck": {
+      "status": "passed",
+      "files": 47,
+      "errors": 0,
+      "warnings": 0,
+      "hints": 0,
+      "windowsSandboxAdapter": true
+    },
+    "astroBuild": {
+      "status": "passed",
+      "htmlPages": 265,
+      "windowsSandboxAdapter": true
+    },
+    "pagefind": {
+      "status": "passed",
+      "indexedPages": 76,
+      "indexedWords": 38236
+    },
+    "legacyRoutes": {
+      "status": "passed",
+      "count": 238,
+      "missingImages": 0,
+      "brokenLinks": 0,
+      "brokenAnchors": 0
+    },
+    "categories": {
+      "status": "passed",
+      "topLevel": 4,
+      "nodes": 31,
+      "legacyCategoryPages": 38
+    },
+    "search": {
+      "status": "passed",
+      "articleHttpChecks": 75,
+      "queries": [
+        "RAG",
+        "逆向",
+        "AES",
+        "Linux"
+      ]
+    },
+    "browserInteractions": {
+      "status": "not-run"
+    }
+  },
+  "documents": [
+    "博客修改指南.md",
+    "README.md",
+    "DESIGN.md"
+  ],
+  "reports": [
+    "docs/verification/build-report.json",
+    "docs/verification/category-report.json",
+    "docs/verification/search-report.json"
+  ]
+}

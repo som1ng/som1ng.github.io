@@ -1,0 +1,14 @@
+---
+import type {CollectionEntry} from 'astro:content';
+import {getPostUrlBySlug} from '../utils/url-utils';
+import {buildCategoryTree,categoryPath} from '../utils/categories';
+import CategoryTree from './CategoryTree.astro';
+interface Props{posts:CollectionEntry<'posts'>[];title?:string;filterable?:boolean;headingLevel?:'h1'|'h2';}
+const {posts,title='文章归档',filterable=false,headingLevel='h1'}=Astro.props;
+const Heading=headingLevel;
+const categories=[...new Set(posts.map(p=>p.data.category).filter(Boolean))];
+---
+<section class="card-base archive-card" data-filterable={filterable}><Heading>{title}</Heading><p id="archive-count" class="post-meta" aria-live="polite">{posts.length} 篇文章</p>
+{filterable&&<div class="filter-bar"><button class="filter-chip" data-filter="" aria-pressed="true">全部</button>{categories.map(category=><button class="filter-chip" data-filter={category} aria-pressed="false">{category}</button>)}</div>}
+{filterable&&<details class="archive-taxonomy"><summary>按小分类查找</summary><nav aria-label="完整分类树"><CategoryTree nodes={buildCategoryTree(posts)} /></nav></details>}
+<div>{posts.map(post=><div class="archive-row" data-archive-row data-categories={JSON.stringify(categoryPath(post))} data-tags={JSON.stringify(post.data.tags)}><time datetime={post.data.published.toISOString()}>{post.data.published.toISOString().slice(0,10)}</time><a href={getPostUrlBySlug(post.slug)}>{post.data.title}</a></div>)}</div><p id="archive-empty" class="empty-state" hidden>暂时没有匹配的文章。</p></section>

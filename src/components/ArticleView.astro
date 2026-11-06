@@ -1,0 +1,26 @@
+---
+import type {CollectionEntry} from 'astro:content';
+import MainGridLayout from '../layouts/MainGridLayout.astro';
+import Markdown from './misc/Markdown.astro';
+import {getSortedPosts} from '../utils/content-utils';
+import {getPostUrlBySlug} from '../utils/url-utils';
+import {categoryPath,categoryUrl} from '../utils/categories';
+import {demoCover} from '../config';
+interface Props{entry:CollectionEntry<'posts'>}
+const {entry}=Astro.props;const {Content,headings}=await entry.render();const d=entry.data;
+const posts=await getSortedPosts();const siblings=d.series?posts.filter(p=>p.data.series===d.series).sort((a,b)=>a.data.seriesOrder-b.data.seriesOrder || a.data.published.getTime()-b.data.published.getTime()):posts;
+const index=siblings.findIndex(p=>p.slug===entry.slug);const prev=siblings[index-1];const next=siblings[index+1];
+const categories=categoryPath(entry);const cover=d.image||(posts[2]?.slug===entry.slug?demoCover:'');
+const schema={'@context':'https://schema.org','@type':'BlogPosting',headline:d.title,datePublished:d.published.toISOString(),author:{'@type':'Person',name:'s0m1ng'},url:new URL(getPostUrlBySlug(entry.slug),Astro.site).href};
+---
+<MainGridLayout title={d.title} description={d.description} headings={headings} setOGTypeArticle={true}>
+<script slot="head" is:inline type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g,'\\u003c')} />
+<article class="card-base article-card" data-current-category={categories.join('/')}>
+{cover&&<div class="article-cover"><img src={cover} alt="文章封面" width="2048" height="1024" decoding="async" /></div>}
+<header class="article-header"><nav class="category-breadcrumb" aria-label="文章分类路径"><a href="/categories/">分类</a>{categories.map((name,index)=><><span aria-hidden="true">/</span><a href={categoryUrl(categories.slice(0,index+1))}>{name}</a></>)}</nav><h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title">{d.title}</h1><div class="post-meta"><time datetime={d.published.toISOString()}>{d.published.toISOString().slice(0,10)}</time><span>约 {Math.max(1,Math.ceil((entry.body || '').length/600))} 分钟</span>{d.series&&<a class="post-series" href={`/series/${encodeURIComponent(d.series)}/`}>{d.series}</a>}</div></header>
+{headings.length>0&&<details class="mobile-toc"><summary>本文目录 · {headings.length} 个章节</summary><nav aria-label="本文目录">{headings.filter(h=>h.depth<=3).map(h=><a href={`#${h.slug}`}>{h.text}</a>)}</nav></details>}
+<Markdown class="markdown-content"><Content /></Markdown>
+{!entry.body?.trim()&&<p class="empty-state">这篇笔记还在整理中。</p>}
+</article>
+<div class="series-navigation">{prev?<a href={getPostUrlBySlug(prev.slug)}><small>← {d.series?'上一章':'上一篇'}</small>{prev.data.title}</a>:<span/>}{next&&<a href={getPostUrlBySlug(next.slug)}><small>{d.series?'下一章':'下一篇'} →</small>{next.data.title}</a>}</div>
+</MainGridLayout>

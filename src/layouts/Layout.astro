@@ -1,0 +1,40 @@
+---
+import { siteConfig, profileConfig } from '../config';
+import '../styles/variables.styl';
+import '../styles/global.css';
+import '../styles/markdown-extend.styl';
+import '../styles/transition.css';
+import '../styles/site.css';
+import 'katex/dist/katex.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+interface Props { title?:string; banner?:string; description?:string; lang?:string; setOGTypeArticle?:boolean; }
+const {title,description,lang,setOGTypeArticle} = Astro.props;
+const pageTitle=title ? `${title} · s0m1ng` : 's0m1ng · 二进制学习中';
+const canonical = new URL(Astro.url.pathname,Astro.site);
+---
+<!doctype html>
+<html lang={(lang || siteConfig.lang).replace('_','-')} style={`--hue:${siteConfig.themeColor.hue};--page-width:75rem`}>
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{pageTitle}</title>
+<meta name="description" content={description || '记录逆向工程、PWN、系统安全与 AI 开发的学习过程。'} />
+<meta name="author" content={profileConfig.name} /><meta name="color-scheme" content="light dark" />
+<link rel="canonical" href={canonical} />{siteConfig.favicon?.map(icon=><link rel="icon" href={icon.src} />)}
+{siteConfig.banner.enable&&<link rel="preload" as="image" href={siteConfig.banner.src} fetchpriority="high" />}
+<link rel="alternate" type="application/rss+xml" title="s0m1ng RSS" href="/rss.xml" />
+<meta property="og:title" content={pageTitle} /><meta property="og:description" content={description || siteConfig.subtitle} />
+<meta property="og:type" content={setOGTypeArticle ? 'article' : 'website'} /><meta property="og:url" content={canonical} /><meta property="og:site_name" content="s0m1ng" />
+<script is:inline>
+(()=>{try{const theme=localStorage.getItem('theme') || 'auto';document.documentElement.classList.toggle('dark',theme==='dark' || (theme==='auto' && matchMedia('(prefers-color-scheme: dark)').matches));const hue=Number(localStorage.getItem('theme-hue'));if(localStorage.getItem('theme-hue')!==null&&hue>=0&&hue<=360)document.documentElement.style.setProperty('--hue',String(hue));}catch{}})();
+</script>
+<slot name="head" />
+</head>
+<body class:list={[{'is-home':Astro.url.pathname==='/', 'enable-banner':siteConfig.banner.enable}]}>
+<a class="skip-link" href="#swup-container">跳到正文</a>
+<div id="config-carrier" data-hue={siteConfig.themeColor.hue}></div>
+<slot /><div id="navigation-progress" aria-hidden="true"></div><div id="site-announcer" class="sr-only" aria-live="polite"></div>
+<script src="../scripts/site.ts"></script>
+</body>
+</html>

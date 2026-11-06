@@ -1,0 +1,43 @@
+/* RSS stays machine-readable XML; this stylesheet provides its browser view. */
+@namespace html url("http://www.w3.org/1999/xhtml");
+@namespace content url("http://purl.org/rss/1.0/modules/content/");
+
+rss {
+  display: block;
+  --background: oklch(0.95 0.01 250);
+  --card: #fff;
+  --text: #263442;
+  --muted: #647585;
+  --accent: #2876b8;
+  --tint: #edf5fc;
+  margin: 0;
+  padding: 32px 16px 64px;
+  background: var(--background);
+  color: var(--text);
+  font: 16px/1.75 system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color-scheme: light dark;
+}
+channel { display: block; max-width: 860px; margin: auto; }
+channel > :not(item):not(.feed-intro) { display: none; }
+.feed-intro, item { display: block; padding: 28px 32px; margin-bottom: 16px; background: var(--card); border-radius: 16px; }
+.feed-intro html|h1 { margin: 20px 0 8px; font-size: 28px; line-height: 1.4; }
+.feed-intro html|p { margin: 12px 0; color: var(--muted); }
+.feed-address { display: block; padding: 12px 16px; border-radius: 10px; background: var(--tint); overflow-wrap: anywhere; user-select: all; }
+.feed-count { font-size: 14px; }
+item > title { display: block; font-size: 22px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+item > pubDate { display: block; margin: 8px 0 12px; color: var(--muted); font-size: 13px; }
+item > description { display: block; margin-bottom: 12px; color: var(--muted); overflow-wrap: anywhere; }
+item > link, item > guid, item > category, item > content|encoded { display: none; }
+html|a { color: var(--accent); text-decoration: none; border-radius: 4px; }
+html|a:hover { text-decoration: underline; text-underline-offset: 4px; }
+html|a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.feed-read { display: inline-block; padding: 6px 0; font-weight: 600; }
+@media (prefers-color-scheme: dark) {
+  rss { --background: #151b23; --card: #222b35; --text: #e3edf5; --muted: #a4b5c5; --accent: #91c5f1; --tint: #293d50; }
+}
+@media (max-width: 600px) {
+  rss { padding: 16px 12px 40px; }
+  .feed-intro, item { padding: 22px; }
+  .feed-intro html|h1 { font-size: 24px; }
+  item > title { font-size: 20px; }
+}

@@ -1,0 +1,8 @@
+---
+import MainGridLayout from '../../layouts/MainGridLayout.astro';
+import ArchiveList from '../../components/ArchiveList.astro';
+import {getSortedPosts} from '../../utils/content-utils';
+export async function getStaticPaths(){const posts=await getSortedPosts();return [...new Set(posts.map(p=>p.data.series).filter(Boolean))].map(name=>({params:{name},props:{name}}));}
+const {name}=Astro.props;const posts=(await getSortedPosts()).filter(p=>p.data.series===name).sort((a,b)=>a.data.seriesOrder-b.data.seriesOrder||a.data.published.getTime()-b.data.published.getTime());
+---
+<MainGridLayout title={name}><ArchiveList title={name} posts={posts} /></MainGridLayout>

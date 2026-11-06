@@ -1,0 +1,6 @@
+---
+import type {MarkdownHeading} from 'astro';
+interface Props{headings:MarkdownHeading[]}
+const {headings=[]}=Astro.props;
+---
+{headings.length>0&&<nav><h2>ON THIS PAGE</h2>{headings.filter(h=>h.depth<=3).map(h=><a href={`#${h.slug}`} data-toc-link data-depth={h.depth}>{h.text}</a>)}</nav>}

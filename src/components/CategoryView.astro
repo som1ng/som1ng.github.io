@@ -1,0 +1,18 @@
+---
+import type {CollectionEntry} from 'astro:content';
+import ArchiveList from './ArchiveList.astro';
+import CategoryTree from './CategoryTree.astro';
+import {buildCategoryTree,flattenCategories,categoryPath,categoryUrl,matchesCategory} from '../utils/categories';
+interface Props {posts:CollectionEntry<'posts'>[];selectedPath:string[];}
+const {posts,selectedPath}=Astro.props;
+const tree=buildCategoryTree(posts);
+const node=flattenCategories(tree).find(node=>node.key===selectedPath.join('/'));
+const selected=posts.filter(post=>matchesCategory(categoryPath(post),selectedPath));
+---
+<section class="card-base category-browser" data-current-category={selectedPath.join('/')}>
+  <nav class="category-breadcrumb" aria-label="分类路径"><a href="/categories/">全部分类</a>{selectedPath.map((name,index)=><><span aria-hidden="true">/</span><a href={categoryUrl(selectedPath.slice(0,index+1))} aria-current={index===selectedPath.length-1?'page':undefined}>{name}</a></>)}</nav>
+  <h1>{selectedPath.at(-1)||'文章分类'}</h1>
+  <p class="category-description">{selectedPath.length ? `共 ${selected.length} 篇文章${node?.children.length?'，包含以下子分类。':'。'}` : '按分类逐级查找笔记，数字包含该分类下的全部文章。'}</p>
+  {!selectedPath.length ? <div class="category-overview">{tree.map(root=><section class="category-group"><a class="category-group-title" href={root.url}>{root.name}<small>{root.count} 篇</small></a><CategoryTree nodes={root.children} expanded={true} /></section>)}</div> : node?.children.length ? <div class="subcategory-links">{node.children.map(child=><a href={child.url}><span>{child.name}</span><small>{child.count}</small><span aria-hidden="true">›</span></a>)}</div> : null}
+</section>
+{selectedPath.length>0&&<ArchiveList posts={selected} title="分类文章" headingLevel="h2" />}

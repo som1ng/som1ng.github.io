@@ -1,0 +1,6 @@
+---
+import MainGridLayout from '../../layouts/MainGridLayout.astro';
+import {getSortedPosts} from '../../utils/content-utils';
+const posts=await getSortedPosts();const series=[...new Set(posts.map(p=>p.data.series).filter(Boolean))];
+---
+<MainGridLayout title="学习系列"><section class="card-base home-intro"><span class="eyebrow">LEARN SOMETHING, STEP BY STEP</span><h1>把零散的探索，连成线。</h1><p>按主题循序阅读，让知识逐步成形。</p></section><div class="series-grid">{series.map((name,i)=><a class="card-base series-card" href={`/series/${encodeURIComponent(name)}/`}><span class="eyebrow">SERIES {String(i+1).padStart(2,'0')}</span><h2>{name} ↗</h2><p>{posts.filter(p=>p.data.series===name).length} 篇学习笔记 · 按章节阅读</p></a>)}</div></MainGridLayout>

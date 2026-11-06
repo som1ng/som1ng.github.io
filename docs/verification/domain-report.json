@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "site": "https://s0m1ng.dpdns.org/",
+  "domainFiles": 3,
+  "generatedFilesChecked": 6,
+  "articleCanonicalVerification": "npm run verify",
+  "published": false,
+  "sourceGitRepositoryInitialized": false
+}

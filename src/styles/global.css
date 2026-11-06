@@ -1,0 +1,5 @@
+/* Compile shared @apply classes and Markdown in one Tailwind scope. */
+@import './main.css';
+@import './markdown.css';
+@import './expressive-code.css';
+@import './photoswipe.css';

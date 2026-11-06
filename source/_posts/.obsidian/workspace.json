@@ -1,0 +1,243 @@
+{
+  "main": {
+    "id": "54b9dc334e22471a",
+    "type": "split",
+    "children": [
+      {
+        "id": "3396fd48d33c68dd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "83fdbfb9696f5038",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "AI/code/RAG/chapter5_生成集成/RAG底层原理16_格式化生成.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "RAG底层原理16_格式化生成"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "160c9c83080be368",
+    "type": "split",
+    "children": [
+      {
+        "id": "47325c7ff0a4141a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "16b2490924e7dd75",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "ce6916f7cfc02acb",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "3645f90d21334334",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 259.5
+  },
+  "right": {
+    "id": "e4151ccbb1bf2a4c",
+    "type": "split",
+    "children": [
+      {
+        "id": "d4ea13e1a159f072",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a6a39f4399650e94",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "AI/code/RAG/RAG底层原理8_向量数据库.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "RAG底层原理8_向量数据库 的反向链接列表"
+            }
+          },
+          {
+            "id": "144acc59b24de629",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "AI/code/RAG/RAG底层原理8_向量数据库.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "RAG底层原理8_向量数据库 的出链列表"
+            }
+          },
+          {
+            "id": "1d14dc30e4678b87",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "7b71dddf6a843e39",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": true,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "0216e343ef0bb893",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "AI/code/RAG/RAG底层原理8_向量数据库.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "RAG底层原理8_向量数据库 的大纲"
+            }
+          },
+          {
+            "id": "a27163eee7a9cbf5",
+            "type": "leaf",
+            "state": {
+              "type": "file-properties",
+              "state": {
+                "file": "AI/code/RAG/chapter4_检索优化/RAG底层原理11_混合检索.md"
+              },
+              "icon": "lucide-info",
+              "title": "RAG底层原理11_混合检索的笔记属性"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "83fdbfb9696f5038",
+  "lastOpenFiles": [
+    "AI/code/RAG/chapter6_高级RAG/RAG底层原理17_图RAG.md",
+    "AI/code/RAG/chapter5_生成集成/RAG底层原理16_格式化生成.md",
+    "AI/code/RAG/chapter4_检索优化/RAG底层原理14_问题查询优化与分发.md",
+    "AI/code/RAG/chapter4_检索优化/RAG底层原理15_检索进阶技术.md",
+    "AI/code/RAG/chapter6_高级RAG",
+    "AI/code/RAG/chapter4_检索优化/RAG底层原理13_Text2SQL.md",
+    "AI/code/RAG/chapter4_检索优化/RAG底层原理12_查询构建.md",
+    "AI/code/RAG/chapter2_数据准备/RAG底层原理4_数据加载过程.md",
+    "REVERSE/pe逆向/DLL免杀.md",
+    "AI/code/RAG/chapter5_生成集成",
+    "AI/code/RAG/chapter4_检索优化/RAG底层原理11_混合检索.md",
+    "Pasted image 20260711172533.png",
+    "AI/code/RAG/chapter3_索引构建/RAG底层原理7_多模态嵌入.md",
+    "AI/code/RAG/chapter3_索引构建/RAG底层原理6_向量嵌入基础.md",
+    "PWN/pwn_attack/stack_overflow/栈溢出基础.md",
+    "PWN/pwn_defense/AWD/awd.md",
+    "REVERSE/pe逆向/dll专题.md",
+    "REVERSE/pe逆向/异常处理机制下-VEH.md",
+    "PWN/pwn_attack/stack_overflow/栈溢出进阶技巧.md",
+    "PWN/pwn_attack/stack_overflow/安全保护机制与绕过策略.md",
+    "PWN/pwn_attack/PWN通用问题/输出格式.md",
+    "AI/code/RAG/chapter1_解锁RAG/RAG底层原理1_总体学习框架.md",
+    "AI/code/RAG/chapter1_解锁RAG/RAG底层原理2_RAG理论基石.md",
+    "Pasted image 20260614115014.png",
+    "AI/code/RAG/chapter2_数据准备/RAG底层原理5_文本分块.md",
+    "Pasted image 20260614114256.png",
+    "AI/code/RAG/chapter3_索引构建/RAG底层原理9_索引优化.md",
+    "REVERSE/逆向中的密码学/aes1.md",
+    "REVERSE/逆向中的密码学/Twofish逆向.md",
+    "REVERSE/逆向中的密码学/des.md",
+    "REVERSE/逆向中的密码学/aes2.md",
+    "AI/code/RAG/chapter4_检索优化",
+    "未命名",
+    "AI/code/RAG/chapter3_索引构建",
+    "AI/code/RAG/chapter2_数据准备",
+    "AI/code/RAG/chapter1_解锁RAG",
+    "AI/code/RAG/chapter3",
+    "AI/code/RAG/chapter2",
+    "AI/code/RAG/chapter1"
+  ]
+}

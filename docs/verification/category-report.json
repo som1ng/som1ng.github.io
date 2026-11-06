@@ -1,0 +1,167 @@
+{
+  "status": "passed",
+  "articles": 75,
+  "topLevel": 4,
+  "categoryNodes": 31,
+  "legacyCategoryPages": 38,
+  "duplicateNamesIsolated": true,
+  "demoAssets": 2,
+  "githubAvatar": true,
+  "checked": [
+    {
+      "path": "AI",
+      "articles": 16,
+      "url": "/categories/AI/"
+    },
+    {
+      "path": "AI/开发",
+      "articles": 16,
+      "url": "/categories/AI/%E5%BC%80%E5%8F%91/"
+    },
+    {
+      "path": "AI/开发/RAG",
+      "articles": 16,
+      "url": "/categories/AI/%E5%BC%80%E5%8F%91/RAG/"
+    },
+    {
+      "path": "ISW",
+      "articles": 24,
+      "url": "/categories/ISW/"
+    },
+    {
+      "path": "ISW/内网横向",
+      "articles": 6,
+      "url": "/categories/ISW/%E5%86%85%E7%BD%91%E6%A8%AA%E5%90%91/"
+    },
+    {
+      "path": "ISW/Linux提权",
+      "articles": 10,
+      "url": "/categories/ISW/Linux%E6%8F%90%E6%9D%83/"
+    },
+    {
+      "path": "ISW/Web渗透",
+      "articles": 1,
+      "url": "/categories/ISW/Web%E6%B8%97%E9%80%8F/"
+    },
+    {
+      "path": "ISW/Windows提权",
+      "articles": 7,
+      "url": "/categories/ISW/Windows%E6%8F%90%E6%9D%83/"
+    },
+    {
+      "path": "PWN",
+      "articles": 9,
+      "url": "/categories/PWN/"
+    },
+    {
+      "path": "PWN/PWN_ATTACK",
+      "articles": 8,
+      "url": "/categories/PWN/PWN_ATTACK/"
+    },
+    {
+      "path": "PWN/PWN_ATTACK/格式化字符串",
+      "articles": 1,
+      "url": "/categories/PWN/PWN_ATTACK/%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2/"
+    },
+    {
+      "path": "PWN/PWN_ATTACK/AWD",
+      "articles": 1,
+      "url": "/categories/PWN/PWN_ATTACK/AWD/"
+    },
+    {
+      "path": "PWN/PWN_ATTACK/PWN通用问题",
+      "articles": 3,
+      "url": "/categories/PWN/PWN_ATTACK/PWN%E9%80%9A%E7%94%A8%E9%97%AE%E9%A2%98/"
+    },
+    {
+      "path": "PWN/PWN_ATTACK/stack_overflow",
+      "articles": 3,
+      "url": "/categories/PWN/PWN_ATTACK/stack_overflow/"
+    },
+    {
+      "path": "PWN/PWN_DEFENSE",
+      "articles": 1,
+      "url": "/categories/PWN/PWN_DEFENSE/"
+    },
+    {
+      "path": "REVERSE",
+      "articles": 26,
+      "url": "/categories/REVERSE/"
+    },
+    {
+      "path": "REVERSE/安卓逆向",
+      "articles": 3,
+      "url": "/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/"
+    },
+    {
+      "path": "REVERSE/安卓逆向/安卓逆向基础",
+      "articles": 1,
+      "url": "/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/"
+    },
+    {
+      "path": "REVERSE/安卓逆向/安卓逆向题单",
+      "articles": 2,
+      "url": "/categories/REVERSE/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/"
+    },
+    {
+      "path": "REVERSE/逆向中的密码学",
+      "articles": 6,
+      "url": "/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/"
+    },
+    {
+      "path": "REVERSE/逆向中的密码学/对称加密基础",
+      "articles": 5,
+      "url": "/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E5%9F%BA%E7%A1%80/"
+    },
+    {
+      "path": "REVERSE/逆向中的密码学/对称加密题单",
+      "articles": 1,
+      "url": "/categories/REVERSE/%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E5%AF%86%E7%A0%81%E5%AD%A6/%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86%E9%A2%98%E5%8D%95/"
+    },
+    {
+      "path": "REVERSE/ctf逆向中的misc",
+      "articles": 5,
+      "url": "/categories/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/"
+    },
+    {
+      "path": "REVERSE/ctf逆向中的misc/py逆向",
+      "articles": 2,
+      "url": "/categories/REVERSE/ctf%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84misc/py%E9%80%86%E5%90%91/"
+    },
+    {
+      "path": "REVERSE/js逆向",
+      "articles": 1,
+      "url": "/categories/REVERSE/js%E9%80%86%E5%90%91/"
+    },
+    {
+      "path": "REVERSE/js逆向/wasm逆向基础",
+      "articles": 1,
+      "url": "/categories/REVERSE/js%E9%80%86%E5%90%91/wasm%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/"
+    },
+    {
+      "path": "REVERSE/pe逆向",
+      "articles": 7,
+      "url": "/categories/REVERSE/pe%E9%80%86%E5%90%91/"
+    },
+    {
+      "path": "REVERSE/pe逆向/反调试技术",
+      "articles": 2,
+      "url": "/categories/REVERSE/pe%E9%80%86%E5%90%91/%E5%8F%8D%E8%B0%83%E8%AF%95%E6%8A%80%E6%9C%AF/"
+    },
+    {
+      "path": "REVERSE/pe逆向/pe逆向基础",
+      "articles": 5,
+      "url": "/categories/REVERSE/pe%E9%80%86%E5%90%91/pe%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/"
+    },
+    {
+      "path": "REVERSE/rust逆向基础",
+      "articles": 1,
+      "url": "/categories/REVERSE/rust%E9%80%86%E5%90%91%E5%9F%BA%E7%A1%80/"
+    },
+    {
+      "path": "REVERSE/vm逆向题单",
+      "articles": 2,
+      "url": "/categories/REVERSE/vm%E9%80%86%E5%90%91%E9%A2%98%E5%8D%95/"
+    }
+  ]
+}

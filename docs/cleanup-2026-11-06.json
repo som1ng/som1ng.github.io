@@ -1,0 +1,332 @@
+{
+  "date": "2026-11-06",
+  "workspace": "D:\\ctf\\s0m1ng",
+  "archive": ".backups/cleanup-2026-11-06.zip",
+  "legacyBackup": ".backups/hexo-2026-11-05T14-09-23-251Z/",
+  "legacyComparedBySHA256": true,
+  "preserved": [
+    "source/_posts/",
+    "source/images/",
+    "source/CNAME",
+    "src/data/hexo-baseline.json",
+    "src/data/legacy-pages.json",
+    "node_modules/",
+    ".backups/",
+    ".deploy_git/",
+    "src/env.d.ts",
+    "src/global.d.ts"
+  ],
+  "archivedSHA256": {
+    "src/components/misc/ImageWrapper.astro": "95F5883A6E046C40EFE6646150501668E181F2676E2C941D30ABADE270F353E8",
+    "src/assets/images/demo-avatar.png": "D83D8580BBE92F93697407E35A02541238BEDE86ECF25DE97D4FD5E540AE0A8B",
+    "src/components/ConfigCarrier.astro": "7B1228879E04AF98982928C4846EE7DED2EF4797FC507EC966655011D4B2AFE3",
+    "static/avatar.svg": "4F9F23EB383833A0EE43535481DA0E153BD5B1590AD30C2207AFE9BC2D76C2B5",
+    "src/styles/scrollbar.css": "EF4009FE08C28E81A6E333614130BE8D7D0668444FA5DAB3BE27A3F7AA8F8D81",
+    "src/components/ArchivePanel.svelte": "BA08C92BAEB558141D7EF23AF1D3C344421EE31841D8A3DEA07FE71806096A6A",
+    "src/utils/setting-utils.ts": "0BC050887FDB03F6D6EAB42228F7F8D7F21706E0D6619D576550EB3A2238FB3B",
+    "src/components/HomeIntro.astro": "522385F3902F4959A31EE36554C2BEE15CEC87192A602BC0EC13D3ECB9956777",
+    "src/components/control/ButtonTag.astro": "EE770DB8A3B6515344774945FBFA1736758D50F203D051880139B21FE7D271B6",
+    "src/components/control/BackToTop.astro": "BD38DCB243355134D58B1CE3869DB052064B1B99ACC64A5CF7020598BF714B16",
+    "src/components/control/ButtonLink.astro": "849240FA4B3B694C1AC57A0548D7A89153D4AD770D20F0F19542E743DDF4D7D4",
+    "src/components/GlobalStyles.astro": "C35A0F23724BDC655C65190B796D735AC28B6514E7327CA027A01CE7FFC99AFC",
+    "src/components/PostMeta.astro": "BA2D45D15388FEDF8717036B6FE57FF3EA049BAEC4CABAD22B87244326BE336C",
+    "src/components/widget/NavMenuPanel.astro": "259D91C75C2969E12D625F9DB25D5E8A6E860EDADA225C7B75B7BF32DCE4B61A",
+    "src/constants/icon.ts": "1769FDB4AA78BB67ABC6FFE1481B126FAB7F2FE949D78FACC1B97719AA17C306",
+    "README.md": "556F123A31200741F605BB8938A781C1BAF27948C607D6183A23992B77F03139",
+    "src/assets/images/demo-banner.png": "BDFAB924A2646F512F65C29C1B328833EADBDA564E7D569691FFEA09C6368D29",
+    ".cache/fuwari-demo.html": "F4A94B048592DAA32ABD9EC65DF4AE732BF8C5E27C1F999F9FE86C8FB4D1AA7C",
+    ".cache/fuwari-demo.css": "1D409DE371FD41BB4C64B1F1288988E39D3ED99E6CEB8D3AB0F30A3233FCD004",
+    "src/components/widget/Categories.astro": "8F2EE8048F92229CD5603E5A4B429CFFF917DA196524B4BE7D870614AC36B45E",
+    "src/constants/link-presets.ts": "C5CDB745E85B79183CE6F7005ED6B7AE120FDE3CEE99E7D97FF18EC673E18B68",
+    "src/utils/date-utils.ts": "92DCA45E95EDE1E6311BF097F74BA1173FDD55A3D28D8571E4E5CFCBC7F84206",
+    "src/components/widget/WidgetLayout.astro": "96A56086C3FC3992593C68EC411035636CA643660B5838EECA0DA1E596EEC711",
+    "src/components/misc/License.astro": "C5F85B6EF1F80220430F2FBC2FD96E5ABB97FEC4D87DD6F1B2145A472EB54034",
+    "src/components/widget/Tags.astro": "5238A0C743230DF83387A795484675024AA16C45E90AD364F58FC8D2CBA6D30F",
+    "scripts/new-post.js": "768D4639C47E6F65B076826F3AE56D2B2E147C4F1FF01C3CFB884BC6D929A5C8",
+    "tsconfig.json": "F6AB747D895DB8E0C1D466709CC92951AED8F5E016F9D0A4C455095C8CCE86B8",
+    "src/components/widget/DisplaySettings.svelte": "A1CA99F9583127ED7113673E7A415379BEA46FC420C12053B2D27258DA090D0F",
+    "static/theme/demo-avatar.webp": "F4C405F2C7BE9F81D1F1CCD3977FB93BCEF1CE75C69BB10C61C35F8A93E71A5F",
+    "src/components/widget/Profile.astro": "BCA37EF186F044A48730670B1631DBC6E2B065C39CE1BC8F2F74B1301B7DBB8E",
+    "DESIGN.md": "776A8671F3A2ECD27EB1C0836025DC07D481575831530F2EC62B535C313918FB",
+    "src/components/LightDarkSwitch.svelte": "E8EAFD822ADF5E1C1659DC5DD25BA38BF053D22D618C8FBB150B57BE8A70BF1D"
+  },
+  "validation": {
+    "status": "passed",
+    "report": "docs/verification/cleanup-report.json",
+    "sourceFilesMatchedOriginalBackup": 185,
+    "articleCount": 75,
+    "htmlPages": 265,
+    "legacyPaths": 238,
+    "missingImages": 0,
+    "brokenLinks": 0,
+    "brokenAnchors": 0,
+    "categoryNodes": 31,
+    "searchStatus": "passed",
+    "windowsSandboxAdapterUsed": true,
+    "browserInteractionTest": "not-run"
+  },
+  "action": "moved-to-recoverable-archive",
+  "archivedDirectory": ".backups/cleanup-2026-11-06-archived/",
+  "archived": [
+    {
+      "path": "themes",
+      "files": 298,
+      "bytes": 1511500,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\themes"
+    },
+    {
+      "path": "scaffolds",
+      "files": 3,
+      "bytes": 140,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\scaffolds"
+    },
+    {
+      "path": "_config.yml",
+      "files": 1,
+      "bytes": 3082,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\_config.yml"
+    },
+    {
+      "path": "_config.landscape.yml",
+      "files": 1,
+      "bytes": 0,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\_config.landscape.yml"
+    },
+    {
+      "path": "db.json",
+      "files": 1,
+      "bytes": 7814873,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\db.json"
+    },
+    {
+      "path": "source/_data",
+      "files": 10,
+      "bytes": 3890,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\source\\_data"
+    },
+    {
+      "path": "source/categories",
+      "files": 1,
+      "bytes": 69,
+      "category": "legacy",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\source\\categories"
+    },
+    {
+      "path": "scripts/new-post.js",
+      "files": 1,
+      "bytes": 1363,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\scripts\\new-post.js"
+    },
+    {
+      "path": "src/components/ArchivePanel.svelte",
+      "files": 1,
+      "bytes": 5004,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\ArchivePanel.svelte"
+    },
+    {
+      "path": "src/components/ConfigCarrier.astro",
+      "files": 1,
+      "bytes": 120,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\ConfigCarrier.astro"
+    },
+    {
+      "path": "src/components/control/BackToTop.astro",
+      "files": 1,
+      "bytes": 1243,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\control\\BackToTop.astro"
+    },
+    {
+      "path": "src/components/control/ButtonLink.astro",
+      "files": 1,
+      "bytes": 1299,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\control\\ButtonLink.astro"
+    },
+    {
+      "path": "src/components/control/ButtonTag.astro",
+      "files": 1,
+      "bytes": 365,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\control\\ButtonTag.astro"
+    },
+    {
+      "path": "src/components/GlobalStyles.astro",
+      "files": 1,
+      "bytes": 9,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\GlobalStyles.astro"
+    },
+    {
+      "path": "src/components/HomeIntro.astro",
+      "files": 1,
+      "bytes": 464,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\HomeIntro.astro"
+    },
+    {
+      "path": "src/components/LightDarkSwitch.svelte",
+      "files": 1,
+      "bytes": 4074,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\LightDarkSwitch.svelte"
+    },
+    {
+      "path": "src/components/misc/ImageWrapper.astro",
+      "files": 1,
+      "bytes": 1569,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\misc\\ImageWrapper.astro"
+    },
+    {
+      "path": "src/components/misc/License.astro",
+      "files": 1,
+      "bytes": 1838,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\misc\\License.astro"
+    },
+    {
+      "path": "src/components/PostMeta.astro",
+      "files": 1,
+      "bytes": 3116,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\PostMeta.astro"
+    },
+    {
+      "path": "src/components/widget/Categories.astro",
+      "files": 1,
+      "bytes": 992,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\widget\\Categories.astro"
+    },
+    {
+      "path": "src/components/widget/DisplaySettings.svelte",
+      "files": 1,
+      "bytes": 3235,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\widget\\DisplaySettings.svelte"
+    },
+    {
+      "path": "src/components/widget/NavMenuPanel.astro",
+      "files": 1,
+      "bytes": 1319,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\widget\\NavMenuPanel.astro"
+    },
+    {
+      "path": "src/components/widget/Profile.astro",
+      "files": 1,
+      "bytes": 2115,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\widget\\Profile.astro"
+    },
+    {
+      "path": "src/components/widget/Tags.astro",
+      "files": 1,
+      "bytes": 948,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\widget\\Tags.astro"
+    },
+    {
+      "path": "src/components/widget/WidgetLayout.astro",
+      "files": 1,
+      "bytes": 2052,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\components\\widget\\WidgetLayout.astro"
+    },
+    {
+      "path": "src/constants/icon.ts",
+      "files": 1,
+      "bytes": 772,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\constants\\icon.ts"
+    },
+    {
+      "path": "src/constants/link-presets.ts",
+      "files": 1,
+      "bytes": 431,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\constants\\link-presets.ts"
+    },
+    {
+      "path": "src/styles/scrollbar.css",
+      "files": 1,
+      "bytes": 1228,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\styles\\scrollbar.css"
+    },
+    {
+      "path": "src/utils/date-utils.ts",
+      "files": 1,
+      "bytes": 106,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\utils\\date-utils.ts"
+    },
+    {
+      "path": "src/utils/setting-utils.ts",
+      "files": 1,
+      "bytes": 1628,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\utils\\setting-utils.ts"
+    },
+    {
+      "path": "src/assets",
+      "files": 2,
+      "bytes": 1314230,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\src\\assets"
+    },
+    {
+      "path": "static/avatar.svg",
+      "files": 1,
+      "bytes": 493,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\static\\avatar.svg"
+    },
+    {
+      "path": "static/theme/demo-avatar.webp",
+      "files": 1,
+      "bytes": 42554,
+      "category": "unused-code-or-asset",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\static\\theme\\demo-avatar.webp"
+    },
+    {
+      "path": "public",
+      "files": 382,
+      "bytes": 25659074,
+      "category": "generated-or-cache",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\public"
+    },
+    {
+      "path": ".cache",
+      "files": 4803,
+      "bytes": 261577674,
+      "category": "generated-or-cache",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\.cache"
+    },
+    {
+      "path": ".firecrawl",
+      "files": 0,
+      "bytes": 0,
+      "category": "generated-or-cache",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\.firecrawl"
+    },
+    {
+      "path": "dist",
+      "files": 634,
+      "bytes": 38483561,
+      "category": "generated-or-cache",
+      "verifiedAbsolutePath": "D:\\ctf\\s0m1ng\\dist"
+    }
+  ],
+  "temporaryToolsArchive": ".backups/cleanup-2026-11-06-archived/verification-tools/"
+}
